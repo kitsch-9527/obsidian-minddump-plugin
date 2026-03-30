@@ -7,7 +7,15 @@
 
 Jot 是一个为 [Obsidian](https://obsidian.md) 设计的随手记插件，让你能够快速捕捉想法、记录灵感，并轻松管理碎片化笔记。支持标签嵌套、附件上传、日历视图、全文搜索等功能，完美融入 Obsidian 的工作流。
 
-![插件预览](screenshot.png)
+## 插件预览
+
+### 主工作区
+
+![Preview_workspace](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_workspace_cn.png)
+
+### 侧边栏
+
+![Preview_sidebar](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_sidebar_cn.png)
 
 ## 1 ✨ 特性
 
