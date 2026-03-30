@@ -1,0 +1,466 @@
+/* src/styles.css */
+.jots-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--background-primary);
+    padding: 16px;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+/* 日历样式 */
+.jots-calendar-section {
+    background: var(--background-primary-alt);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.jots-calendar {
+    width: 100%;
+}
+
+.jots-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.jots-calendar-nav {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.jots-calendar-nav:hover {
+    background: var(--background-modifier-hover);
+}
+
+.jots-calendar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.jots-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.jots-calendar-weekday {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-faint);
+    padding: 4px;
+}
+
+.jots-calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.jots-calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.jots-calendar-day-has-record {
+    background-color: var(--interactive-accent);
+    color: white;
+}
+
+.jots-calendar-day-has-record:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.jots-calendar-day-empty {
+    background-color: var(--background-modifier-border);
+    color: var(--text-faint);
+    cursor: default;
+}
+
+/* 搜索栏样式 */
+.jots-search-section {
+    background: var(--background-primary-alt);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.jots-search-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.jots-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 14px;
+}
+
+.jots-search-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+}
+
+.jots-tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.jots-tag-filter-label {
+    font-size: 12px;
+    color: var(--text-faint);
+}
+
+.jots-tag-filter-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.jots-tag-filter-btn:hover {
+    background: var(--background-modifier-hover);
+}
+
+.jots-tag-filter-btn.active {
+    background: var(--interactive-accent);
+    color: white;
+    border-color: var(--interactive-accent);
+}
+
+/* 记录列表样式 */
+.jots-list-section {
+    flex: 1;
+}
+
+.jots-date-group {
+    margin-bottom: 20px;
+}
+
+.jots-date-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-faint);
+    padding: 8px 0 4px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    margin-bottom: 8px;
+}
+
+.jots-card {
+    background: var(--background-primary-alt);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.jots-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.jots-card-time {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+}
+
+.jots-card-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-normal);
+    margin-bottom: 8px;
+}
+
+/* Markdown 渲染内容样式 */
+.jots-card-content markdown-rendered {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.jots-card-content markdown-rendered p {
+    margin: 0 0 4px 0;
+}
+
+.jots-card-content markdown-rendered ul,
+.jots-card-content markdown-rendered ol {
+    margin: 4px 0;
+    padding-left: 20px;
+}
+
+.jots-card-content markdown-rendered li {
+    margin: 2px 0;
+}
+
+.jots-card-content markdown-rendered blockquote {
+    margin: 4px 0;
+    padding-left: 12px;
+    border-left: 3px solid var(--interactive-accent);
+    color: var(--text-muted);
+}
+
+.jots-card-content markdown-rendered a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+.jots-card-content markdown-rendered a:hover {
+    text-decoration: underline;
+}
+
+.jots-card-content markdown-rendered .task-list-item {
+    list-style-type: none;
+}
+
+.jots-card-content markdown-rendered .task-list-item-checkbox {
+    margin-right: 6px;
+}
+
+.jots-card-content markdown-rendered img {
+    max-width: 100%;
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.jots-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.jots-card-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.jots-card-tag:hover {
+    color: var(--interactive-accent);
+}
+
+.jots-card-source {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-style: italic;
+}
+
+.jots-empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-faint);
+    font-size: 13px;
+}
+
+/* 建议列表样式 */
+.jots-suggestions {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.jots-suggestion-item {
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.jots-suggestion-item-active {
+    background-color: var(--background-modifier-hover);
+}
+
+/* 标签建议列表样式 */
+.jots-tag-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 2px;
+}
+
+.jots-tag-suggestion-item {
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+}
+
+.jots-tag-suggestion-item-active {
+    background-color: var(--background-modifier-hover);
+}
+
+/* 模态框样式 */
+.jots-capture-modal .modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.jots-capture-container {
+    width: 500px;
+    max-width: 90vw;
+    background: var(--background-primary);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.jots-capture-textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    background: var(--background-primary-alt);
+    color: var(--text-normal);
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.jots-capture-textarea:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+}
+
+/* 工具提示 */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border: 1px solid var(--background-modifier-border);
+}
+
+/* 搜索高亮样式 */
+.search-highlight {
+    background-color: var(--text-highlight-bg, #ffeb3b);
+    color: var(--text-normal);
+    border-radius: 2px;
+    padding: 0 2px;
+}
+
+/* 深色模式下的高亮调整 */
+.theme-dark .search-highlight {
+    background-color: var(--text-highlight-bg, #ffd700);
+    color: #1e1e1e;
+}
+
+/* 搜索框清空按钮样式 */
+.search-clear-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-clear-container:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.search-clear-container span {
+    pointer-events: none;
+}
+
+/* 搜索框容器需要相对定位 */
+.jots-search-section .search-clear-container {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+.jots-search-section .search-clear-container:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.jots-search-section .search-clear-container span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* 确保搜索框输入框有右侧内边距，为清空按钮留出空间 */
+.jots-search-section input {
+    padding-right: 32px !important;
+}

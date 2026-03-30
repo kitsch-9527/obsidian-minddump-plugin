@@ -1,0 +1,24 @@
+{
+  "name": "obsidian-jot-plugin",
+  "version": "1.0.0",
+  "description": "Quick note-taking plugin for Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.js",
+    "build": "node esbuild.config.js production"
+  },
+  "keywords": ["obsidian", "plugin", "jot", "memo"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/moment": "^2.13.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.19.0",
+    "obsidian": "latest",
+    "typescript": "^5.0.0"
+  }
+}
