@@ -8,7 +8,14 @@
 
 Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It helps you capture fleeting thoughts, jot down ideas, and manage fragmented notes with ease. Features like nested tags, file attachments, a calendar overview, full‑text search, and seamless Markdown rendering make it a perfect fit for your Obsidian workflow.
 
-![Plugin Preview](screenshot.png)
+## Preview
+### Workspace Area
+
+![Preview_workspace](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_1.png)
+
+### Sidebar
+
+![Preview_sidebar](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_sidebar.png)
 
 ## 1 ✨ Features
 
