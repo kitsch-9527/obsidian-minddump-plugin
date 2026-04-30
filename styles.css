@@ -1140,18 +1140,13 @@
     color: var(--interactive-accent-hover, var(--interactive-accent));
 }
 
-/* 主视图快速记录：细边框卡片 + 底部工具栏 + 主题色发送键（accent 随主题变化） */
+/* 主视图快速记录：无边框卡片 + 底部工具栏 + 主题色发送键（accent 随主题变化） */
 .jots-quick-compose-card {
     background: var(--background-primary);
-    border: 1px solid var(--background-modifier-border);
+    border: none;
     border-radius: 14px;
     padding: 16px 16px 12px;
     box-shadow: none;
-    transition: border-color 0.15s ease;
-}
-
-.jots-quick-compose-card:focus-within {
-    border-color: var(--interactive-accent);
 }
 
 /* 主视图快速输入（非内联编辑）：始终在左栏滚动区内吸顶 */
@@ -1179,14 +1174,16 @@
 .jots-quick-textarea {
     width: 100%;
     min-height: 140px;
-    border: none;
+    max-height: 50vh;
+    border: none !important;
     background: transparent;
     color: var(--text-normal);
-    resize: vertical;
+    resize: none;
     line-height: 1.6;
     font-size: 15px;
     padding: 4px 2px 8px;
-    box-shadow: none;
+    box-shadow: none !important;
+    box-sizing: border-box;
 }
 
 /* 主视图快速记录：紧凑态仅一行可视高度（与 line-height + 上下 padding 一致），点击或输入后展开 */
@@ -1207,8 +1204,12 @@
     opacity: 0.9;
 }
 
-.jots-quick-textarea:focus {
-    outline: none;
+.jots-quick-textarea:focus,
+.jots-quick-textarea:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* 正文里 ![[...]] 无法在 textarea 内渲染，用缩略图条展示 vault 图片 */

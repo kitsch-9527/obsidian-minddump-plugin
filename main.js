@@ -5040,6 +5040,8 @@ function mountQuickComposeCard(options) {
   const textareaContainer = inputCard.createDiv({ cls: "jots-quick-textarea-container" });
   const textarea = textareaContainer.createEl("textarea", { cls: "jots-quick-textarea" });
   textarea.placeholder = isEdit ? t("placeholderWithLink", lang) : t("contentPlaceholder", lang);
+  let syncQuickTextareaHeight = () => {
+  };
   let expandCompactTextarea = () => {
   };
   let markCompactDrafted = () => {
@@ -5100,6 +5102,7 @@ function mountQuickComposeCard(options) {
       inputCard.removeClass("jots-quick-compose-card--textarea-compact");
       inputCard.addClass("jots-quick-compose-card--textarea-expanded");
       bindCompactScrollCollapse();
+      syncQuickTextareaHeight();
     };
     resetCompactCaptureState = () => {
       compactUserHasDrafted = false;
@@ -5107,6 +5110,7 @@ function mountQuickComposeCard(options) {
       compactScrollCleanup = null;
       inputCard.addClass("jots-quick-compose-card--textarea-compact");
       inputCard.removeClass("jots-quick-compose-card--textarea-expanded");
+      syncQuickTextareaHeight();
     };
     markCompactDrafted = () => {
       compactUserHasDrafted = true;
@@ -5124,6 +5128,22 @@ function mountQuickComposeCard(options) {
       expandCompactTextarea();
     });
   }
+  syncQuickTextareaHeight = () => {
+    if (!isEdit && inputCard.classList.contains("jots-quick-compose-card--textarea-compact")) {
+      textarea.style.removeProperty("height");
+      textarea.style.removeProperty("overflow-y");
+      return;
+    }
+    const cs = getComputedStyle(textarea);
+    const minH = parseFloat(cs.minHeight) || 140;
+    const maxParsed = parseFloat(cs.maxHeight);
+    const cap = Number.isFinite(maxParsed) && maxParsed > 0 ? maxParsed : Math.floor(window.innerHeight * 0.5);
+    textarea.style.height = "auto";
+    const sh = textarea.scrollHeight;
+    const next = Math.max(minH, Math.min(sh, cap));
+    textarea.style.height = `${next}px`;
+    textarea.style.overflowY = sh > cap ? "auto" : "hidden";
+  };
   const runWikilink = () => setupWikilinkAutocomplete(app, textarea, textareaContainer, (file, ta, bracketStart) => {
     const cursorPos = ta.selectionStart;
     const textBefore = ta.value.substring(0, bracketStart);
@@ -5274,6 +5294,21 @@ function mountQuickComposeCard(options) {
         paintTagPills();
       }
     });
+    window.setTimeout(() => {
+      if (gen !== tagBlurFinalizeGen)
+        return;
+      if (tagInput.ownerDocument.activeElement === tagInput)
+        return;
+      const ae = tagInput.ownerDocument.activeElement;
+      if (ae && tagSection.contains(ae))
+        return;
+      if (replacingTag)
+        return;
+      const v = tagInput.value.replace(/^#+/, "").trim();
+      if (v !== "")
+        return;
+      tagSection.style.display = "none";
+    }, 200);
   });
   const sourceSection = inputCard.createDiv({ cls: "jots-quick-source-section" });
   const sourceInput = sourceSection.createEl("input", { cls: "jots-quick-meta-input" });
@@ -5284,6 +5319,7 @@ function mountQuickComposeCard(options) {
     textarea.value = options.initial.content;
     sourceInput.value = options.initial.source;
   }
+  syncQuickTextareaHeight();
   const attachmentTray = inputCard.createDiv({ cls: "jots-quick-attachment-tray" });
   let selectedAttachments = isEdit ? [...(_a = options.initial.attachments) != null ? _a : []] : [];
   let syncQuickSendReady = () => {
@@ -5352,6 +5388,7 @@ function mountQuickComposeCard(options) {
           renderAttachmentTray();
           refreshEmbedPreviews();
           syncQuickSendReady();
+          syncQuickTextareaHeight();
         });
       } else {
         const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
@@ -5383,6 +5420,7 @@ function mountQuickComposeCard(options) {
     renderAttachmentTray();
     refreshEmbedPreviews();
     syncQuickSendReady();
+    syncQuickTextareaHeight();
   };
   renderAttachmentTray();
   refreshEmbedPreviews();
@@ -5397,6 +5435,7 @@ function mountQuickComposeCard(options) {
     }
     refreshEmbedPreviews();
     syncQuickSendReady();
+    syncQuickTextareaHeight();
   });
   const setDropActive = (active) => {
     textareaContainer.classList.toggle("is-drop-active", active);
@@ -5434,6 +5473,7 @@ function mountQuickComposeCard(options) {
     refreshEmbedPreviews();
     expandCompactTextarea();
     textarea.focus();
+    syncQuickTextareaHeight();
   });
   const toolbarRow = inputCard.createDiv({ cls: "jots-quick-toolbar-row" });
   const toolGroup = toolbarRow.createDiv({ cls: "jots-quick-tools jots-tool-menu" });
