@@ -4054,7 +4054,26 @@ var init_i18n = __esm({
         autoOpenView: "\u6253\u5F00 vault \u65F6\u81EA\u52A8\u6253\u5F00\u968F\u624B\u8BB0\u89C6\u56FE",
         autoOpenViewDesc: "\u542F\u52A8 Obsidian \u65F6\u81EA\u52A8\u6253\u5F00\u968F\u624B\u8BB0\u89C6\u56FE",
         jotUpdatedAt: "\u66F4\u65B0",
-        pasteImageUploadFailed: "\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF1A{error}"
+        pasteImageUploadFailed: "\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF1A{error}",
+        cardMenuShare: "\u5206\u4EAB",
+        cardMenuEdit: "\u7F16\u8F91",
+        cardMenuPinTop: "\u7F6E\u9876",
+        cardMenuFloatingWindow: "\u52A0\u5165\u6D6E\u7A97",
+        cardMenuRelatedNotes: "\u76F8\u5173\u7B14\u8BB0",
+        cardMenuCopyLink: "\u590D\u5236\u94FE\u63A5",
+        cardMenuAnnotate: "\u6279\u6CE8",
+        cardMenuMore: "\u66F4\u591A",
+        cardMenuMoreOpenNote: "\u5728\u7B14\u8BB0\u4E2D\u6253\u5F00",
+        cardMenuMoreCopyMarkdown: "\u590D\u5236 Markdown",
+        cardMenuDelete: "\u5220\u9664",
+        cardMenuWordCount: "\u5B57\u6570\u7EDF\u8BA1: {count}",
+        cardMenuEditedAtFooter: "\u7F16\u8F91\u4E8E {time}",
+        cardMenuLinkCopied: "\u5DF2\u590D\u5236\u94FE\u63A5",
+        cardMenuShareCopied: "\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F",
+        cardMenuDeleted: "\u5DF2\u5220\u9664",
+        cardMenuDeleteConfirm: "\u786E\u5B9A\u5220\u9664\u8FD9\u6761\u968F\u624B\u8BB0\uFF1F\u6B64\u64CD\u4F5C\u4E0D\u53EF\u64A4\u9500\u3002",
+        cardMenuComingSoon: "\u656C\u8BF7\u671F\u5F85",
+        cardMenuAiBadge: "AI"
       },
       en: {
         pluginName: "Jot",
@@ -4136,7 +4155,26 @@ var init_i18n = __esm({
         autoOpenView: "Auto-open Jot View on vault open",
         autoOpenViewDesc: "Automatically open Jot View when Obsidian starts",
         jotUpdatedAt: "Updated",
-        pasteImageUploadFailed: "Image upload failed: {error}"
+        pasteImageUploadFailed: "Image upload failed: {error}",
+        cardMenuShare: "Share",
+        cardMenuEdit: "Edit",
+        cardMenuPinTop: "Pin to top",
+        cardMenuFloatingWindow: "Add to floating window",
+        cardMenuRelatedNotes: "Related notes",
+        cardMenuCopyLink: "Copy link",
+        cardMenuAnnotate: "Annotate",
+        cardMenuMore: "More",
+        cardMenuMoreOpenNote: "Open in editor",
+        cardMenuMoreCopyMarkdown: "Copy Markdown",
+        cardMenuDelete: "Delete",
+        cardMenuWordCount: "Characters: {count}",
+        cardMenuEditedAtFooter: "Edited at {time}",
+        cardMenuLinkCopied: "Link copied",
+        cardMenuShareCopied: "Copied to clipboard",
+        cardMenuDeleted: "Deleted",
+        cardMenuDeleteConfirm: "Delete this jot? This cannot be undone.",
+        cardMenuComingSoon: "Coming soon",
+        cardMenuAiBadge: "AI"
       }
     };
   }
@@ -4258,6 +4296,54 @@ function replaceJotBlockById(content, filePath, targetId, newBlock) {
         next += newBlock;
         if (suffix)
           next += suffix;
+        return { content: next, found: true };
+      }
+      i = k;
+    } else {
+      i++;
+    }
+  }
+  return { content, found: false };
+}
+function removeJotBlockById(content, filePath, targetId) {
+  const lines = content.split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const lineTrim = lines[i].trim();
+    if (lineTrim.startsWith("### ")) {
+      const blockStart = i;
+      const headerRest = lineTrim.substring(4).trim();
+      const [date, time] = headerRest.split(" ");
+      let metaId = "";
+      let j = i + 1;
+      while (j < lines.length) {
+        const t2 = lines[j].trim();
+        const idMatch = t2.match(/^####\s+id:\s*(.+)$/i);
+        if (idMatch) {
+          metaId = idMatch[1].trim();
+          j++;
+          continue;
+        }
+        if (/^####\s+updatedAt:\s*.+$/i.test(t2)) {
+          j++;
+          continue;
+        }
+        break;
+      }
+      const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
+      let k = j;
+      while (k < lines.length && !lines[k].trim().startsWith("### ")) {
+        k++;
+      }
+      if (id === targetId) {
+        const prefix = lines.slice(0, blockStart).join("\n");
+        const suffix = lines.slice(k).join("\n");
+        let next = prefix;
+        if (suffix) {
+          next = next ? `${next}
+${suffix}` : suffix;
+        }
+        next = next.replace(/\n{4,}/g, "\n\n\n");
         return { content: next, found: true };
       }
       i = k;
@@ -5124,6 +5210,8 @@ var JotView = class extends import_obsidian3.ItemView {
     this.editingJotId = null;
     this.editSessionTags = [];
     this.jotListCleanups = [];
+    /** Tears down floating card ⋮ menu (outside list DOM). */
+    this.cardMenuUnmount = null;
     this.plugin = plugin;
     const now = /* @__PURE__ */ new Date();
     this.currentYear = now.getFullYear();
@@ -5187,6 +5275,7 @@ var JotView = class extends import_obsidian3.ItemView {
       }
     });
     this.renderedComponents = [];
+    this.closeCardMenu();
   }
   focusTextarea() {
     if (this.currentTextarea) {
@@ -5338,6 +5427,253 @@ var JotView = class extends import_obsidian3.ItemView {
       card.removeEventListener("pointermove", onPointerMove);
       card.removeEventListener("pointerup", onPointerUp);
       card.removeEventListener("pointercancel", onPointerCancel);
+    });
+  }
+  closeCardMenu() {
+    if (this.cardMenuUnmount) {
+      try {
+        this.cardMenuUnmount();
+      } catch (e) {
+      }
+      this.cardMenuUnmount = null;
+    }
+  }
+  jotWordCount(jot) {
+    const stripped = jot.content.replace(/!\[\[[^\]]+\]\]/g, "").replace(/\[\[[^\]]+\]\]/g, "x").replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "").replace(/[#>*_\-\[\]()]/g, "").trim();
+    return stripped.length > 0 ? [...stripped].length : 0;
+  }
+  buildObsidianFileUri(jot) {
+    if (!jot.filePath)
+      return null;
+    const vault = this.app.vault.getName();
+    return `obsidian://open?vault=${encodeURIComponent(vault)}&file=${encodeURIComponent((0, import_obsidian3.normalizePath)(jot.filePath))}`;
+  }
+  jotMarkdownClipboardText(jot) {
+    var _a;
+    let md = jot.content;
+    const tagLine = normalizeJotTags(jot.tags).map((x) => `#${x}`).join(" ");
+    if (tagLine)
+      md += `
+
+${tagLine}`;
+    if ((_a = jot.source) == null ? void 0 : _a.trim()) {
+      const prefix = this.lang === "zh" ? "\u6765\u6E90:" : "Source:";
+      md += `
+
+${prefix} ${jot.source.trim()}`;
+    }
+    return md;
+  }
+  /** Same window/document as the jot view (pop-out safe). */
+  getCardMenuMount() {
+    const doc = this.contentEl.doc;
+    const win = this.contentEl.win;
+    return { mountEl: doc.body, doc, win };
+  }
+  applyCardMenuShellStyles(menu, win) {
+    menu.style.position = "fixed";
+    menu.style.zIndex = "55000";
+    menu.style.boxSizing = "border-box";
+    menu.style.backgroundColor = "var(--background-primary)";
+    menu.style.border = "1px solid var(--background-modifier-border)";
+    menu.style.borderRadius = "10px";
+    menu.style.boxShadow = "0 8px 28px rgba(0, 0, 0, 0.18)";
+    menu.style.padding = "6px 0";
+    menu.style.color = "var(--text-normal)";
+    menu.style.fontSize = "13px";
+    menu.style.maxWidth = `${Math.max(160, win.innerWidth - 16)}px`;
+  }
+  positionCardMenu(menu, anchor) {
+    const win = anchor.win;
+    const r = anchor.getBoundingClientRect();
+    const pad = 8;
+    const vw = win.innerWidth;
+    const vh = win.innerHeight;
+    const mw = Math.min(240, vw - pad * 2);
+    menu.style.width = `${mw}px`;
+    this.applyCardMenuShellStyles(menu, win);
+    let left = r.right - mw;
+    let top = r.bottom + 4;
+    if (left < pad)
+      left = pad;
+    if (left + mw > vw - pad)
+      left = vw - mw - pad;
+    const mh = menu.offsetHeight || 320;
+    if (top + mh > vh - pad) {
+      top = Math.max(pad, r.top - mh - 4);
+    }
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+  }
+  openCardMenu(anchor, jot) {
+    var _a;
+    this.closeCardMenu();
+    const lang = this.lang;
+    const { mountEl, doc, win } = this.getCardMenuMount();
+    const menu = mountEl.createDiv({ cls: "jots-card-menu-popover" });
+    menu.dataset.anchorId = jot.id;
+    this.applyCardMenuShellStyles(menu, win);
+    const addDivider = () => menu.createDiv({ cls: "jots-card-menu-divider" });
+    const addIconRow = (iconId, label, onActivate) => {
+      const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--action" });
+      const iconWrap = row.createSpan({ cls: "jots-card-menu-row-icon" });
+      (0, import_obsidian3.setIcon)(iconWrap, iconId);
+      row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+      row.addEventListener("pointerdown", (e) => e.stopPropagation());
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        onActivate();
+      });
+    };
+    const addStubRow = (label) => {
+      const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub" });
+      row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+      row.addEventListener("pointerdown", (e) => e.stopPropagation());
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        new import_obsidian3.Notice(t("cardMenuComingSoon", lang));
+      });
+    };
+    addIconRow("share", t("cardMenuShare", lang), async () => {
+      this.closeCardMenu();
+      try {
+        if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+          await navigator.share({ text: jot.content });
+        } else {
+          await navigator.clipboard.writeText(jot.content);
+          new import_obsidian3.Notice(t("cardMenuShareCopied", lang));
+        }
+      } catch (err) {
+        if ((err == null ? void 0 : err.name) === "AbortError")
+          return;
+        try {
+          await navigator.clipboard.writeText(jot.content);
+          new import_obsidian3.Notice(t("cardMenuShareCopied", lang));
+        } catch (e) {
+        }
+      }
+    });
+    addIconRow("pencil", t("cardMenuEdit", lang), () => {
+      this.closeCardMenu();
+      this.enterEditMode(jot);
+    });
+    addDivider();
+    addStubRow(t("cardMenuPinTop", lang));
+    addStubRow(t("cardMenuFloatingWindow", lang));
+    const relatedRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub jots-card-menu-row--spread" });
+    relatedRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuRelatedNotes", lang) });
+    relatedRow.createSpan({ cls: "jots-card-menu-ai-badge", text: t("cardMenuAiBadge", lang) });
+    relatedRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+    relatedRow.addEventListener("click", (e) => {
+      e.stopPropagation();
+      new import_obsidian3.Notice(t("cardMenuComingSoon", lang));
+    });
+    const copyLinkRow = menu.createDiv({ cls: "jots-card-menu-row" });
+    copyLinkRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuCopyLink", lang) });
+    copyLinkRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+    copyLinkRow.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      this.closeCardMenu();
+      const uri = this.buildObsidianFileUri(jot);
+      if (!uri) {
+        new import_obsidian3.Notice(t("jotUpdateNoFile", lang));
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(uri);
+        new import_obsidian3.Notice(t("cardMenuLinkCopied", lang));
+      } catch (e2) {
+      }
+    });
+    addStubRow(t("cardMenuAnnotate", lang));
+    const moreRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--spread jots-card-menu-row--more" });
+    moreRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuMore", lang) });
+    const chev = moreRow.createSpan({ cls: "jots-card-menu-row-chevron" });
+    (0, import_obsidian3.setIcon)(chev, "chevron-right");
+    const sub = menu.createDiv({ cls: "jots-card-menu-sub" });
+    const subOpenNote = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+    subOpenNote.textContent = t("cardMenuMoreOpenNote", lang);
+    subOpenNote.addEventListener("pointerdown", (e) => e.stopPropagation());
+    subOpenNote.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.closeCardMenu();
+      void this.openJot(jot);
+    });
+    const subCopyMd = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+    subCopyMd.textContent = t("cardMenuMoreCopyMarkdown", lang);
+    subCopyMd.addEventListener("pointerdown", (e) => e.stopPropagation());
+    subCopyMd.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      this.closeCardMenu();
+      try {
+        await navigator.clipboard.writeText(this.jotMarkdownClipboardText(jot));
+        new import_obsidian3.Notice(t("cardMenuShareCopied", lang));
+      } catch (e2) {
+      }
+    });
+    moreRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+    moreRow.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = sub.classList.toggle("is-open");
+      moreRow.classList.toggle("is-open", open);
+      this.positionCardMenu(menu, anchor);
+    });
+    addDivider();
+    const delRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--danger" });
+    delRow.textContent = t("cardMenuDelete", lang);
+    delRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+    delRow.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      this.closeCardMenu();
+      if (!confirm(t("cardMenuDeleteConfirm", lang)))
+        return;
+      try {
+        await this.plugin.deleteJot(jot);
+        new import_obsidian3.Notice(t("cardMenuDeleted", lang));
+      } catch (e2) {
+      }
+    });
+    addDivider();
+    const footer = menu.createDiv({ cls: "jots-card-menu-footer" });
+    const wc = this.jotWordCount(jot);
+    footer.createDiv({
+      cls: "jots-card-menu-footer-line",
+      text: t("cardMenuWordCount", lang, { count: String(wc) })
+    });
+    const timeDisplay = (0, import_moment2.default)(jot.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid() ? (0, import_moment2.default)(jot.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm") : jot.updatedAt.includes(" ") ? (_a = jot.updatedAt.split(/\s+/).pop()) != null ? _a : jot.updatedAt : jot.updatedAt;
+    footer.createDiv({
+      cls: "jots-card-menu-footer-line",
+      text: t("cardMenuEditedAtFooter", lang, { time: timeDisplay })
+    });
+    const onDocPointer = (ev) => {
+      const tEl = ev.target;
+      if (!menu.contains(tEl) && !anchor.contains(tEl)) {
+        this.closeCardMenu();
+      }
+    };
+    const onKey = (ev) => {
+      if (ev.key === "Escape")
+        this.closeCardMenu();
+    };
+    const onScrollClose = () => this.closeCardMenu();
+    const onReposition = () => this.positionCardMenu(menu, anchor);
+    win.addEventListener("resize", onReposition);
+    win.addEventListener("scroll", onScrollClose, true);
+    this.contentEl.addEventListener("scroll", onScrollClose, true);
+    this.cardMenuUnmount = () => {
+      win.removeEventListener("resize", onReposition);
+      win.removeEventListener("scroll", onScrollClose, true);
+      this.contentEl.removeEventListener("scroll", onScrollClose, true);
+      doc.removeEventListener("pointerdown", onDocPointer, true);
+      win.removeEventListener("keydown", onKey);
+      menu.remove();
+    };
+    requestAnimationFrame(() => {
+      this.positionCardMenu(menu, anchor);
+      setTimeout(() => {
+        doc.addEventListener("pointerdown", onDocPointer, true);
+        win.addEventListener("keydown", onKey);
+      }, 0);
     });
   }
   enterEditMode(jot) {
@@ -6202,6 +6538,7 @@ var JotView = class extends import_obsidian3.ItemView {
       }
     });
     this.jotListCleanups = [];
+    this.closeCardMenu();
     let filteredJots = this.filterJots();
     if (filteredJots.length === 0) {
       const empty = container.createDiv();
@@ -6396,19 +6733,29 @@ var JotView = class extends import_obsidian3.ItemView {
           card.style.borderColor = "var(--background-modifier-border)";
           card.style.transform = "translateY(0)";
         });
-        const metaRow = card.createDiv();
-        metaRow.style.display = "flex";
-        metaRow.style.flexWrap = "wrap";
-        metaRow.style.alignItems = "baseline";
-        metaRow.style.gap = "12px";
-        metaRow.style.marginBottom = "6px";
-        metaRow.style.fontSize = "10px";
-        metaRow.style.color = "var(--text-muted)";
-        metaRow.createSpan({ text: jot.time });
-        const updLabel = metaRow.createSpan();
+        const metaRow = card.createDiv({ cls: "jots-card-meta-row" });
+        const metaLeft = metaRow.createDiv({ cls: "jots-card-meta-left" });
+        metaLeft.createSpan({ cls: "jots-card-meta-time", text: jot.time });
+        const updLabel = metaLeft.createSpan({ cls: "jots-card-meta-upd" });
         updLabel.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
-        updLabel.style.color = "var(--text-normal)";
-        updLabel.style.fontWeight = "600";
+        const menuTrigger = metaRow.createEl("button", {
+          cls: "jots-card-menu-trigger",
+          type: "button",
+          attr: { "aria-label": t("cardMenuMore", this.lang) }
+        });
+        (0, import_obsidian3.setIcon)(menuTrigger, "more-horizontal");
+        const stopCard = (ev) => ev.stopPropagation();
+        menuTrigger.addEventListener("pointerdown", stopCard);
+        menuTrigger.addEventListener("pointerup", stopCard);
+        menuTrigger.addEventListener("click", (ev) => {
+          stopCard(ev);
+          const openMenu = this.contentEl.doc.body.querySelector(".jots-card-menu-popover");
+          if ((openMenu == null ? void 0 : openMenu.dataset.anchorId) === jot.id) {
+            this.closeCardMenu();
+            return;
+          }
+          this.openCardMenu(menuTrigger, jot);
+        });
         const contentContainer = card.createDiv();
         contentContainer.style.fontSize = "12px";
         contentContainer.style.lineHeight = "1.5";
@@ -7031,6 +7378,37 @@ var JotPlugin = class extends import_obsidian5.Plugin {
     let found = false;
     await this.app.vault.process(file, (text) => {
       const result = replaceJotBlockById(text, file.path, updated.id, newBlock);
+      found = result.found;
+      return result.content;
+    });
+    if (!found) {
+      const msg = t("jotUpdateNotFound", this.lang);
+      new import_obsidian5.Notice(msg);
+      throw new Error(msg);
+    }
+    this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
+      if (leaf.view instanceof JotView)
+        leaf.view.refresh();
+    });
+    await this.loadJotsData();
+  }
+  /** Remove one jot block from its source file by `id`. */
+  async deleteJot(jot) {
+    if (!jot.filePath) {
+      const msg = t("jotUpdateNoFile", this.lang);
+      new import_obsidian5.Notice(msg);
+      throw new Error(msg);
+    }
+    const pathNorm = (0, import_obsidian5.normalizePath)(jot.filePath);
+    const file = this.app.vault.getAbstractFileByPath(pathNorm);
+    if (!(file instanceof import_obsidian5.TFile)) {
+      const msg = t("jotUpdateFileMissing", this.lang);
+      new import_obsidian5.Notice(msg);
+      throw new Error(msg);
+    }
+    let found = false;
+    await this.app.vault.process(file, (text) => {
+      const result = removeJotBlockById(text, file.path, jot.id);
       found = result.found;
       return result.content;
     });

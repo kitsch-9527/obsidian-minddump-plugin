@@ -11,7 +11,8 @@ import {
     newJotId,
     composeJotMarkdownBody,
     formatJotEntryBlock,
-    replaceJotBlockById
+    replaceJotBlockById,
+    removeJotBlockById
 } from './utils';
 
 export default class JotPlugin extends Plugin {
@@ -233,6 +234,37 @@ export default class JotPlugin extends Plugin {
         }
 
         this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach(leaf => {
+            if (leaf.view instanceof JotView) leaf.view.refresh();
+        });
+        await this.loadJotsData();
+    }
+
+    /** Remove one jot block from its source file by `id`. */
+    async deleteJot(jot: Jot): Promise<void> {
+        if (!jot.filePath) {
+            const msg = t("jotUpdateNoFile", this.lang);
+            new Notice(msg);
+            throw new Error(msg);
+        }
+        const pathNorm = normalizePath(jot.filePath);
+        const file = this.app.vault.getAbstractFileByPath(pathNorm);
+        if (!(file instanceof TFile)) {
+            const msg = t("jotUpdateFileMissing", this.lang);
+            new Notice(msg);
+            throw new Error(msg);
+        }
+        let found = false;
+        await this.app.vault.process(file, (text) => {
+            const result = removeJotBlockById(text, file.path, jot.id);
+            found = result.found;
+            return result.content;
+        });
+        if (!found) {
+            const msg = t("jotUpdateNotFound", this.lang);
+            new Notice(msg);
+            throw new Error(msg);
+        }
+        this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
             if (leaf.view instanceof JotView) leaf.view.refresh();
         });
         await this.loadJotsData();

@@ -82,6 +82,25 @@ export interface Translations {
     autoOpenViewDesc: string;
     jotUpdatedAt: string;
     pasteImageUploadFailed: string;
+    cardMenuShare: string;
+    cardMenuEdit: string;
+    cardMenuPinTop: string;
+    cardMenuFloatingWindow: string;
+    cardMenuRelatedNotes: string;
+    cardMenuCopyLink: string;
+    cardMenuAnnotate: string;
+    cardMenuMore: string;
+    cardMenuMoreOpenNote: string;
+    cardMenuMoreCopyMarkdown: string;
+    cardMenuDelete: string;
+    cardMenuWordCount: string;
+    cardMenuEditedAtFooter: string;
+    cardMenuLinkCopied: string;
+    cardMenuShareCopied: string;
+    cardMenuDeleted: string;
+    cardMenuDeleteConfirm: string;
+    cardMenuComingSoon: string;
+    cardMenuAiBadge: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -166,6 +185,25 @@ export const translations: Record<Language, Translations> = {
         autoOpenViewDesc: "启动 Obsidian 时自动打开随手记视图",
         jotUpdatedAt: "更新",
         pasteImageUploadFailed: "图片上传失败：{error}",
+        cardMenuShare: "分享",
+        cardMenuEdit: "编辑",
+        cardMenuPinTop: "置顶",
+        cardMenuFloatingWindow: "加入浮窗",
+        cardMenuRelatedNotes: "相关笔记",
+        cardMenuCopyLink: "复制链接",
+        cardMenuAnnotate: "批注",
+        cardMenuMore: "更多",
+        cardMenuMoreOpenNote: "在笔记中打开",
+        cardMenuMoreCopyMarkdown: "复制 Markdown",
+        cardMenuDelete: "删除",
+        cardMenuWordCount: "字数统计: {count}",
+        cardMenuEditedAtFooter: "编辑于 {time}",
+        cardMenuLinkCopied: "已复制链接",
+        cardMenuShareCopied: "已复制到剪贴板",
+        cardMenuDeleted: "已删除",
+        cardMenuDeleteConfirm: "确定删除这条随手记？此操作不可撤销。",
+        cardMenuComingSoon: "敬请期待",
+        cardMenuAiBadge: "AI",
     },
     en: {
         pluginName: "Jot",
@@ -248,6 +286,25 @@ export const translations: Record<Language, Translations> = {
         autoOpenViewDesc: "Automatically open Jot View when Obsidian starts",
         jotUpdatedAt: "Updated",
         pasteImageUploadFailed: "Image upload failed: {error}",
+        cardMenuShare: "Share",
+        cardMenuEdit: "Edit",
+        cardMenuPinTop: "Pin to top",
+        cardMenuFloatingWindow: "Add to floating window",
+        cardMenuRelatedNotes: "Related notes",
+        cardMenuCopyLink: "Copy link",
+        cardMenuAnnotate: "Annotate",
+        cardMenuMore: "More",
+        cardMenuMoreOpenNote: "Open in editor",
+        cardMenuMoreCopyMarkdown: "Copy Markdown",
+        cardMenuDelete: "Delete",
+        cardMenuWordCount: "Characters: {count}",
+        cardMenuEditedAtFooter: "Edited at {time}",
+        cardMenuLinkCopied: "Link copied",
+        cardMenuShareCopied: "Copied to clipboard",
+        cardMenuDeleted: "Deleted",
+        cardMenuDeleteConfirm: "Delete this jot? This cannot be undone.",
+        cardMenuComingSoon: "Coming soon",
+        cardMenuAiBadge: "AI",
     }
 };
 

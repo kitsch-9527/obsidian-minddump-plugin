@@ -1,5 +1,5 @@
 // src/view.ts
-import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component, normalizePath } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component, normalizePath, setIcon } from 'obsidian';
 import moment from 'moment';
 import JotPlugin from './main';
 import { Jot, DayRecord, Language } from './types';
@@ -48,6 +48,8 @@ export class JotView extends ItemView {
     private editingJotId: string | null = null;
     private editSessionTags: string[] = [];
     private jotListCleanups: (() => void)[] = [];
+    /** Tears down floating card ⋮ menu (outside list DOM). */
+    private cardMenuUnmount: (() => void) | null = null;
 
     get lang(): Language {
         return this.plugin.lang;
@@ -135,6 +137,7 @@ export class JotView extends ItemView {
             }
         });
         this.renderedComponents = [];
+        this.closeCardMenu();
     }
     
     private focusTextarea() {
@@ -299,6 +302,282 @@ export class JotView extends ItemView {
             card.removeEventListener("pointermove", onPointerMove);
             card.removeEventListener("pointerup", onPointerUp);
             card.removeEventListener("pointercancel", onPointerCancel);
+        });
+    }
+
+    private closeCardMenu() {
+        if (this.cardMenuUnmount) {
+            try {
+                this.cardMenuUnmount();
+            } catch {
+                /* ignore */
+            }
+            this.cardMenuUnmount = null;
+        }
+    }
+
+    private jotWordCount(jot: Jot): number {
+        const stripped = jot.content
+            .replace(/!\[\[[^\]]+\]\]/g, "")
+            .replace(/\[\[[^\]]+\]\]/g, "x")
+            .replace(/```[\s\S]*?```/g, "")
+            .replace(/`[^`]+`/g, "")
+            .replace(/[#>*_\-\[\]()]/g, "")
+            .trim();
+        return stripped.length > 0 ? [...stripped].length : 0;
+    }
+
+    private buildObsidianFileUri(jot: Jot): string | null {
+        if (!jot.filePath) return null;
+        const vault = this.app.vault.getName();
+        return `obsidian://open?vault=${encodeURIComponent(vault)}&file=${encodeURIComponent(normalizePath(jot.filePath))}`;
+    }
+
+    private jotMarkdownClipboardText(jot: Jot): string {
+        let md = jot.content;
+        const tagLine = normalizeJotTags(jot.tags)
+            .map((x) => `#${x}`)
+            .join(" ");
+        if (tagLine) md += `\n\n${tagLine}`;
+        if (jot.source?.trim()) {
+            const prefix = this.lang === "zh" ? "来源:" : "Source:";
+            md += `\n\n${prefix} ${jot.source.trim()}`;
+        }
+        return md;
+    }
+
+    /** Same window/document as the jot view (pop-out safe). */
+    private getCardMenuMount(): { mountEl: HTMLElement; doc: Document; win: Window } {
+        const doc = this.contentEl.doc;
+        const win = this.contentEl.win;
+        return { mountEl: doc.body, doc, win };
+    }
+
+    private applyCardMenuShellStyles(menu: HTMLElement, win: Window) {
+        menu.style.position = "fixed";
+        menu.style.zIndex = "55000";
+        menu.style.boxSizing = "border-box";
+        menu.style.backgroundColor = "var(--background-primary)";
+        menu.style.border = "1px solid var(--background-modifier-border)";
+        menu.style.borderRadius = "10px";
+        menu.style.boxShadow = "0 8px 28px rgba(0, 0, 0, 0.18)";
+        menu.style.padding = "6px 0";
+        menu.style.color = "var(--text-normal)";
+        menu.style.fontSize = "13px";
+        menu.style.maxWidth = `${Math.max(160, win.innerWidth - 16)}px`;
+    }
+
+    private positionCardMenu(menu: HTMLElement, anchor: HTMLElement) {
+        const win = anchor.win;
+        const r = anchor.getBoundingClientRect();
+        const pad = 8;
+        const vw = win.innerWidth;
+        const vh = win.innerHeight;
+        const mw = Math.min(240, vw - pad * 2);
+        menu.style.width = `${mw}px`;
+        this.applyCardMenuShellStyles(menu, win);
+        let left = r.right - mw;
+        let top = r.bottom + 4;
+        if (left < pad) left = pad;
+        if (left + mw > vw - pad) left = vw - mw - pad;
+        const mh = menu.offsetHeight || 320;
+        if (top + mh > vh - pad) {
+            top = Math.max(pad, r.top - mh - 4);
+        }
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+    }
+
+    private openCardMenu(anchor: HTMLElement, jot: Jot) {
+        this.closeCardMenu();
+        const lang = this.lang;
+        const { mountEl, doc, win } = this.getCardMenuMount();
+
+        const menu = mountEl.createDiv({ cls: "jots-card-menu-popover" });
+        menu.dataset.anchorId = jot.id;
+        this.applyCardMenuShellStyles(menu, win);
+
+        const addDivider = () => menu.createDiv({ cls: "jots-card-menu-divider" });
+
+        const addIconRow = (iconId: string, label: string, onActivate: () => void) => {
+            const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--action" });
+            const iconWrap = row.createSpan({ cls: "jots-card-menu-row-icon" });
+            setIcon(iconWrap, iconId);
+            row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+            row.addEventListener("pointerdown", (e) => e.stopPropagation());
+            row.addEventListener("click", (e) => {
+                e.stopPropagation();
+                onActivate();
+            });
+        };
+
+        const addStubRow = (label: string) => {
+            const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub" });
+            row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+            row.addEventListener("pointerdown", (e) => e.stopPropagation());
+            row.addEventListener("click", (e) => {
+                e.stopPropagation();
+                new Notice(t("cardMenuComingSoon", lang));
+            });
+        };
+
+        addIconRow("share", t("cardMenuShare", lang), async () => {
+            this.closeCardMenu();
+            try {
+                if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+                    await navigator.share({ text: jot.content });
+                } else {
+                    await navigator.clipboard.writeText(jot.content);
+                    new Notice(t("cardMenuShareCopied", lang));
+                }
+            } catch (err) {
+                if ((err as { name?: string })?.name === "AbortError") return;
+                try {
+                    await navigator.clipboard.writeText(jot.content);
+                    new Notice(t("cardMenuShareCopied", lang));
+                } catch {
+                    /* ignore */
+                }
+            }
+        });
+
+        addIconRow("pencil", t("cardMenuEdit", lang), () => {
+            this.closeCardMenu();
+            this.enterEditMode(jot);
+        });
+
+        addDivider();
+        addStubRow(t("cardMenuPinTop", lang));
+        addStubRow(t("cardMenuFloatingWindow", lang));
+
+        const relatedRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub jots-card-menu-row--spread" });
+        relatedRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuRelatedNotes", lang) });
+        relatedRow.createSpan({ cls: "jots-card-menu-ai-badge", text: t("cardMenuAiBadge", lang) });
+        relatedRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+        relatedRow.addEventListener("click", (e) => {
+            e.stopPropagation();
+            new Notice(t("cardMenuComingSoon", lang));
+        });
+
+        const copyLinkRow = menu.createDiv({ cls: "jots-card-menu-row" });
+        copyLinkRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuCopyLink", lang) });
+        copyLinkRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+        copyLinkRow.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            this.closeCardMenu();
+            const uri = this.buildObsidianFileUri(jot);
+            if (!uri) {
+                new Notice(t("jotUpdateNoFile", lang));
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(uri);
+                new Notice(t("cardMenuLinkCopied", lang));
+            } catch {
+                /* ignore */
+            }
+        });
+
+        addStubRow(t("cardMenuAnnotate", lang));
+
+        const moreRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--spread jots-card-menu-row--more" });
+        moreRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuMore", lang) });
+        const chev = moreRow.createSpan({ cls: "jots-card-menu-row-chevron" });
+        setIcon(chev, "chevron-right");
+        const sub = menu.createDiv({ cls: "jots-card-menu-sub" });
+        const subOpenNote = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+        subOpenNote.textContent = t("cardMenuMoreOpenNote", lang);
+        subOpenNote.addEventListener("pointerdown", (e) => e.stopPropagation());
+        subOpenNote.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.closeCardMenu();
+            void this.openJot(jot);
+        });
+        const subCopyMd = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+        subCopyMd.textContent = t("cardMenuMoreCopyMarkdown", lang);
+        subCopyMd.addEventListener("pointerdown", (e) => e.stopPropagation());
+        subCopyMd.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            this.closeCardMenu();
+            try {
+                await navigator.clipboard.writeText(this.jotMarkdownClipboardText(jot));
+                new Notice(t("cardMenuShareCopied", lang));
+            } catch {
+                /* ignore */
+            }
+        });
+        moreRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+        moreRow.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const open = sub.classList.toggle("is-open");
+            moreRow.classList.toggle("is-open", open);
+            this.positionCardMenu(menu, anchor);
+        });
+
+        addDivider();
+
+        const delRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--danger" });
+        delRow.textContent = t("cardMenuDelete", lang);
+        delRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+        delRow.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            this.closeCardMenu();
+            if (!confirm(t("cardMenuDeleteConfirm", lang))) return;
+            try {
+                await this.plugin.deleteJot(jot);
+                new Notice(t("cardMenuDeleted", lang));
+            } catch {
+                /* deleteJot already showed Notice */
+            }
+        });
+
+        addDivider();
+
+        const footer = menu.createDiv({ cls: "jots-card-menu-footer" });
+        const wc = this.jotWordCount(jot);
+        footer.createDiv({
+            cls: "jots-card-menu-footer-line",
+            text: t("cardMenuWordCount", lang, { count: String(wc) })
+        });
+        const timeDisplay = moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid()
+            ? moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm")
+            : (jot.updatedAt.includes(" ") ? jot.updatedAt.split(/\s+/).pop() ?? jot.updatedAt : jot.updatedAt);
+        footer.createDiv({
+            cls: "jots-card-menu-footer-line",
+            text: t("cardMenuEditedAtFooter", lang, { time: timeDisplay })
+        });
+
+        const onDocPointer = (ev: PointerEvent) => {
+            const tEl = ev.target as Node;
+            if (!menu.contains(tEl) && !anchor.contains(tEl)) {
+                this.closeCardMenu();
+            }
+        };
+        const onKey = (ev: KeyboardEvent) => {
+            if (ev.key === "Escape") this.closeCardMenu();
+        };
+        const onScrollClose = () => this.closeCardMenu();
+        const onReposition = () => this.positionCardMenu(menu, anchor);
+
+        win.addEventListener("resize", onReposition);
+        win.addEventListener("scroll", onScrollClose, true);
+        this.contentEl.addEventListener("scroll", onScrollClose, true);
+
+        this.cardMenuUnmount = () => {
+            win.removeEventListener("resize", onReposition);
+            win.removeEventListener("scroll", onScrollClose, true);
+            this.contentEl.removeEventListener("scroll", onScrollClose, true);
+            doc.removeEventListener("pointerdown", onDocPointer, true);
+            win.removeEventListener("keydown", onKey);
+            menu.remove();
+        };
+
+        requestAnimationFrame(() => {
+            this.positionCardMenu(menu, anchor);
+            setTimeout(() => {
+                doc.addEventListener("pointerdown", onDocPointer, true);
+                win.addEventListener("keydown", onKey);
+            }, 0);
         });
     }
 
@@ -1291,6 +1570,7 @@ export class JotView extends ItemView {
             }
         });
         this.jotListCleanups = [];
+        this.closeCardMenu();
 
         let filteredJots = this.filterJots();
 
@@ -1505,19 +1785,30 @@ export class JotView extends ItemView {
                     card.style.transform = "translateY(0)";
                 });
 
-                const metaRow = card.createDiv();
-                metaRow.style.display = "flex";
-                metaRow.style.flexWrap = "wrap";
-                metaRow.style.alignItems = "baseline";
-                metaRow.style.gap = "12px";
-                metaRow.style.marginBottom = "6px";
-                metaRow.style.fontSize = "10px";
-                metaRow.style.color = "var(--text-muted)";
-                metaRow.createSpan({ text: jot.time });
-                const updLabel = metaRow.createSpan();
+                const metaRow = card.createDiv({ cls: "jots-card-meta-row" });
+                const metaLeft = metaRow.createDiv({ cls: "jots-card-meta-left" });
+                metaLeft.createSpan({ cls: "jots-card-meta-time", text: jot.time });
+                const updLabel = metaLeft.createSpan({ cls: "jots-card-meta-upd" });
                 updLabel.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
-                updLabel.style.color = "var(--text-normal)";
-                updLabel.style.fontWeight = "600";
+
+                const menuTrigger = metaRow.createEl("button", {
+                    cls: "jots-card-menu-trigger",
+                    type: "button",
+                    attr: { "aria-label": t("cardMenuMore", this.lang) }
+                });
+                setIcon(menuTrigger, "more-horizontal");
+                const stopCard = (ev: Event) => ev.stopPropagation();
+                menuTrigger.addEventListener("pointerdown", stopCard);
+                menuTrigger.addEventListener("pointerup", stopCard);
+                menuTrigger.addEventListener("click", (ev) => {
+                    stopCard(ev);
+                    const openMenu = this.contentEl.doc.body.querySelector<HTMLElement>(".jots-card-menu-popover");
+                    if (openMenu?.dataset.anchorId === jot.id) {
+                        this.closeCardMenu();
+                        return;
+                    }
+                    this.openCardMenu(menuTrigger, jot);
+                });
 
                 const contentContainer = card.createDiv();
                 contentContainer.style.fontSize = "12px";

@@ -140,6 +140,59 @@ export function replaceJotBlockById(
     return { content, found: false };
 }
 
+/** Remove one `###` jot block by id; preserves prefix and following blocks. */
+export function removeJotBlockById(
+    content: string,
+    filePath: string,
+    targetId: string
+): { content: string; found: boolean } {
+    const lines = content.split("\n");
+    let i = 0;
+    while (i < lines.length) {
+        const lineTrim = lines[i].trim();
+        if (lineTrim.startsWith("### ")) {
+            const blockStart = i;
+            const headerRest = lineTrim.substring(4).trim();
+            const [date, time] = headerRest.split(" ");
+            let metaId = "";
+            let j = i + 1;
+            while (j < lines.length) {
+                const t = lines[j].trim();
+                const idMatch = t.match(/^####\s+id:\s*(.+)$/i);
+                if (idMatch) {
+                    metaId = idMatch[1].trim();
+                    j++;
+                    continue;
+                }
+                if (/^####\s+updatedAt:\s*.+$/i.test(t)) {
+                    j++;
+                    continue;
+                }
+                break;
+            }
+            const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
+            let k = j;
+            while (k < lines.length && !lines[k].trim().startsWith("### ")) {
+                k++;
+            }
+            if (id === targetId) {
+                const prefix = lines.slice(0, blockStart).join("\n");
+                const suffix = lines.slice(k).join("\n");
+                let next = prefix;
+                if (suffix) {
+                    next = next ? `${next}\n${suffix}` : suffix;
+                }
+                next = next.replace(/\n{4,}/g, "\n\n\n");
+                return { content: next, found: true };
+            }
+            i = k;
+        } else {
+            i++;
+        }
+    }
+    return { content, found: false };
+}
+
 /**
  * 解析文件内容为 Jot 数组
  */
