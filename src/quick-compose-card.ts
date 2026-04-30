@@ -122,6 +122,88 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     const textarea = textareaContainer.createEl("textarea", { cls: "jots-quick-textarea" });
     textarea.placeholder = isEdit ? t("placeholderWithLink", lang) : t("contentPlaceholder", lang);
 
+    /** Capture-only: compact until click/type; scroll-down collapses when empty; draft + sticky until cleared or send. */
+    let expandCompactTextarea: () => void = () => {};
+    let markCompactDrafted: () => void = () => {};
+    let resetCompactCaptureState: () => void = () => {};
+    let syncCompactDraftLockFromContent: () => void = () => {};
+    if (!isEdit) {
+        inputCard.addClass("jots-quick-compose-card--textarea-compact");
+        let compactUserHasDrafted = false;
+        let compactScrollCleanup: (() => void) | null = null;
+        let compactLastScrollTop = 0;
+
+        const findScrollParent = (start: HTMLElement): HTMLElement | null => {
+            let p: HTMLElement | null = start.parentElement;
+            while (p) {
+                const st = getComputedStyle(p);
+                if (st.overflowY === "auto" || st.overflowY === "scroll") return p;
+                if (st.overflow === "auto" || st.overflow === "scroll") return p;
+                p = p.parentElement;
+            }
+            return null;
+        };
+
+        const bindCompactScrollCollapse = () => {
+            compactScrollCleanup?.();
+            compactScrollCleanup = null;
+            const sp = findScrollParent(inputCard);
+            if (!sp) return;
+            compactLastScrollTop = sp.scrollTop;
+            const onScroll = () => {
+                if (compactUserHasDrafted) {
+                    compactLastScrollTop = sp.scrollTop;
+                    return;
+                }
+                if (!inputCard.classList.contains("jots-quick-compose-card--textarea-expanded")) return;
+                const st = sp.scrollTop;
+                if (st > compactLastScrollTop + 6) {
+                    inputCard.addClass("jots-quick-compose-card--textarea-compact");
+                    inputCard.removeClass("jots-quick-compose-card--textarea-expanded");
+                    compactScrollCleanup?.();
+                    compactScrollCleanup = null;
+                }
+                compactLastScrollTop = st;
+            };
+            sp.addEventListener("scroll", onScroll, { passive: true });
+            compactScrollCleanup = () => {
+                sp.removeEventListener("scroll", onScroll);
+                compactScrollCleanup = null;
+            };
+        };
+
+        expandCompactTextarea = () => {
+            if (inputCard.classList.contains("jots-quick-compose-card--textarea-expanded")) return;
+            inputCard.removeClass("jots-quick-compose-card--textarea-compact");
+            inputCard.addClass("jots-quick-compose-card--textarea-expanded");
+            bindCompactScrollCollapse();
+        };
+
+        resetCompactCaptureState = () => {
+            compactUserHasDrafted = false;
+            compactScrollCleanup?.();
+            compactScrollCleanup = null;
+            inputCard.addClass("jots-quick-compose-card--textarea-compact");
+            inputCard.removeClass("jots-quick-compose-card--textarea-expanded");
+        };
+
+        markCompactDrafted = () => {
+            compactUserHasDrafted = true;
+            expandCompactTextarea();
+        };
+
+        syncCompactDraftLockFromContent = () => {
+            const hasDraft = textarea.value.trim().length > 0 || selectedAttachments.length > 0;
+            if (hasDraft) return;
+            compactUserHasDrafted = false;
+        };
+
+        textareaContainer.addEventListener("pointerdown", (e: PointerEvent) => {
+            if (!e.isTrusted) return;
+            expandCompactTextarea();
+        });
+    }
+
     const runWikilink = () =>
         setupWikilinkAutocomplete(app, textarea, textareaContainer, (file, ta, bracketStart) => {
             const cursorPos = ta.selectionStart;
@@ -132,8 +214,10 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
             const newCursorPos = bracketStart + file.basename.length + 4;
             ta.selectionStart = newCursorPos;
             ta.selectionEnd = newCursorPos;
+            expandCompactTextarea();
             ta.focus();
             ta.dispatchEvent(new Event("input", { bubbles: true }));
+            markCompactDrafted();
         });
     const wikilinkCleanup = runWikilink();
 
@@ -395,6 +479,8 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
             }
         });
         syncQuickSendReady();
+        if (!isEdit && selectedAttachments.length > 0) markCompactDrafted();
+        if (!isEdit) syncCompactDraftLockFromContent();
     };
 
     removeImageEverywhere = (vaultPath: string) => {
@@ -408,7 +494,14 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     renderAttachmentTray();
     refreshEmbedPreviews();
 
-    textarea.addEventListener("input", () => {
+    textarea.addEventListener("input", (e: Event) => {
+        if (!isEdit) {
+            if ((e as InputEvent).isTrusted) {
+                expandCompactTextarea();
+                if (textarea.value.trim().length > 0) markCompactDrafted();
+            }
+            syncCompactDraftLockFromContent();
+        }
         refreshEmbedPreviews();
         syncQuickSendReady();
     });
@@ -445,8 +538,10 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
         }
         if (plain) {
             insertTextAtCursor(textarea, plain);
+            markCompactDrafted();
         }
         refreshEmbedPreviews();
+        expandCompactTextarea();
         textarea.focus();
     });
 
@@ -502,13 +597,20 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     createToolBtn("#", t("tagsInputPlaceholder", lang), () => toggleSection(tagSection, tagInput));
     createToolBtn(createToolbarImageIcon(), t("attachmentPlaceholder", lang), () => openAttachmentPicker());
     addToolDivider();
-    createToolBtn("Aa", t("quickRecord", lang), () => textarea.focus());
+    createToolBtn("Aa", t("quickRecord", lang), () => {
+        expandCompactTextarea();
+        textarea.focus();
+    });
     createToolBtn("☰", t("quickRecord", lang), () => {
+        expandCompactTextarea();
         insertTextAtCursor(textarea, textarea.value.endsWith("\n") || textarea.value.length === 0 ? "- " : "\n- ");
+        markCompactDrafted();
         textarea.focus();
     });
     createToolBtn("1.", t("quickRecord", lang), () => {
+        expandCompactTextarea();
         insertTextAtCursor(textarea, textarea.value.endsWith("\n") || textarea.value.length === 0 ? "1. " : "\n1. ");
+        markCompactDrafted();
         textarea.focus();
     });
     addToolDivider();
@@ -551,6 +653,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
         sourceSection.style.display = "none";
         renderAttachmentTray();
         refreshEmbedPreviews();
+        resetCompactCaptureState();
     };
 
     saveBtn.addEventListener("click", async (e) => {

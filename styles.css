@@ -55,10 +55,12 @@
     /* 淡灰胶囊 + 描边（用主题变量，明暗模式都协调） */
     background-color: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
+    transition: border-color 0.15s ease;
 }
 
+/* 与主视图快速记录卡片一致：焦点在搜索区（药丸或筛选面板）时主题色描边 */
 .jots-search-stack:focus-within .jots-search-pill {
-    border-color: var(--background-modifier-border-hover);
+    border-color: var(--interactive-accent);
 }
 
 .jots-search-pill-icon {
@@ -66,6 +68,11 @@
     flex-shrink: 0;
     color: var(--text-faint);
     --icon-size: 16px;
+    transition: color 0.15s ease;
+}
+
+.jots-search-stack:focus-within .jots-search-pill-icon {
+    color: var(--interactive-accent);
 }
 
 .jots-search-pill-input {
@@ -87,6 +94,18 @@
 
 .jots-search-pill-input:focus {
     outline: none;
+    caret-color: var(--interactive-accent);
+}
+
+/* 与快速记录卡片内选区一致感：主题色淡化背景 */
+.jots-search-pill-input::selection {
+    background: color-mix(in srgb, var(--interactive-accent) 32%, var(--background-primary));
+    color: var(--text-normal);
+}
+
+.jots-search-pill-input::-moz-selection {
+    background: color-mix(in srgb, var(--interactive-accent) 32%, var(--background-primary));
+    color: var(--text-normal);
 }
 
 .jots-search-panel {
@@ -95,6 +114,11 @@
     padding: 12px 14px 14px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--background-modifier-border);
+    transition: border-color 0.15s ease;
+}
+
+.jots-search-stack:focus-within .jots-search-panel {
+    border-color: var(--interactive-accent);
 }
 
 .theme-dark .jots-search-panel {
@@ -171,15 +195,16 @@
     color: var(--text-normal);
 }
 
-.jots-filter-chip.is-active {
-    background: rgba(130, 201, 170, 0.38);
-    border-color: rgba(100, 180, 140, 0.45);
-    color: var(--text-normal);
+.jots-filter-chip:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
 }
 
-.theme-dark .jots-filter-chip.is-active {
-    background: rgba(90, 160, 120, 0.28);
-    border-color: rgba(100, 180, 140, 0.35);
+/* 选中态与主题强调色一致（替代固定绿色，与快速记录卡片描边同源） */
+.jots-filter-chip.is-active {
+    background: color-mix(in srgb, var(--interactive-accent) 24%, var(--background-modifier-form-field));
+    border-color: color-mix(in srgb, var(--interactive-accent) 48%, var(--background-modifier-border));
+    color: var(--text-normal);
 }
 
 .jots-search-time-grid .jots-filter-chip {
@@ -206,6 +231,7 @@
     background: var(--background-modifier-form-field);
     color: var(--text-muted);
     cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
 .jots-search-tag-chip:hover {
@@ -213,14 +239,9 @@
 }
 
 .jots-search-tag-chip.is-selected {
-    background: rgba(130, 201, 170, 0.38);
-    border-color: rgba(100, 180, 140, 0.45);
+    background: color-mix(in srgb, var(--interactive-accent) 24%, var(--background-modifier-form-field));
+    border-color: color-mix(in srgb, var(--interactive-accent) 48%, var(--background-modifier-border));
     color: var(--text-normal);
-}
-
-.theme-dark .jots-search-tag-chip.is-selected {
-    background: rgba(90, 160, 120, 0.28);
-    border-color: rgba(100, 180, 140, 0.35);
 }
 
 .jots-search-more-tags {
@@ -1126,6 +1147,23 @@
     border-radius: 14px;
     padding: 16px 16px 12px;
     box-shadow: none;
+    transition: border-color 0.15s ease;
+}
+
+.jots-quick-compose-card:focus-within {
+    border-color: var(--interactive-accent);
+}
+
+/* 主视图快速输入（非内联编辑）：始终在左栏滚动区内吸顶 */
+.jots-quick-compose-card:not(.jots-quick-compose-card--inline-edit) {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.theme-dark .jots-quick-compose-card:not(.jots-quick-compose-card--inline-edit) {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
 }
 
 .jots-quick-textarea-container {
@@ -1149,6 +1187,17 @@
     font-size: 15px;
     padding: 4px 2px 8px;
     box-shadow: none;
+}
+
+/* 主视图快速记录：紧凑态仅一行可视高度（与 line-height + 上下 padding 一致），点击或输入后展开 */
+.jots-quick-compose-card.jots-quick-compose-card--textarea-compact:not(.jots-quick-compose-card--inline-edit)
+    .jots-quick-textarea {
+    min-height: calc(1.6em + 12px);
+    max-height: calc(1.6em + 12px);
+    height: calc(1.6em + 12px);
+    resize: none;
+    overflow-y: hidden;
+    overflow-x: auto;
 }
 
 .jots-quick-textarea::placeholder {

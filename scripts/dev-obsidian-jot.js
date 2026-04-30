@@ -52,6 +52,18 @@ async function main() {
 		await ctx.dispose();
 		process.exit(0);
 	} else {
+		fs.mkdirSync(PLUGIN_DIR, { recursive: true });
+		copyIfExists("styles.css");
+		copyIfExists("manifest.json");
+		const stylesPath = path.join(ROOT, "styles.css");
+		if (fs.existsSync(stylesPath)) {
+			let debounce;
+			fs.watch(stylesPath, () => {
+				clearTimeout(debounce);
+				debounce = setTimeout(() => copyIfExists("styles.css"), 80);
+			});
+			console.info("[dev:obsidian-jot] watching styles.css -> PLUGIN_DIR");
+		}
 		await ctx.watch();
 	}
 }
