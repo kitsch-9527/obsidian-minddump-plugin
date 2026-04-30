@@ -21,6 +21,247 @@
     width: 100%;
 }
 
+/* 搜索筛选：药丸输入 + 白底面板（位于日历上方） */
+.jots-search-stack {
+    margin-bottom: 14px;
+    position: relative;
+}
+
+/* 仅在与搜索区有焦点关联时显示筛选面板（点击药丸或 Tab 进入） */
+.jots-search-stack .jots-search-panel {
+    display: none;
+}
+
+.jots-search-stack:focus-within .jots-search-panel {
+    display: block;
+}
+
+.jots-search-pill-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.jots-search-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(100%, 320px);
+    max-width: 100%;
+    padding: 0 12px 0 10px;
+    min-height: 36px;
+    border-radius: 9999px;
+    box-sizing: border-box;
+    /* 淡灰胶囊 + 描边（用主题变量，明暗模式都协调） */
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.jots-search-stack:focus-within .jots-search-pill {
+    border-color: var(--background-modifier-border-hover);
+}
+
+.jots-search-pill-icon {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--text-faint);
+    --icon-size: 16px;
+}
+
+.jots-search-pill-input {
+    flex: 1;
+    min-width: 0;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 6px 28px 6px 0 !important;
+    margin: 0 !important;
+    font-size: 13px;
+    color: var(--text-normal);
+}
+
+.jots-search-pill-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
+.jots-search-pill-input:focus {
+    outline: none;
+}
+
+.jots-search-panel {
+    background: var(--background-primary);
+    border-radius: 12px;
+    padding: 12px 14px 14px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.theme-dark .jots-search-panel {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.jots-search-time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.jots-search-section {
+    margin-bottom: 12px;
+}
+
+.jots-search-section:last-child {
+    margin-bottom: 0;
+}
+
+.jots-search-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.jots-search-section-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.jots-search-section-chevron {
+    display: flex;
+    color: var(--text-faint);
+    --icon-size: 14px;
+    transition: transform 0.15s ease;
+}
+
+.jots-search-section-chevron.is-collapsed {
+    transform: rotate(-90deg);
+}
+
+.jots-search-section.is-collapsed .jots-search-section-body {
+    display: none;
+}
+
+.jots-search-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.jots-filter-chip {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-modifier-form-field);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.jots-filter-chip:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.jots-filter-chip.is-active {
+    background: rgba(130, 201, 170, 0.38);
+    border-color: rgba(100, 180, 140, 0.45);
+    color: var(--text-normal);
+}
+
+.theme-dark .jots-filter-chip.is-active {
+    background: rgba(90, 160, 120, 0.28);
+    border-color: rgba(100, 180, 140, 0.35);
+}
+
+.jots-search-time-grid .jots-filter-chip {
+    flex: unset;
+    width: 100%;
+}
+
+.jots-search-tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.jots-search-tag-chips.is-hidden {
+    display: none;
+}
+
+.jots-search-tag-chip {
+    padding: 3px 9px;
+    border-radius: 10px;
+    font-size: 11px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-modifier-form-field);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.jots-search-tag-chip:hover {
+    background: var(--background-modifier-hover);
+}
+
+.jots-search-tag-chip.is-selected {
+    background: rgba(130, 201, 170, 0.38);
+    border-color: rgba(100, 180, 140, 0.45);
+    color: var(--text-normal);
+}
+
+.theme-dark .jots-search-tag-chip.is-selected {
+    background: rgba(90, 160, 120, 0.28);
+    border-color: rgba(100, 180, 140, 0.35);
+}
+
+.jots-search-more-tags {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-align: center;
+}
+
+.jots-search-stack--compact .jots-search-pill {
+    min-height: 32px;
+    width: 100%;
+}
+
+.jots-search-stack--compact .jots-search-pill-input {
+    font-size: 11px;
+}
+
+.jots-search-stack--compact .jots-search-panel {
+    padding: 10px 10px 12px;
+}
+
+.jots-search-stack--compact .jots-filter-chip {
+    padding: 5px 6px;
+    font-size: 11px;
+}
+
+.jots-search-stack--compact .jots-search-time-grid {
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.jots-search-stack--compact .jots-search-section-title {
+    font-size: 11px;
+}
+
+.jots-search-stack--compact .jots-search-tag-chip {
+    font-size: 10px;
+    padding: 2px 7px;
+}
+
 .jots-calendar-header {
     display: flex;
     justify-content: space-between;
@@ -71,7 +312,7 @@
     align-items: center;
     justify-content: center;
     font-size: 13px;
-    border-radius: 8px;
+    border-radius: 0;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -90,6 +331,57 @@
     background-color: var(--background-modifier-border);
     color: var(--text-faint);
     cursor: default;
+}
+
+/* 右侧热力图：用 accent + ::before 透明度叠色，避免 color-mix 在旧 Chromium 中整段失效 */
+.jots-heat-cell {
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+    transition: transform 0.15s ease, filter 0.15s ease;
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+}
+.jots-heat-cell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--interactive-accent);
+    opacity: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+.jots-heat-cell.jots-heat-l1::before {
+    opacity: 0.22;
+}
+.jots-heat-cell.jots-heat-l2::before {
+    opacity: 0.42;
+}
+.jots-heat-cell.jots-heat-l3::before {
+    opacity: 0.68;
+}
+.jots-heat-cell.jots-heat-l4::before {
+    opacity: 1;
+}
+.jots-heat-daynum {
+    position: relative;
+    z-index: 1;
+}
+.jots-heat-cell.jots-heat-l1,
+.jots-heat-cell.jots-heat-l2,
+.jots-heat-cell.jots-heat-l3 {
+    color: var(--text-normal);
+}
+.jots-heat-cell.jots-heat-l4 {
+    color: var(--text-on-accent);
+}
+.jots-heat-cell.jots-heat-l1:hover,
+.jots-heat-cell.jots-heat-l2:hover,
+.jots-heat-cell.jots-heat-l3:hover,
+.jots-heat-cell.jots-heat-l4:hover {
+    filter: brightness(1.06);
+    transform: scale(1.04);
 }
 
 /* 搜索栏样式 */
@@ -193,7 +485,7 @@
 }
 
 .jots-card-content {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.6;
     color: var(--text-normal);
     margin-bottom: 8px;
@@ -201,8 +493,8 @@
 
 /* Markdown 渲染内容样式 */
 .jots-card-content markdown-rendered {
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
 .jots-card-content markdown-rendered p {
@@ -247,6 +539,7 @@
     max-width: 100%;
     border-radius: 4px;
     margin: 4px 0;
+    cursor: zoom-in;
 }
 
 /* Parsed attachment images (standalone ![[...]] lines) shown under card body */
@@ -275,6 +568,44 @@
     border-radius: 6px;
     object-fit: contain;
     border: 1px solid var(--background-modifier-border);
+    cursor: zoom-in;
+}
+
+/* Fullscreen preview when clicking a card image (vh/vw: flex % max-height is unreliable) */
+.jots-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    box-sizing: border-box;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+        max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    overflow: auto;
+    text-align: center;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.88);
+    cursor: zoom-out;
+    outline: none;
+}
+
+.jots-image-lightbox::before {
+    content: "";
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+    width: 0;
+}
+
+.jots-image-lightbox .jots-image-lightbox-img {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 96vw !important;
+    max-height: 96vh !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    cursor: default;
+    border-radius: 6px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
 }
 
 .jots-card-attachment-missing {
@@ -578,41 +909,43 @@
     border-color: var(--interactive-accent);
 }
 
-/* 主视图快速记录新样式 */
+/* 主视图快速记录：细边框卡片 + 底部工具栏 + 浅灰发送键（参考现代输入框样式） */
 .jots-quick-compose-card {
     background: var(--background-primary);
-    border: 2px solid var(--interactive-accent);
-    border-radius: 18px;
-    padding: 14px 16px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 14px;
+    padding: 16px 16px 12px;
+    box-shadow: none;
 }
 
 .jots-quick-textarea-container {
-    border-radius: 12px;
+    border-radius: 8px;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .jots-quick-textarea-container.is-drop-active {
     background-color: var(--background-modifier-hover);
-    box-shadow: inset 0 0 0 1px var(--interactive-accent);
+    box-shadow: inset 0 0 0 1px var(--background-modifier-border-focus);
 }
 
 .jots-quick-textarea {
     width: 100%;
-    min-height: 170px;
+    min-height: 140px;
     border: none;
     background: transparent;
     color: var(--text-normal);
     resize: vertical;
     line-height: 1.6;
-    font-size: 16px;
-    padding: 2px;
+    font-size: 15px;
+    padding: 4px 2px 8px;
     box-shadow: none;
 }
 
 .jots-quick-textarea::placeholder {
-    color: var(--text-faint);
-    font-size: 30px;
-    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 15px;
+    font-weight: 400;
+    opacity: 0.9;
 }
 
 .jots-quick-textarea:focus {
@@ -684,6 +1017,11 @@
     gap: 8px;
 }
 
+.jots-quick-attachment-tray:empty {
+    display: none;
+    margin-top: 0;
+}
+
 .jots-quick-attachment-item {
     display: inline-flex;
     align-items: center;
@@ -731,33 +1069,15 @@
     color: var(--text-normal);
 }
 
-.jots-quick-attachment-add {
-    width: 42px;
-    min-height: 42px;
-    border-radius: 10px;
-    border: 1px dashed var(--background-modifier-border);
-    color: var(--text-muted);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 22px;
-    background: var(--background-secondary);
-}
-
-.jots-quick-attachment-add:hover {
-    border-color: var(--interactive-accent);
-    color: var(--interactive-accent);
-}
-
 .jots-view .jots-quick-toolbar-row {
-    margin-top: 12px;
+    margin-top: 4px;
+    padding-top: 4px;
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
 }
 
 .jots-view .jots-quick-tools {
@@ -765,10 +1085,10 @@
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center;
-    border-top: 1px solid var(--background-modifier-border);
-    padding-top: 8px;
+    border-top: none;
+    padding-top: 0;
     flex: 1;
-    gap: 4px;
+    gap: 2px;
     min-width: 0;
     overflow-x: auto;
 }
@@ -778,10 +1098,11 @@
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 20px;
+    font-size: 17px;
     line-height: 1;
-    padding: 0 12px;
-    min-height: 32px;
+    padding: 6px 10px;
+    min-height: 34px;
+    border-radius: 6px;
     flex-shrink: 0;
     display: inline-flex !important;
     align-items: center;
@@ -791,33 +1112,75 @@
 .jots-view .jots-quick-tool-divider {
     width: 1px;
     align-self: stretch;
-    min-height: 22px;
-    margin: 0 4px;
+    min-height: 18px;
+    max-height: 22px;
+    margin: 0 6px;
     background: var(--background-modifier-border);
     flex-shrink: 0;
+    opacity: 0.85;
 }
 
 .jots-view .jots-quick-tool-btn:hover {
     color: var(--text-normal);
+    background: var(--background-modifier-hover);
 }
 
 .jots-view .jots-quick-send-btn {
-    border: none;
-    border-radius: 12px;
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    min-width: 54px;
-    min-height: 40px;
+    border: 1px solid #cfcfcf;
+    border-radius: 8px;
+    /* 浅灰底 + 白箭头，与参考图一致 */
+    background: #d8d8d8;
+    color: #ffffff;
+    min-width: 40px;
+    width: 40px;
+    min-height: 36px;
+    height: 36px;
+    padding: 0;
     cursor: pointer;
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .jots-view .jots-quick-send-btn:hover {
-    filter: brightness(0.95);
+    background: #cecece;
+    border-color: #c4c4c4;
+}
+
+.jots-view .jots-quick-send-btn.is-ready {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.jots-view .jots-quick-send-btn.is-ready:hover {
+    filter: brightness(1.06);
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+}
+
+.theme-dark .jots-view .jots-quick-send-btn {
+    background: color-mix(in srgb, var(--text-muted) 38%, var(--background-secondary));
+    color: #f6f6f6;
+    border-color: var(--background-modifier-border);
+}
+
+.theme-dark .jots-view .jots-quick-send-btn:hover {
+    background: color-mix(in srgb, var(--text-muted) 48%, var(--background-secondary));
+}
+
+.theme-dark .jots-view .jots-quick-send-btn.is-ready {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.theme-dark .jots-view .jots-quick-send-btn.is-ready:hover {
+    filter: brightness(1.08);
 }
 
 /* 工具提示 */

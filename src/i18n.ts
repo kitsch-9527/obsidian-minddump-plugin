@@ -30,11 +30,29 @@ export interface Translations {
     today: string;
     thisMonth: string;
     calendar: string;
+    heatmap: string;
+    heatmapSubtitle: string;
+    heatmapTooltip: string;
     year: string;
     month: string;
     searchAndTags: string;
     searchPlaceholder: string;
     searchPlaceholderShort: string;
+    searchPillPlaceholder: string;
+    searchFilterTagsHeading: string;
+    searchFilterContentHeading: string;
+    timePresetOnThisDay: string;
+    timePresetThisMonth: string;
+    timePresetLastMonth: string;
+    timePresetLast7: string;
+    timePresetLast30: string;
+    timePresetCustom: string;
+    tagModeInclude: string;
+    tagModeExclude: string;
+    tagModeNoTags: string;
+    contentTypeImage: string;
+    contentTypeLink: string;
+    contentTypeAudio: string;
     moreTags: string;
     noRecords: string;
     settings: string;
@@ -133,11 +151,29 @@ export const translations: Record<Language, Translations> = {
         today: "今日",
         thisMonth: "本月",
         calendar: "日历",
+        heatmap: "活动热力图",
+        heatmapSubtitle: "按创建与更新时间",
+        heatmapTooltip: "{date} · {notes} 条 · {events} 次活动（创建/更新）",
         year: "年",
         month: "月",
         searchAndTags: "🔍 搜索与标签",
-        searchPlaceholder: "关键词；可选 date: / updated: 筛选",
-        searchPlaceholderShort: "搜索；date: / updated:",
+        searchPlaceholder: "关键词；可选 date: / updated: / activity: 筛选",
+        searchPlaceholderShort: "搜索；date: / updated: / activity:",
+        searchPillPlaceholder: "⌘K",
+        searchFilterTagsHeading: "标签",
+        searchFilterContentHeading: "包含内容",
+        timePresetOnThisDay: "那年今日",
+        timePresetThisMonth: "本月",
+        timePresetLastMonth: "上月",
+        timePresetLast7: "近7天",
+        timePresetLast30: "近30天",
+        timePresetCustom: "自定义",
+        tagModeInclude: "包含",
+        tagModeExclude: "不包含",
+        tagModeNoTags: "无标签",
+        contentTypeImage: "图片",
+        contentTypeLink: "链接",
+        contentTypeAudio: "语音",
         moreTags: "还有 {count} 个标签...",
         noRecords: "暂无记录，开始记录你的想法吧！",
         settings: "设置",
@@ -234,11 +270,29 @@ export const translations: Record<Language, Translations> = {
         today: "Today",
         thisMonth: "This Month",
         calendar: "Calendar",
+        heatmap: "Activity heatmap",
+        heatmapSubtitle: "By created & updated time",
+        heatmapTooltip: "{date} · {notes} notes · {events} events (create/update)",
         year: "",
         month: "/",
         searchAndTags: "🔍 Search & Tags",
-        searchPlaceholder: "Keywords; optional date: / updated: filters",
-        searchPlaceholderShort: "Search; date: / updated:",
+        searchPlaceholder: "Keywords; optional date: / updated: / activity: filters",
+        searchPlaceholderShort: "Search; date: / updated: / activity:",
+        searchPillPlaceholder: "⌘K",
+        searchFilterTagsHeading: "Tags",
+        searchFilterContentHeading: "Contains",
+        timePresetOnThisDay: "On this day",
+        timePresetThisMonth: "This month",
+        timePresetLastMonth: "Last month",
+        timePresetLast7: "Last 7 days",
+        timePresetLast30: "Last 30 days",
+        timePresetCustom: "Custom",
+        tagModeInclude: "Include",
+        tagModeExclude: "Exclude",
+        tagModeNoTags: "No tags",
+        contentTypeImage: "Image",
+        contentTypeLink: "Link",
+        contentTypeAudio: "Audio",
         moreTags: "{count} more tags...",
         noRecords: "No records yet. Start capturing your thoughts!",
         settings: "Settings",

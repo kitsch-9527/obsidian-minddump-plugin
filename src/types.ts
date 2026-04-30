@@ -37,6 +37,12 @@ export interface DayRecord {
     jots: Jot[];
 }
 
+/** Calendar heatmap: activity counts create + update events per day; jots lists unique notes touching that day */
+export interface HeatDayCell {
+    activityScore: number;
+    jots: Jot[];
+}
+
 export const DEFAULT_SETTINGS: JotSettings = {
     saveFolder: "Jots",
     logMode: "multi",

@@ -2,7 +2,7 @@
 import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component, normalizePath, setIcon } from 'obsidian';
 import moment from 'moment';
 import JotPlugin from './main';
-import { Jot, DayRecord, Language } from './types';
+import { Jot, HeatDayCell, Language } from './types';
 import { translations, t, Translations } from './i18n';
 import {
     parseFileContent,
@@ -21,6 +21,11 @@ const CARD_LONG_PRESS_MS = 480;
 const CARD_TAP_MOVE_PX = 14;
 
 const VAULT_IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i;
+const AUDIO_EXT_RE = /\.(mp3|m4a|wav|ogg|aac|flac|webm)(\]|$|\s|\?)/i;
+
+type SearchTimePreset = "none" | "onThisDay" | "thisMonth" | "lastMonth" | "last7" | "last30" | "custom";
+type TagMatchMode = "include" | "exclude" | "noTags";
+type ContentTypeFilter = "image" | "link" | "audio";
 
 export const VIEW_TYPE_JOTS = "jot-view";
 
@@ -50,6 +55,14 @@ export class JotView extends ItemView {
     private jotListCleanups: (() => void)[] = [];
     /** Tears down floating card ⋮ menu (outside list DOM). */
     private cardMenuUnmount: (() => void) | null = null;
+    /** Fullscreen image preview overlay. */
+    private imageLightboxUnmount: (() => void) | null = null;
+
+    private searchTimePreset: SearchTimePreset = "none";
+    private tagMatchMode: TagMatchMode = "include";
+    private contentTypeFilters = new Set<ContentTypeFilter>();
+    private searchTagsSectionCollapsed = false;
+    private searchContentSectionCollapsed = false;
 
     get lang(): Language {
         return this.plugin.lang;
@@ -138,6 +151,7 @@ export class JotView extends ItemView {
         });
         this.renderedComponents = [];
         this.closeCardMenu();
+        this.closeImageLightbox();
     }
     
     private focusTextarea() {
@@ -186,6 +200,8 @@ export class JotView extends ItemView {
                 clearBtnContainer.style.backgroundColor = "var(--background-modifier-border)";
                 clearBtnContainer.style.cursor = "pointer";
                 clearBtnContainer.style.zIndex = "10";
+
+                clearBtnContainer.addEventListener("mousedown", (e) => e.preventDefault());
                 
                 if (this.searchInput) {
                     this.searchInput.style.paddingRight = "32px";
@@ -209,21 +225,24 @@ export class JotView extends ItemView {
         }
     }
 
-    private parseSearchFilters(query: string): { date?: string; updated?: string; keywords: string[] } {
+    private parseSearchFilters(query: string): { date?: string; updated?: string; activity?: string; keywords: string[] } {
         const keywords: string[] = [];
         let date: string | undefined;
         let updated: string | undefined;
+        let activity: string | undefined;
         for (const part of query.trim().split(/\s+/).filter(Boolean)) {
             const lower = part.toLowerCase();
             if (lower.startsWith("date:")) {
                 date = part.slice(5);
             } else if (lower.startsWith("updated:")) {
                 updated = part.slice(8);
+            } else if (lower.startsWith("activity:")) {
+                activity = part.slice(9);
             } else {
                 keywords.push(part.toLowerCase());
             }
         }
-        return { date, updated, keywords };
+        return { date, updated, activity, keywords };
     }
 
     private attachCardTapAndLongPress(card: HTMLElement, jot: Jot) {
@@ -279,7 +298,6 @@ export class JotView extends ItemView {
             if (longPressFired) return;
             if (movedTooFar) return;
             if (e.pointerType === "mouse" && e.button !== 0) return;
-            this.enterEditMode(jot);
         };
 
         const onPointerCancel = (e: PointerEvent) => {
@@ -302,6 +320,71 @@ export class JotView extends ItemView {
             card.removeEventListener("pointermove", onPointerMove);
             card.removeEventListener("pointerup", onPointerUp);
             card.removeEventListener("pointercancel", onPointerCancel);
+        });
+    }
+
+    private closeImageLightbox() {
+        if (this.imageLightboxUnmount) {
+            try {
+                this.imageLightboxUnmount();
+            } catch {
+                /* ignore */
+            }
+            this.imageLightboxUnmount = null;
+        }
+    }
+
+    private openImageLightbox(src: string) {
+        if (!src) return;
+        this.closeImageLightbox();
+        const doc = this.containerEl.ownerDocument;
+        const win = doc.defaultView ?? window;
+        const ws = this.app.workspace.containerEl;
+        const mount = ws && ws.ownerDocument === doc ? ws : doc.body;
+        const root = mount.createDiv({ cls: "jots-image-lightbox" });
+        root.tabIndex = -1;
+        root.setAttribute("role", "dialog");
+        root.setAttribute("aria-modal", "true");
+        const imgEl = root.createEl("img", { cls: "jots-image-lightbox-img", attr: { src, alt: "" } });
+        imgEl.draggable = false;
+        imgEl.style.setProperty("max-width", "96vw", "important");
+        imgEl.style.setProperty("max-height", "96vh", "important");
+        imgEl.style.setProperty("width", "auto", "important");
+        imgEl.style.setProperty("height", "auto", "important");
+        imgEl.style.setProperty("object-fit", "contain", "important");
+
+        const close = () => this.closeImageLightbox();
+
+        root.addEventListener("click", (e) => {
+            if (e.target !== imgEl) close();
+        });
+
+        const onKey = (ev: KeyboardEvent) => {
+            if (ev.key === "Escape") {
+                ev.preventDefault();
+                close();
+            }
+        };
+        win.addEventListener("keydown", onKey);
+
+        this.imageLightboxUnmount = () => {
+            win.removeEventListener("keydown", onKey);
+            root.remove();
+        };
+
+        requestAnimationFrame(() => root.focus());
+    }
+
+    private wireCardImageZoom(img: HTMLImageElement) {
+        const blockToCard = (e: Event) => e.stopPropagation();
+        img.addEventListener("pointerdown", blockToCard);
+        img.addEventListener("pointermove", blockToCard);
+        img.addEventListener("pointerup", blockToCard);
+        img.addEventListener("pointercancel", blockToCard);
+        img.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.openImageLightbox(img.currentSrc || img.src);
         });
     }
 
@@ -696,12 +779,13 @@ export class JotView extends ItemView {
         container.style.overflow = "hidden";
         
         const leftPanel = container.createDiv();
-        leftPanel.style.flex = "2";
+        leftPanel.style.flex = "4";
         leftPanel.style.overflow = "auto";
         leftPanel.style.padding = "10px";
         
         const rightPanel = container.createDiv();
         rightPanel.style.flex = "1";
+        rightPanel.style.minWidth = "0";
         rightPanel.style.overflow = "auto";
         rightPanel.style.padding = "10px";
         
@@ -712,8 +796,9 @@ export class JotView extends ItemView {
         this.renderJotList(listContainer);
         
         this.renderStats(rightPanel);
-        this.renderCalendar(rightPanel);
         this.renderSearch(rightPanel);
+        const calendarRoot = rightPanel.createDiv({ cls: "jots-calendar" });
+        this.renderCalendar(calendarRoot);
     }
     
     renderSidebarLayout() {
@@ -741,8 +826,9 @@ export class JotView extends ItemView {
         });
         
         this.renderStatsCompact(container);
-        this.renderCalendarCompact(container);
         this.renderSearchCompact(container);
+        const calendarRoot = container.createDiv({ cls: "jots-calendar" });
+        this.renderCalendarCompact(calendarRoot);
         
         const listContainer = container.createDiv();
         listContainer.style.marginTop = "8px";
@@ -802,6 +888,7 @@ export class JotView extends ItemView {
 
         const attachmentTray = this.inputCard.createDiv({ cls: "jots-quick-attachment-tray" });
         let selectedAttachments: { path: string; type: "image" | "file" }[] = [];
+        let syncQuickSendReady: () => void = () => {};
 
         const openAttachmentPicker = () => {
             const input = document.createElement("input");
@@ -853,11 +940,7 @@ export class JotView extends ItemView {
                     renderAttachmentTray();
                 });
             });
-
-            const addTile = attachmentTray.createDiv({ cls: "jots-quick-attachment-add" });
-            addTile.textContent = "+";
-            addTile.title = t('attachmentPlaceholder', this.lang);
-            addTile.addEventListener("click", openAttachmentPicker);
+            syncQuickSendReady();
         };
 
         renderAttachmentTray();
@@ -865,6 +948,7 @@ export class JotView extends ItemView {
 
         textarea.addEventListener("input", () => {
             refreshEmbedPreviews();
+            syncQuickSendReady();
         });
 
         const setDropActive = (active: boolean) => {
@@ -960,6 +1044,13 @@ export class JotView extends ItemView {
         saveBtn.textContent = "➤";
         saveBtn.title = t('save', this.lang);
 
+        syncQuickSendReady = () => {
+            const ready =
+                textarea.value.trim().length > 0 || selectedAttachments.length > 0;
+            saveBtn.classList.toggle("is-ready", ready);
+        };
+        syncQuickSendReady();
+
         saveBtn.addEventListener("click", async () => {
             const content = textarea.value.trim();
             if (!content) {
@@ -1004,6 +1095,7 @@ export class JotView extends ItemView {
                 textarea.selectionEnd = newCursorPos;
 
                 textarea.focus();
+                textarea.dispatchEvent(new Event("input", { bubbles: true }));
             }
         );
         return this.wikilinkCleanup;
@@ -1035,6 +1127,7 @@ export class JotView extends ItemView {
         const cursor = start + text.length;
         textarea.selectionStart = cursor;
         textarea.selectionEnd = cursor;
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
     renderStats(container: HTMLElement) {
@@ -1112,8 +1205,65 @@ export class JotView extends ItemView {
         const thisMonthCount = this.jots.filter(m => m.date.startsWith(thisMonth)).length;
         return { total, today: todayCount, thisMonth: thisMonthCount };
     }
+
+    /** YYYY-MM-DD from jot timestamp fields */
+    private jotDateKey(ts: string): string | null {
+        if (!ts?.trim()) return null;
+        const full = moment(ts, "YYYY-MM-DD HH:mm:ss", true);
+        if (full.isValid()) return full.format("YYYY-MM-DD");
+        const day = moment(ts, "YYYY-MM-DD", true);
+        if (day.isValid()) return day.format("YYYY-MM-DD");
+        const loose = moment(ts);
+        if (loose.isValid()) return loose.format("YYYY-MM-DD");
+        const prefix = ts.match(/^(\d{4}-\d{2}-\d{2})/);
+        return prefix ? prefix[1] : null;
+    }
+
+    private isDateInMonth(dateKey: string, year: number, monthIndex: number): boolean {
+        const m = moment(dateKey, "YYYY-MM-DD", true);
+        if (!m.isValid()) return false;
+        return m.year() === year && m.month() === monthIndex;
+    }
+
+    private heatLevel(score: number, maxScore: number): number {
+        if (score <= 0 || maxScore <= 0) return 0;
+        const t = score / maxScore;
+        if (t <= 0.25) return 1;
+        if (t <= 0.5) return 2;
+        if (t <= 0.75) return 3;
+        return 4;
+    }
+
+    /** Per-day create+update event counts and unique jots for the heatmap month */
+    getHeatmapForMonth(year: number, monthIndex: number): Map<string, HeatDayCell> {
+        const raw = new Map<string, { activityScore: number; byId: Map<string, Jot> }>();
+        const bump = (dateKey: string, jot: Jot) => {
+            if (!this.isDateInMonth(dateKey, year, monthIndex)) return;
+            let e = raw.get(dateKey);
+            if (!e) {
+                e = { activityScore: 0, byId: new Map<string, Jot>() };
+                raw.set(dateKey, e);
+            }
+            e.activityScore++;
+            e.byId.set(jot.id, jot);
+        };
+        for (const jot of this.jots) {
+            const c =
+                this.jotDateKey(jot.createdAt) ??
+                (/^\d{4}-\d{2}-\d{2}$/.test(jot.date) ? jot.date : null);
+            const u = this.jotDateKey(jot.updatedAt);
+            if (c) bump(c, jot);
+            if (u) bump(u, jot);
+        }
+        const out = new Map<string, HeatDayCell>();
+        for (const [k, v] of raw) {
+            out.set(k, { activityScore: v.activityScore, jots: Array.from(v.byId.values()) });
+        }
+        return out;
+    }
     
     renderCalendar(container: HTMLElement) {
+        container.empty();
         const section = container.createDiv();
         section.style.marginBottom = "12px";
         section.style.backgroundColor = "var(--background-secondary)";
@@ -1122,17 +1272,23 @@ export class JotView extends ItemView {
         section.style.border = "1px solid var(--background-modifier-border)";
         
         const title = section.createDiv();
-        title.textContent = "📅 " + t('calendar', this.lang);
+        title.textContent = "▦ " + t('heatmap', this.lang);
         title.style.fontSize = "13px";
         title.style.fontWeight = "500";
-        title.style.marginBottom = "8px";
+        title.style.marginBottom = "2px";
         title.style.color = "var(--text-normal)";
+        const sub = section.createDiv();
+        sub.textContent = t('heatmapSubtitle', this.lang);
+        sub.style.fontSize = "10px";
+        sub.style.color = "var(--text-muted)";
+        sub.style.marginBottom = "8px";
         
         const contentDiv = section.createDiv();
         this.renderCalendarGrid(contentDiv);
     }
     
     renderCalendarCompact(container: HTMLElement) {
+        container.empty();
         const section = container.createDiv();
         section.style.marginBottom = "8px";
         section.style.backgroundColor = "var(--background-secondary)";
@@ -1141,11 +1297,16 @@ export class JotView extends ItemView {
         section.style.border = "1px solid var(--background-modifier-border)";
         
         const title = section.createDiv();
-        title.textContent = "📅 " + t('calendar', this.lang);
+        title.textContent = "▦ " + t('heatmap', this.lang);
         title.style.fontSize = "12px";
         title.style.fontWeight = "500";
-        title.style.marginBottom = "6px";
+        title.style.marginBottom = "2px";
         title.style.color = "var(--text-normal)";
+        const sub = section.createDiv();
+        sub.textContent = t('heatmapSubtitle', this.lang);
+        sub.style.fontSize = "9px";
+        sub.style.color = "var(--text-muted)";
+        sub.style.marginBottom = "6px";
         
         const contentDiv = section.createDiv();
         this.renderCalendarGridCompact(contentDiv);
@@ -1211,34 +1372,48 @@ export class JotView extends ItemView {
         
         for (let i = 0; i < startWeekday; i++) {
             const emptyDay = daysGrid.createDiv();
-            emptyDay.style.padding = "4px 2px";
+            emptyDay.style.aspectRatio = "1";
         }
         
-        const dayRecords = this.getDayRecords();
-        
+        const heatCells = this.getHeatmapForMonth(this.currentYear, this.currentMonth);
+        let maxScore = 0;
         for (let d = 1; d <= lastDay.getDate(); d++) {
             const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const record = dayRecords.get(dateStr);
-            const hasRecord = record && record.count > 0;
-            
+            maxScore = Math.max(maxScore, heatCells.get(dateStr)?.activityScore ?? 0);
+        }
+        if (maxScore < 1) maxScore = 1;
+
+        for (let d = 1; d <= lastDay.getDate(); d++) {
+            const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const cell = heatCells.get(dateStr);
+            const score = cell?.activityScore ?? 0;
+            const level = this.heatLevel(score, maxScore);
+            const hasActivity = score > 0;
+            const noteCount = cell?.jots.length ?? 0;
+
             const dayDiv = daysGrid.createDiv();
-            dayDiv.textContent = String(d);
-            dayDiv.style.textAlign = "center";
-            dayDiv.style.padding = "4px 2px";
-            dayDiv.style.borderRadius = "4px";
+            dayDiv.addClass("jots-heat-cell");
+            dayDiv.addClass(`jots-heat-l${level}`);
+            const dayNum = dayDiv.createSpan({ cls: "jots-heat-daynum", text: String(d) });
+            dayNum.style.pointerEvents = "none";
+            dayDiv.style.display = "flex";
+            dayDiv.style.alignItems = "center";
+            dayDiv.style.justifyContent = "center";
+            dayDiv.style.aspectRatio = "1";
+            dayDiv.style.borderRadius = "2px";
             dayDiv.style.fontSize = "11px";
-            dayDiv.style.cursor = hasRecord ? "pointer" : "default";
-            
-            if (hasRecord) {
-                dayDiv.style.backgroundColor = "var(--interactive-accent)";
-                dayDiv.style.color = "var(--text-on-accent)";
-                dayDiv.title = `${dateStr}: ${t('recordsCount', this.lang, { count: String(record.count) })}`;
-                dayDiv.addEventListener("click", () => {
-                    this.filterByDate(dateStr);
+            dayDiv.style.fontWeight = hasActivity ? "600" : "400";
+            dayDiv.style.cursor = hasActivity ? "pointer" : "default";
+
+            if (hasActivity) {
+                dayDiv.title = t("heatmapTooltip", this.lang, {
+                    date: dateStr,
+                    notes: String(noteCount),
+                    events: String(score),
                 });
-            } else {
-                dayDiv.style.backgroundColor = "var(--background-modifier-border)";
-                dayDiv.style.color = "var(--text-muted)";
+                dayDiv.addEventListener("click", () => {
+                    this.filterByActivityDate(dateStr);
+                });
             }
         }
     }
@@ -1307,53 +1482,52 @@ export class JotView extends ItemView {
         
         for (let i = 0; i < startWeekday; i++) {
             const emptyDay = daysGrid.createDiv();
-            emptyDay.style.padding = "3px 1px";
-            emptyDay.style.textAlign = "center";
+            emptyDay.style.aspectRatio = "1";
         }
         
-        const dayRecords = this.getDayRecords();
-        
+        const heatCells = this.getHeatmapForMonth(this.currentYear, this.currentMonth);
+        let maxScore = 0;
         for (let d = 1; d <= lastDay.getDate(); d++) {
             const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const record = dayRecords.get(dateStr);
-            const hasRecord = record && record.count > 0;
-            
+            maxScore = Math.max(maxScore, heatCells.get(dateStr)?.activityScore ?? 0);
+        }
+        if (maxScore < 1) maxScore = 1;
+
+        for (let d = 1; d <= lastDay.getDate(); d++) {
+            const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const cell = heatCells.get(dateStr);
+            const score = cell?.activityScore ?? 0;
+            const level = this.heatLevel(score, maxScore);
+            const hasActivity = score > 0;
+            const noteCount = cell?.jots.length ?? 0;
+
             const dayDiv = daysGrid.createDiv();
-            dayDiv.textContent = String(d);
-            dayDiv.style.textAlign = "center";
-            dayDiv.style.padding = "3px 1px";
-            dayDiv.style.borderRadius = "3px";
+            dayDiv.addClass("jots-heat-cell");
+            dayDiv.addClass(`jots-heat-l${level}`);
+            const dayNum = dayDiv.createSpan({ cls: "jots-heat-daynum", text: String(d) });
+            dayNum.style.pointerEvents = "none";
+            dayDiv.style.display = "flex";
+            dayDiv.style.alignItems = "center";
+            dayDiv.style.justifyContent = "center";
+            dayDiv.style.aspectRatio = "1";
+            dayDiv.style.borderRadius = "2px";
             dayDiv.style.fontSize = "9px";
-            dayDiv.style.cursor = hasRecord ? "pointer" : "default";
-            
-            if (hasRecord) {
-                dayDiv.style.backgroundColor = "var(--interactive-accent)";
-                dayDiv.style.color = "var(--text-on-accent)";
-                dayDiv.title = `${dateStr}: ${t('recordsCount', this.lang, { count: String(record.count) })}`;
-                dayDiv.addEventListener("click", () => {
-                    this.filterByDate(dateStr);
+            dayDiv.style.fontWeight = hasActivity ? "600" : "400";
+            dayDiv.style.cursor = hasActivity ? "pointer" : "default";
+
+            if (hasActivity) {
+                dayDiv.title = t("heatmapTooltip", this.lang, {
+                    date: dateStr,
+                    notes: String(noteCount),
+                    events: String(score),
                 });
-            } else {
-                dayDiv.style.backgroundColor = "var(--background-modifier-border)";
-                dayDiv.style.color = "var(--text-muted)";
+                dayDiv.addEventListener("click", () => {
+                    this.filterByActivityDate(dateStr);
+                });
             }
         }
     }
 
-    getDayRecords(): Map<string, DayRecord> {
-        const records = new Map<string, DayRecord>();
-        for (const jot of this.jots) {
-            const date = jot.date;
-            if (!records.has(date)) {
-                records.set(date, { date, count: 0, jots: [] });
-            }
-            const record = records.get(date)!;
-            record.count++;
-            record.jots.push(jot);
-        }
-        return records;
-    }
-    
     changeMonth(delta: number) {
         this.currentMonth += delta;
         if (this.currentMonth < 0) {
@@ -1365,7 +1539,7 @@ export class JotView extends ItemView {
         }
 
         // 重新渲染整个日历部分
-        const calendarContainer = this.contentEl.querySelector(".jots-calendar");
+        const calendarContainer = this.contentEl.querySelector(".jots-calendar") as HTMLElement | null;
         if (calendarContainer) {
             calendarContainer.empty();
             if (this.isSidebar) {
@@ -1376,167 +1550,264 @@ export class JotView extends ItemView {
         }
     }
     
-    filterByDate(date: string) {
-        this.searchQuery = `date:${date}`;
+    filterByActivityDate(date: string) {
+        this.searchTimePreset = "none";
+        this.searchQuery = `activity:${date}`;
         this.updateSearchAndFilter();
     }
-    
+
+    private stripDateActivityFromSearchQuery() {
+        const parts = this.searchQuery.trim().split(/\s+/).filter(Boolean);
+        const kept = parts.filter((p) => {
+            const low = p.toLowerCase();
+            return !low.startsWith("date:") && !low.startsWith("activity:");
+        });
+        this.searchQuery = kept.join(" ");
+    }
+
+    private jotMatchesTimePreset(jot: Jot): boolean {
+        if (this.searchTimePreset === "none" || this.searchTimePreset === "custom") return true;
+        const d = moment(jot.date, "YYYY-MM-DD", true);
+        if (!d.isValid()) return false;
+        const today = moment().startOf("day");
+        switch (this.searchTimePreset) {
+            case "onThisDay":
+                return d.date() === today.date() && d.month() === today.month();
+            case "thisMonth":
+                return d.year() === today.year() && d.month() === today.month();
+            case "lastMonth": {
+                const lm = today.clone().subtract(1, "month");
+                return d.year() === lm.year() && d.month() === lm.month();
+            }
+            case "last7": {
+                const start7 = today.clone().subtract(6, "days");
+                return d.isSameOrAfter(start7, "day") && d.isSameOrBefore(today, "day");
+            }
+            case "last30": {
+                const start30 = today.clone().subtract(29, "days");
+                return d.isSameOrAfter(start30, "day") && d.isSameOrBefore(today, "day");
+            }
+            default:
+                return true;
+        }
+    }
+
+    private jotHasImageContent(jot: Jot): boolean {
+        if (jot.attachmentTypes?.includes("image")) return true;
+        const re = /!\[\[([^\]]+)\]\]/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(jot.content)) != null) {
+            if (VAULT_IMAGE_EXT.test(m[1].trim())) return true;
+        }
+        for (const p of jot.attachments ?? []) {
+            if (VAULT_IMAGE_EXT.test(p)) return true;
+        }
+        return false;
+    }
+
+    private jotHasLinkContent(jot: Jot): boolean {
+        if (/https?:\/\//i.test(jot.content)) return true;
+        if (/\[\[[^\]]+\]\]/.test(jot.content)) return true;
+        return false;
+    }
+
+    private jotHasAudioContent(jot: Jot): boolean {
+        if (AUDIO_EXT_RE.test(jot.content) || AUDIO_EXT_RE.test(jot.fullText)) return true;
+        for (const p of jot.attachments ?? []) {
+            if (AUDIO_EXT_RE.test(p)) return true;
+        }
+        const re = /!\[\[([^\]]+)\]\]/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(jot.content)) != null) {
+            if (AUDIO_EXT_RE.test(m[1])) return true;
+        }
+        return false;
+    }
+
+    private jotMatchesContentFilters(jot: Jot): boolean {
+        if (this.contentTypeFilters.size === 0) return true;
+        for (const f of this.contentTypeFilters) {
+            if (f === "image" && this.jotHasImageContent(jot)) return true;
+            if (f === "link" && this.jotHasLinkContent(jot)) return true;
+            if (f === "audio" && this.jotHasAudioContent(jot)) return true;
+        }
+        return false;
+    }
+
     renderSearch(container: HTMLElement) {
-        const section = container.createDiv();
-        section.style.marginBottom = "12px";
-        section.style.backgroundColor = "var(--background-secondary)";
-        section.style.borderRadius = "8px";
-        section.style.padding = "12px";
-        section.style.border = "1px solid var(--background-modifier-border)";
-        
-        const title = section.createDiv();
-        title.textContent = t('searchAndTags', this.lang);
-        title.style.fontSize = "13px";
-        title.style.fontWeight = "500";
-        title.style.marginBottom = "8px";
-        title.style.color = "var(--text-normal)";
-        
-        this.searchContainer = section.createDiv();
-        this.searchContainer.style.position = "relative";
-        this.searchContainer.style.width = "100%";
-        
-        const searchInput = this.searchContainer.createEl("input");
-        searchInput.type = "text";
-        searchInput.placeholder = t('searchPlaceholder', this.lang);
-        searchInput.style.width = "100%";
-        searchInput.style.padding = "6px 8px";
-        searchInput.style.paddingRight = "32px";
-        searchInput.style.borderRadius = "4px";
-        searchInput.style.border = "1px solid var(--background-modifier-border)";
-        searchInput.style.backgroundColor = "var(--background-primary)";
-        searchInput.style.color = "var(--text-normal)";
-        searchInput.style.marginBottom = "12px";
-        searchInput.value = this.searchQuery;
-        this.searchInput = searchInput;
-
-        searchInput.addEventListener("input", (e) => {
-            const query = (e.target as HTMLInputElement).value;
-            this.debouncedSearch(query);
-        });
-
-        this.updateClearButton();
-
-        const tagFilter = section.createDiv();
-        tagFilter.style.display = "flex";
-        tagFilter.style.flexWrap = "wrap";
-        tagFilter.style.gap = "6px";
-        
-        const allTags = this.getAllTags();
-        allTags.forEach(tag => {
-            const tagBtn = tagFilter.createSpan();
-            tagBtn.textContent = `#${tag}`;
-            tagBtn.style.padding = "2px 8px";
-            tagBtn.style.borderRadius = "12px";
-            tagBtn.style.fontSize = "11px";
-            tagBtn.style.backgroundColor = this.selectedTags.has(tag) ? "var(--interactive-accent)" : "var(--background-primary)";
-            tagBtn.style.color = this.selectedTags.has(tag) ? "var(--text-on-accent)" : "var(--text-muted)";
-            tagBtn.style.border = "1px solid var(--background-modifier-border)";
-            tagBtn.style.cursor = "pointer";
-            tagBtn.addEventListener("click", () => {
-                if (this.selectedTags.has(tag)) {
-                    this.selectedTags.delete(tag);
-                } else {
-                    this.selectedTags.add(tag);
-                }
-                // 更新标签按钮样式
-                tagBtn.style.backgroundColor = this.selectedTags.has(tag) ? "var(--interactive-accent)" : "var(--background-primary)";
-                tagBtn.style.color = this.selectedTags.has(tag) ? "var(--text-on-accent)" : "var(--text-muted)";
-                // 更新列表
-                const listSection = this.contentEl.querySelector(".jots-list-section");
-                if (listSection) {
-                    this.renderJotList(listSection as HTMLElement);
-                }
-            });
-        });
+        this.renderSearchFilterBar(container, false);
     }
 
     renderSearchCompact(container: HTMLElement) {
-        const section = container.createDiv();
-        section.style.marginBottom = "8px";
-        section.style.backgroundColor = "var(--background-secondary)";
-        section.style.borderRadius = "6px";
-        section.style.padding = "10px";
-        section.style.border = "1px solid var(--background-modifier-border)";
-        
-        const title = section.createDiv();
-        title.textContent = t('searchAndTags', this.lang);
-        title.style.fontSize = "12px";
-        title.style.fontWeight = "500";
-        title.style.marginBottom = "6px";
-        title.style.color = "var(--text-normal)";
-        
-        this.searchContainer = section.createDiv();
+        this.renderSearchFilterBar(container, true);
+    }
+
+    private renderSearchFilterBar(container: HTMLElement, compact: boolean) {
+        const stack = container.createDiv({ cls: `jots-search-stack${compact ? " jots-search-stack--compact" : ""}` });
+
+        const pillWrap = stack.createDiv({ cls: "jots-search-pill-wrap" });
+        this.searchContainer = pillWrap.createDiv({ cls: "jots-search-pill" });
         this.searchContainer.style.position = "relative";
-        this.searchContainer.style.width = "100%";
-        
-        const searchInput = this.searchContainer.createEl("input");
+
+        const iconEl = this.searchContainer.createSpan({ cls: "jots-search-pill-icon" });
+        setIcon(iconEl, "search");
+
+        const searchInput = this.searchContainer.createEl("input", { cls: "jots-search-pill-input" });
         searchInput.type = "text";
-        searchInput.placeholder = t('searchPlaceholderShort', this.lang);
-        searchInput.style.width = "100%";
-        searchInput.style.padding = "5px 8px";
-        searchInput.style.paddingRight = "28px";
-        searchInput.style.borderRadius = "4px";
-        searchInput.style.border = "1px solid var(--background-modifier-border)";
-        searchInput.style.backgroundColor = "var(--background-primary)";
-        searchInput.style.color = "var(--text-normal)";
-        searchInput.style.fontSize = "11px";
-        searchInput.style.marginBottom = "10px";
+        searchInput.placeholder = compact ? t("searchPillPlaceholder", this.lang) : t("searchPillPlaceholder", this.lang);
+        searchInput.setAttribute("aria-label", t("searchPlaceholder", this.lang));
+        searchInput.setAttribute("title", t("searchPlaceholder", this.lang));
         searchInput.value = this.searchQuery;
         this.searchInput = searchInput;
 
+        this.searchContainer.addEventListener("mousedown", (e) => {
+            const t = e.target as Node;
+            if (t === searchInput) return;
+            const clearEl = this.searchContainer?.querySelector(".search-clear-container");
+            if (clearEl && (t === clearEl || clearEl.contains(t))) {
+                e.preventDefault();
+                return;
+            }
+            e.preventDefault();
+            searchInput.focus({ preventScroll: true });
+        });
+
         searchInput.addEventListener("input", (e) => {
             const query = (e.target as HTMLInputElement).value;
+            const parsed = this.parseSearchFilters(query);
+            if (parsed.date || parsed.activity) {
+                this.searchTimePreset = "none";
+            }
             this.debouncedSearch(query);
         });
 
         this.updateClearButton();
 
-        const tagFilter = section.createDiv();
-        tagFilter.style.display = "flex";
-        tagFilter.style.flexWrap = "wrap";
-        tagFilter.style.gap = "4px";
-        
-        const allTags = this.getAllTags().slice(0, 8);
-        allTags.forEach(tag => {
-            const tagBtn = tagFilter.createSpan();
-            tagBtn.textContent = `#${tag}`;
-            tagBtn.style.padding = "2px 6px";
-            tagBtn.style.borderRadius = "10px";
-            tagBtn.style.fontSize = "10px";
-            tagBtn.style.backgroundColor = this.selectedTags.has(tag) ? "var(--interactive-accent)" : "var(--background-primary)";
-            tagBtn.style.color = this.selectedTags.has(tag) ? "var(--text-on-accent)" : "var(--text-muted)";
-            tagBtn.style.border = "1px solid var(--background-modifier-border)";
-            tagBtn.style.cursor = "pointer";
-            tagBtn.addEventListener("click", () => {
-                if (this.selectedTags.has(tag)) {
-                    this.selectedTags.delete(tag);
-                } else {
-                    this.selectedTags.add(tag);
+        const panel = stack.createDiv({ cls: "jots-search-panel" });
+
+        const timeGrid = panel.createDiv({ cls: "jots-search-time-grid" });
+        const timePresets: { key: SearchTimePreset; labelKey: keyof Translations }[] = [
+            { key: "onThisDay", labelKey: "timePresetOnThisDay" },
+            { key: "thisMonth", labelKey: "timePresetThisMonth" },
+            { key: "lastMonth", labelKey: "timePresetLastMonth" },
+            { key: "last7", labelKey: "timePresetLast7" },
+            { key: "last30", labelKey: "timePresetLast30" },
+            { key: "custom", labelKey: "timePresetCustom" },
+        ];
+        const timeButtons: { el: HTMLButtonElement; key: SearchTimePreset }[] = [];
+        for (const { key, labelKey } of timePresets) {
+            const btn = timeGrid.createEl("button", { type: "button", cls: "jots-filter-chip" });
+            btn.textContent = t(labelKey, this.lang);
+            if (this.searchTimePreset === key) btn.addClass("is-active");
+            btn.addEventListener("click", () => {
+                this.searchTimePreset = key;
+                if (key !== "custom" && key !== "none") {
+                    this.stripDateActivityFromSearchQuery();
                 }
-                // 更新标签按钮样式
-                tagBtn.style.backgroundColor = this.selectedTags.has(tag) ? "var(--interactive-accent)" : "var(--background-primary)";
-                tagBtn.style.color = this.selectedTags.has(tag) ? "var(--text-on-accent)" : "var(--text-muted)";
-                // 更新列表
+                if (this.searchInput) this.searchInput.value = this.searchQuery;
+                timeButtons.forEach(({ el, key: k }) => el.toggleClass("is-active", this.searchTimePreset === k));
+                this.updateSearchAndFilter();
+            });
+            timeButtons.push({ el: btn, key });
+        }
+
+        const tagsSection = panel.createDiv({ cls: "jots-search-section" });
+        const tagsHead = tagsSection.createDiv({ cls: "jots-search-section-head" });
+        tagsHead.createSpan({ cls: "jots-search-section-title", text: t("searchFilterTagsHeading", this.lang) });
+        const tagsChevron = tagsHead.createSpan({ cls: "jots-search-section-chevron" });
+        setIcon(tagsChevron, "chevron-down");
+        if (this.searchTagsSectionCollapsed) {
+            tagsChevron.addClass("is-collapsed");
+            tagsSection.addClass("is-collapsed");
+        }
+        tagsHead.addEventListener("mousedown", (e) => e.preventDefault());
+        tagsHead.addEventListener("click", () => {
+            this.searchTagsSectionCollapsed = !this.searchTagsSectionCollapsed;
+            tagsSection.toggleClass("is-collapsed", this.searchTagsSectionCollapsed);
+            tagsChevron.toggleClass("is-collapsed", this.searchTagsSectionCollapsed);
+        });
+
+        const tagsBody = tagsSection.createDiv({ cls: "jots-search-section-body" });
+        const tagModeRow = tagsBody.createDiv({ cls: "jots-search-chip-row" });
+        const tagFilter = tagsBody.createDiv({ cls: "jots-search-tag-chips" });
+        tagFilter.addEventListener("mousedown", (e) => e.preventDefault());
+        tagFilter.toggleClass("is-hidden", this.tagMatchMode === "noTags");
+        const tagModes: { mode: TagMatchMode; labelKey: keyof Translations }[] = [
+            { mode: "include", labelKey: "tagModeInclude" },
+            { mode: "exclude", labelKey: "tagModeExclude" },
+            { mode: "noTags", labelKey: "tagModeNoTags" },
+        ];
+        const tagModeButtons: { el: HTMLButtonElement; mode: TagMatchMode }[] = [];
+        for (const { mode, labelKey } of tagModes) {
+            const btn = tagModeRow.createEl("button", { type: "button", cls: "jots-filter-chip" });
+            btn.textContent = t(labelKey, this.lang);
+            if (this.tagMatchMode === mode) btn.addClass("is-active");
+            btn.addEventListener("click", () => {
+                this.tagMatchMode = mode;
+                tagModeButtons.forEach(({ el, mode: m }) => el.toggleClass("is-active", this.tagMatchMode === m));
+                tagFilter.toggleClass("is-hidden", this.tagMatchMode === "noTags");
                 const listSection = this.contentEl.querySelector(".jots-list-section");
-                if (listSection) {
-                    this.renderJotList(listSection as HTMLElement);
-                }
+                if (listSection) this.renderJotList(listSection as HTMLElement);
+            });
+            tagModeButtons.push({ el: btn, mode });
+        }
+
+        const allTagsList = compact ? this.getAllTags().slice(0, 8) : this.getAllTags();
+        allTagsList.forEach((tag) => {
+            const tagBtn = tagFilter.createSpan({ cls: "jots-search-tag-chip" });
+            tagBtn.textContent = `#${tag}`;
+            if (this.selectedTags.has(tag)) tagBtn.addClass("is-selected");
+            tagBtn.addEventListener("click", () => {
+                if (this.selectedTags.has(tag)) this.selectedTags.delete(tag);
+                else this.selectedTags.add(tag);
+                tagBtn.toggleClass("is-selected", this.selectedTags.has(tag));
+                const listSection = this.contentEl.querySelector(".jots-list-section");
+                if (listSection) this.renderJotList(listSection as HTMLElement);
             });
         });
 
-        const allTagsCount = this.getAllTags().length;
-        if (allTagsCount > 8) {
-            const moreHint = section.createDiv();
-            moreHint.textContent = t('moreTags', this.lang, { count: String(allTagsCount - 8) });
-            moreHint.style.fontSize = "9px";
-            moreHint.style.color = "var(--text-muted)";
-            moreHint.style.marginTop = "6px";
-            moreHint.style.textAlign = "center";
+        if (compact) {
+            const allTagsCount = this.getAllTags().length;
+            if (allTagsCount > 8) {
+                const moreHint = tagsBody.createDiv({ cls: "jots-search-more-tags" });
+                moreHint.textContent = t("moreTags", this.lang, { count: String(allTagsCount - 8) });
+            }
+        }
+
+        const contentSection = panel.createDiv({ cls: "jots-search-section" });
+        const contentHead = contentSection.createDiv({ cls: "jots-search-section-head" });
+        contentHead.createSpan({ cls: "jots-search-section-title", text: t("searchFilterContentHeading", this.lang) });
+        const contentChevron = contentHead.createSpan({ cls: "jots-search-section-chevron" });
+        setIcon(contentChevron, "chevron-down");
+        if (this.searchContentSectionCollapsed) {
+            contentChevron.addClass("is-collapsed");
+            contentSection.addClass("is-collapsed");
+        }
+        contentHead.addEventListener("mousedown", (e) => e.preventDefault());
+        contentHead.addEventListener("click", () => {
+            this.searchContentSectionCollapsed = !this.searchContentSectionCollapsed;
+            contentSection.toggleClass("is-collapsed", this.searchContentSectionCollapsed);
+            contentChevron.toggleClass("is-collapsed", this.searchContentSectionCollapsed);
+        });
+
+        const contentBody = contentSection.createDiv({ cls: "jots-search-section-body" });
+        const contentRow = contentBody.createDiv({ cls: "jots-search-chip-row" });
+        const contentDefs: { key: ContentTypeFilter; labelKey: keyof Translations }[] = [
+            { key: "image", labelKey: "contentTypeImage" },
+            { key: "link", labelKey: "contentTypeLink" },
+            { key: "audio", labelKey: "contentTypeAudio" },
+        ];
+        for (const { key, labelKey } of contentDefs) {
+            const btn = contentRow.createEl("button", { type: "button", cls: "jots-filter-chip" });
+            btn.textContent = t(labelKey, this.lang);
+            if (this.contentTypeFilters.has(key)) btn.addClass("is-active");
+            btn.addEventListener("click", () => {
+                if (this.contentTypeFilters.has(key)) this.contentTypeFilters.delete(key);
+                else this.contentTypeFilters.add(key);
+                btn.toggleClass("is-active", this.contentTypeFilters.has(key));
+                const listSection = this.contentEl.querySelector(".jots-list-section");
+                if (listSection) this.renderJotList(listSection as HTMLElement);
+            });
         }
     }
     
@@ -1649,6 +1920,8 @@ export class JotView extends ItemView {
                     textarea.style.color = "var(--text-normal)";
                     textarea.style.resize = "vertical";
                     textarea.style.fontFamily = "var(--font-text)";
+                    textarea.style.fontSize = "15px";
+                    textarea.style.lineHeight = "1.6";
                     textarea.placeholder = t("placeholderWithLink", this.lang);
 
                     const wlCleanup = this.setupWikilinkAutocomplete(textarea, textareaContainer);
@@ -1774,7 +2047,6 @@ export class JotView extends ItemView {
                     return;
                 }
 
-                card.style.cursor = "pointer";
                 this.attachCardTapAndLongPress(card, jot);
                 card.addEventListener("mouseenter", () => {
                     card.style.borderColor = "var(--interactive-accent)";
@@ -1811,8 +2083,6 @@ export class JotView extends ItemView {
                 });
 
                 const contentContainer = card.createDiv();
-                contentContainer.style.fontSize = "12px";
-                contentContainer.style.lineHeight = "1.5";
                 contentContainer.style.marginBottom = "6px";
                 contentContainer.style.whiteSpace = "normal";
                 contentContainer.style.wordBreak = "break-word";
@@ -1898,6 +2168,11 @@ export class JotView extends ItemView {
                         });
                     });
 
+                    contentContainer.querySelectorAll("img").forEach((el) => {
+                        if (!(el instanceof HTMLImageElement)) return;
+                        this.wireCardImageZoom(el);
+                    });
+
                     if (searchKeywords.length > 0) {
                         highlightMarkdownContent(contentContainer, searchKeywords);
                     }
@@ -1923,6 +2198,7 @@ export class JotView extends ItemView {
                         img.src = this.app.vault.getResourcePath(af);
                         img.alt = af.name;
                         img.loading = "lazy";
+                        this.wireCardImageZoom(img);
                     } else {
                         const miss = attachmentImageRow.createDiv({ cls: "jots-card-attachment-missing" });
                         miss.textContent = `🖼️ ${attachment}`;
@@ -1992,13 +2268,25 @@ export class JotView extends ItemView {
     
     filterJots(): Jot[] {
         let filtered = [...this.jots];
-        const { date, updated, keywords } = this.parseSearchFilters(this.searchQuery);
+        const { date, updated, activity, keywords } = this.parseSearchFilters(this.searchQuery);
 
         if (date) {
             filtered = filtered.filter((jot) => jot.date === date);
         }
         if (updated) {
             filtered = filtered.filter((jot) => jot.updatedAt.startsWith(updated));
+        }
+        if (activity) {
+            filtered = filtered.filter((jot) => {
+                const c =
+                    this.jotDateKey(jot.createdAt) ??
+                    (/^\d{4}-\d{2}-\d{2}$/.test(jot.date) ? jot.date : null);
+                const u = this.jotDateKey(jot.updatedAt);
+                return c === activity || u === activity;
+            });
+        }
+        if (!date && !activity && this.searchTimePreset !== "none" && this.searchTimePreset !== "custom") {
+            filtered = filtered.filter((jot) => this.jotMatchesTimePreset(jot));
         }
         if (keywords.length > 0) {
             filtered = filtered.filter((jot) => {
@@ -2007,8 +2295,18 @@ export class JotView extends ItemView {
             });
         }
 
-        if (this.selectedTags.size > 0) {
-            filtered = filtered.filter((jot) => jot.tags.some((tag) => this.selectedTags.has(tag)));
+        if (this.tagMatchMode === "noTags") {
+            filtered = filtered.filter((jot) => jot.tags.length === 0);
+        } else if (this.selectedTags.size > 0) {
+            if (this.tagMatchMode === "include") {
+                filtered = filtered.filter((jot) => jot.tags.some((tag) => this.selectedTags.has(tag)));
+            } else {
+                filtered = filtered.filter((jot) => !jot.tags.some((tag) => this.selectedTags.has(tag)));
+            }
+        }
+
+        if (this.contentTypeFilters.size > 0) {
+            filtered = filtered.filter((jot) => this.jotMatchesContentFilters(jot));
         }
 
         return filtered;
