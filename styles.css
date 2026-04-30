@@ -249,6 +249,39 @@
     margin: 4px 0;
 }
 
+/* Parsed attachment images (standalone ![[...]] lines) shown under card body */
+.jots-card-attachment-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.jots-card-attachment-images:empty {
+    display: none;
+}
+
+.jots-card-attachment-thumb {
+    flex: 0 1 auto;
+    max-width: 100%;
+}
+
+.jots-card-attachment-img {
+    display: block;
+    max-height: 140px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 6px;
+    object-fit: contain;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.jots-card-attachment-missing {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
 .jots-card-tags {
     display: flex;
     flex-wrap: wrap;

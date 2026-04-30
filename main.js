@@ -5100,6 +5100,7 @@ init_i18n();
 init_utils();
 var CARD_LONG_PRESS_MS = 480;
 var CARD_TAP_MOVE_PX = 14;
+var VAULT_IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i;
 var VIEW_TYPE_JOTS = "jot-view";
 var JotView = class extends import_obsidian3.ItemView {
   constructor(leaf, plugin) {
@@ -6231,6 +6232,7 @@ var JotView = class extends import_obsidian3.ItemView {
       dateHeader.style.borderBottom = "1px solid var(--background-modifier-border)";
       dateHeader.style.marginBottom = "8px";
       jots.forEach((jot) => {
+        var _a;
         const card = dateGroup.createDiv();
         card.style.backgroundColor = "var(--background-secondary)";
         card.style.borderRadius = "8px";
@@ -6493,6 +6495,29 @@ var JotView = class extends import_obsidian3.ItemView {
           sourcePath,
           component
         )).then(wireRenderedContent);
+        const attachmentImageRow = card.createDiv({ cls: "jots-card-attachment-images" });
+        (_a = jot.attachments) == null ? void 0 : _a.forEach((attachment, idx) => {
+          var _a2;
+          const attType = (_a2 = jot.attachmentTypes) == null ? void 0 : _a2[idx];
+          const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
+          if (attType === "file" || attType !== "image" && !pathLooksImage)
+            return;
+          const vaultPath = (0, import_obsidian3.normalizePath)(attachment);
+          const af = this.app.vault.getAbstractFileByPath(vaultPath);
+          if (af instanceof import_obsidian3.TFile && VAULT_IMAGE_EXT.test(af.path)) {
+            const thumb = attachmentImageRow.createDiv({ cls: "jots-card-attachment-thumb" });
+            const img = thumb.createEl("img", { cls: "jots-card-attachment-img" });
+            img.src = this.app.vault.getResourcePath(af);
+            img.alt = af.name;
+            img.loading = "lazy";
+          } else {
+            const miss = attachmentImageRow.createDiv({ cls: "jots-card-attachment-missing" });
+            miss.textContent = `\u{1F5BC}\uFE0F ${attachment}`;
+          }
+        });
+        if (attachmentImageRow.childElementCount === 0) {
+          attachmentImageRow.remove();
+        }
         const tagsDiv = card.createDiv();
         tagsDiv.style.display = "flex";
         tagsDiv.style.flexWrap = "wrap";
@@ -6531,14 +6556,19 @@ var JotView = class extends import_obsidian3.ItemView {
           sourceDiv.style.marginTop = "4px";
         }
         if (jot.attachments && jot.attachments.length > 0) {
+          let firstFileLine = true;
           jot.attachments.forEach((attachment, idx) => {
-            var _a;
+            var _a2;
+            const attType = (_a2 = jot.attachmentTypes) == null ? void 0 : _a2[idx];
+            const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
+            if (attType === "image" || attType !== "file" && pathLooksImage)
+              return;
             const attachmentDiv = card.createDiv();
-            const icon = ((_a = jot.attachmentTypes) == null ? void 0 : _a[idx]) === "image" ? "\u{1F5BC}\uFE0F" : "\u{1F4CE}";
-            attachmentDiv.textContent = `${icon} ${attachment}`;
+            attachmentDiv.textContent = `\u{1F4CE} ${attachment}`;
             attachmentDiv.style.fontSize = "10px";
             attachmentDiv.style.color = "var(--text-muted)";
-            attachmentDiv.style.marginTop = idx === 0 ? "4px" : "2px";
+            attachmentDiv.style.marginTop = firstFileLine ? "4px" : "2px";
+            firstFileLine = false;
           });
         }
       });

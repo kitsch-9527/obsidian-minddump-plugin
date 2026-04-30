@@ -20,6 +20,8 @@ import {
 const CARD_LONG_PRESS_MS = 480;
 const CARD_TAP_MOVE_PX = 14;
 
+const VAULT_IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i;
+
 export const VIEW_TYPE_JOTS = "jot-view";
 
 export class JotView extends ItemView {
@@ -1616,6 +1618,29 @@ export class JotView extends ItemView {
                     component
                 )).then(wireRenderedContent);
 
+                // Standalone `![[path]]` lines are parsed into `attachments`, not `content`; show images here.
+                const attachmentImageRow = card.createDiv({ cls: "jots-card-attachment-images" });
+                jot.attachments?.forEach((attachment, idx) => {
+                    const attType = jot.attachmentTypes?.[idx];
+                    const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
+                    if (attType === "file" || (attType !== "image" && !pathLooksImage)) return;
+                    const vaultPath = normalizePath(attachment);
+                    const af = this.app.vault.getAbstractFileByPath(vaultPath);
+                    if (af instanceof TFile && VAULT_IMAGE_EXT.test(af.path)) {
+                        const thumb = attachmentImageRow.createDiv({ cls: "jots-card-attachment-thumb" });
+                        const img = thumb.createEl("img", { cls: "jots-card-attachment-img" });
+                        img.src = this.app.vault.getResourcePath(af);
+                        img.alt = af.name;
+                        img.loading = "lazy";
+                    } else {
+                        const miss = attachmentImageRow.createDiv({ cls: "jots-card-attachment-missing" });
+                        miss.textContent = `🖼️ ${attachment}`;
+                    }
+                });
+                if (attachmentImageRow.childElementCount === 0) {
+                    attachmentImageRow.remove();
+                }
+
                 const tagsDiv = card.createDiv();
                 tagsDiv.style.display = "flex";
                 tagsDiv.style.flexWrap = "wrap";
@@ -1657,13 +1682,17 @@ export class JotView extends ItemView {
                 }
 
                 if (jot.attachments && jot.attachments.length > 0) {
+                    let firstFileLine = true;
                     jot.attachments.forEach((attachment, idx) => {
+                        const attType = jot.attachmentTypes?.[idx];
+                        const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
+                        if (attType === "image" || (attType !== "file" && pathLooksImage)) return;
                         const attachmentDiv = card.createDiv();
-                        const icon = jot.attachmentTypes?.[idx] === "image" ? "🖼️" : "📎";
-                        attachmentDiv.textContent = `${icon} ${attachment}`;
+                        attachmentDiv.textContent = `📎 ${attachment}`;
                         attachmentDiv.style.fontSize = "10px";
                         attachmentDiv.style.color = "var(--text-muted)";
-                        attachmentDiv.style.marginTop = idx === 0 ? "4px" : "2px";
+                        attachmentDiv.style.marginTop = firstFileLine ? "4px" : "2px";
+                        firstFileLine = false;
                     });
                 }
             });
