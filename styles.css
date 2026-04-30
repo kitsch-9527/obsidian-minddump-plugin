@@ -373,6 +373,248 @@
     border-color: var(--interactive-accent);
 }
 
+/* 主视图快速记录新样式 */
+.jots-quick-compose-card {
+    background: var(--background-primary);
+    border: 2px solid var(--interactive-accent);
+    border-radius: 18px;
+    padding: 14px 16px 12px;
+}
+
+.jots-quick-textarea-container {
+    border-radius: 12px;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.jots-quick-textarea-container.is-drop-active {
+    background-color: var(--background-modifier-hover);
+    box-shadow: inset 0 0 0 1px var(--interactive-accent);
+}
+
+.jots-quick-textarea {
+    width: 100%;
+    min-height: 170px;
+    border: none;
+    background: transparent;
+    color: var(--text-normal);
+    resize: vertical;
+    line-height: 1.6;
+    font-size: 16px;
+    padding: 2px;
+    box-shadow: none;
+}
+
+.jots-quick-textarea::placeholder {
+    color: var(--text-faint);
+    font-size: 30px;
+    font-weight: 600;
+}
+
+.jots-quick-textarea:focus {
+    outline: none;
+}
+
+/* 正文里 ![[...]] 无法在 textarea 内渲染，用缩略图条展示 vault 图片 */
+.jots-quick-embed-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.jots-quick-embed-preview:empty {
+    display: none;
+    margin-top: 0;
+}
+
+.jots-quick-embed-thumb {
+    line-height: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.jots-quick-embed-img {
+    display: block;
+    max-height: 120px;
+    max-width: 120px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.jots-quick-meta-section,
+.jots-quick-source-section {
+    display: none;
+    margin-top: 10px;
+}
+
+.jots-quick-meta-input-container {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.jots-quick-meta-input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.jots-quick-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.jots-quick-attachment-tray {
+    margin-top: 10px;
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.jots-quick-attachment-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 210px;
+    border-radius: 10px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    font-size: 11px;
+    padding: 6px 8px;
+}
+
+.jots-quick-attachment-icon {
+    flex: 0 0 auto;
+}
+
+.jots-quick-attachment-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.jots-quick-attachment-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.jots-quick-attachment-remove {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0;
+}
+
+.jots-quick-attachment-remove:hover {
+    color: var(--text-normal);
+}
+
+.jots-quick-attachment-add {
+    width: 42px;
+    min-height: 42px;
+    border-radius: 10px;
+    border: 1px dashed var(--background-modifier-border);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 22px;
+    background: var(--background-secondary);
+}
+
+.jots-quick-attachment-add:hover {
+    border-color: var(--interactive-accent);
+    color: var(--interactive-accent);
+}
+
+.jots-view .jots-quick-toolbar-row {
+    margin-top: 12px;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.jots-view .jots-quick-tools {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: 8px;
+    flex: 1;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.jots-view .jots-quick-tool-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 0 12px;
+    min-height: 32px;
+    flex-shrink: 0;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.jots-view .jots-quick-tool-divider {
+    width: 1px;
+    align-self: stretch;
+    min-height: 22px;
+    margin: 0 4px;
+    background: var(--background-modifier-border);
+    flex-shrink: 0;
+}
+
+.jots-view .jots-quick-tool-btn:hover {
+    color: var(--text-normal);
+}
+
+.jots-view .jots-quick-send-btn {
+    border: none;
+    border-radius: 12px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    min-width: 54px;
+    min-height: 40px;
+    cursor: pointer;
+    font-size: 22px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.jots-view .jots-quick-send-btn:hover {
+    filter: brightness(0.95);
+}
+
 /* 工具提示 */
 [data-tooltip] {
     position: relative;

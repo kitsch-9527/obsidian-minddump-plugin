@@ -469,125 +469,144 @@ export class JotView extends ItemView {
     }
     
     renderFullInput(container: HTMLElement) {
-        this.inputCard = container.createDiv();
-        this.inputCard.style.backgroundColor = "var(--background-secondary)";
-        this.inputCard.style.borderRadius = "12px";
-        this.inputCard.style.padding = "16px";
-        this.inputCard.style.border = "1px solid var(--background-modifier-border)";
+        this.inputCard = container.createDiv({ cls: "jots-quick-compose-card" });
 
-        const title = this.inputCard.createDiv();
-        title.textContent = t('quickRecord', this.lang);
-        title.style.fontSize = "16px";
-        title.style.fontWeight = "600";
-        title.style.marginBottom = "12px";
-        title.style.color = "var(--text-normal)";
-
-        const textareaContainer = this.inputCard.createDiv();
-        textareaContainer.style.position = "relative";
-
-        const textarea = textareaContainer.createEl("textarea");
-        textarea.placeholder = t('placeholderWithLink', this.lang);
-        textarea.style.width = "100%";
-        textarea.style.minHeight = "100px";
-        textarea.style.padding = "8px";
-        textarea.style.borderRadius = "6px";
-        textarea.style.border = "1px solid var(--background-modifier-border)";
-        textarea.style.backgroundColor = "var(--background-primary)";
-        textarea.style.color = "var(--text-normal)";
-        textarea.style.resize = "vertical";
-        textarea.style.fontFamily = "var(--font-text)";
+        const textareaContainer = this.inputCard.createDiv({ cls: "jots-quick-textarea-container" });
+        const textarea = textareaContainer.createEl("textarea", { cls: "jots-quick-textarea" });
+        textarea.placeholder = t('contentPlaceholder', this.lang);
 
         this.currentTextarea = textarea;
         this.setupWikilinkAutocomplete(textarea, textareaContainer);
 
-        const tagSection = this.inputCard.createDiv();
-        tagSection.style.marginTop = "8px";
-        
-        const tagInputContainer = tagSection.createDiv();
-        tagInputContainer.style.position = "relative";
-        tagInputContainer.style.marginBottom = "8px";
-        
-        const tagInput = tagInputContainer.createEl("input");
-        tagInput.addClass("jots-tag-input");
+        const embedPreviewRow = this.inputCard.createDiv({ cls: "jots-quick-embed-preview" });
+
+        const isVaultImagePath = (p: string) =>
+            /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i.test(p);
+
+        const refreshEmbedPreviews = () => {
+            embedPreviewRow.empty();
+            const text = textarea.value;
+            const re = /!\[\[([^\]]+)\]\]/g;
+            const seen = new Set<string>();
+            let m: RegExpExecArray | null;
+            while ((m = re.exec(text)) != null) {
+                const raw = m[1].trim();
+                const vaultPath = normalizePath(raw);
+                if (seen.has(vaultPath)) continue;
+                seen.add(vaultPath);
+                const af = this.app.vault.getAbstractFileByPath(vaultPath);
+                if (!(af instanceof TFile) || !isVaultImagePath(af.path)) continue;
+                const thumb = embedPreviewRow.createDiv({ cls: "jots-quick-embed-thumb" });
+                const img = thumb.createEl("img", { cls: "jots-quick-embed-img" });
+                img.src = this.app.vault.getResourcePath(af);
+                img.alt = af.name;
+            }
+        };
+
+        const tagSection = this.inputCard.createDiv({ cls: "jots-quick-meta-section" });
+        const tagInputContainer = tagSection.createDiv({ cls: "jots-quick-meta-input-container" });
+        const tagInput = tagInputContainer.createEl("input", { cls: "jots-tag-input jots-quick-meta-input" });
         tagInput.placeholder = t('tagsInputPlaceholder', this.lang);
-        tagInput.style.width = "100%";
-        tagInput.style.padding = "8px";
-        tagInput.style.borderRadius = "6px";
-        tagInput.style.border = "1px solid var(--background-modifier-border)";
-        tagInput.style.backgroundColor = "var(--background-primary)";
-        tagInput.style.color = "var(--text-normal)";
-        
-        this.tagListContainer = tagSection.createDiv();
-        this.tagListContainer.style.display = "flex";
-        this.tagListContainer.style.flexWrap = "wrap";
-        this.tagListContainer.style.gap = "6px";
-        this.tagListContainer.style.marginBottom = "8px";
+
+        this.tagListContainer = tagSection.createDiv({ cls: "jots-quick-tag-list" });
         this.currentTags = [];
-        
         this.setupTagAutocomplete(tagInput, tagInputContainer, this.tagListContainer);
 
-        const sourceInput = this.inputCard.createEl("input");
+        const sourceSection = this.inputCard.createDiv({ cls: "jots-quick-source-section" });
+        const sourceInput = sourceSection.createEl("input", { cls: "jots-quick-meta-input" });
         sourceInput.placeholder = t('sourcePlaceholder', this.lang);
-        sourceInput.style.width = "100%";
-        sourceInput.style.padding = "8px";
-        sourceInput.style.borderRadius = "6px";
-        sourceInput.style.border = "1px solid var(--background-modifier-border)";
-        sourceInput.style.backgroundColor = "var(--background-primary)";
-        sourceInput.style.color = "var(--text-normal)";
-        sourceInput.style.marginTop = "8px";
-        
-        const attachmentArea = this.inputCard.createDiv();
-        attachmentArea.style.marginTop = "8px";
-        attachmentArea.style.border = "1px dashed var(--background-modifier-border)";
-        attachmentArea.style.borderRadius = "6px";
-        attachmentArea.style.padding = "8px";
-        attachmentArea.style.textAlign = "center";
-        attachmentArea.style.cursor = "pointer";
-        attachmentArea.textContent = t('attachmentPlaceholder', this.lang);
-        attachmentArea.style.fontSize = "12px";
-        attachmentArea.style.color = "var(--text-muted)";
-        attachmentArea.style.backgroundColor = "var(--background-primary)";
-        
+
+        tagSection.style.display = "none";
+        sourceSection.style.display = "none";
+
+        const attachmentTray = this.inputCard.createDiv({ cls: "jots-quick-attachment-tray" });
         let selectedAttachments: { path: string; type: "image" | "file" }[] = [];
-        
-        attachmentArea.addEventListener("click", () => {
+
+        const openAttachmentPicker = () => {
             const input = document.createElement("input");
             input.type = "file";
             input.multiple = true;
             input.addEventListener("change", async () => {
                 const files = Array.from(input.files || []);
                 for (const file of files) {
-                    await this.handleAttachment(file, attachmentArea, (result) => {
+                    await this.handleAttachment(file, attachmentTray, (result) => {
                         selectedAttachments.push(result);
-                        const count = selectedAttachments.length;
-                        attachmentArea.textContent = t('selectedFiles', this.lang, { count: String(count) });
+                        renderAttachmentTray();
                     });
                 }
             });
             input.click();
+        };
+
+        const renderAttachmentTray = () => {
+            attachmentTray.empty();
+
+            selectedAttachments.forEach((attachment, index) => {
+                const item = attachmentTray.createDiv({ cls: "jots-quick-attachment-item" });
+                if (attachment.type === "image") {
+                    const imgFile = this.app.vault.getAbstractFileByPath(normalizePath(attachment.path));
+                    if (imgFile instanceof TFile) {
+                        const thumb = item.createEl("img", { cls: "jots-quick-attachment-thumb" });
+                        thumb.src = this.app.vault.getResourcePath(imgFile);
+                        thumb.alt = imgFile.name;
+                    } else {
+                        const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
+                        icon.textContent = "🖼️";
+                    }
+                } else {
+                    const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
+                    icon.textContent = "📎";
+                }
+
+                const label = item.createSpan({ cls: "jots-quick-attachment-label" });
+                label.textContent = attachment.path.split("/").pop() || attachment.path;
+                label.title = attachment.path;
+
+                const removeBtn = item.createEl("button", { cls: "jots-quick-attachment-remove" });
+                removeBtn.type = "button";
+                removeBtn.textContent = "×";
+                removeBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectedAttachments.splice(index, 1);
+                    renderAttachmentTray();
+                });
+            });
+
+            const addTile = attachmentTray.createDiv({ cls: "jots-quick-attachment-add" });
+            addTile.textContent = "+";
+            addTile.title = t('attachmentPlaceholder', this.lang);
+            addTile.addEventListener("click", openAttachmentPicker);
+        };
+
+        renderAttachmentTray();
+        refreshEmbedPreviews();
+
+        textarea.addEventListener("input", () => {
+            refreshEmbedPreviews();
         });
-        
-        attachmentArea.addEventListener("dragover", (e) => {
+
+        const setDropActive = (active: boolean) => {
+            textareaContainer.classList.toggle("is-drop-active", active);
+        };
+
+        textareaContainer.addEventListener("dragover", (e) => {
             e.preventDefault();
-            attachmentArea.style.borderColor = "var(--interactive-accent)";
-            attachmentArea.style.backgroundColor = "var(--background-modifier-hover)";
+            setDropActive(true);
         });
-        
-        attachmentArea.addEventListener("dragleave", () => {
-            attachmentArea.style.borderColor = "var(--background-modifier-border)";
-            attachmentArea.style.backgroundColor = "var(--background-primary)";
+
+        textareaContainer.addEventListener("dragleave", () => {
+            setDropActive(false);
         });
-        
-        attachmentArea.addEventListener("drop", async (e) => {
+
+        textareaContainer.addEventListener("drop", async (e) => {
             e.preventDefault();
-            attachmentArea.style.borderColor = "var(--background-modifier-border)";
-            attachmentArea.style.backgroundColor = "var(--background-primary)";
+            setDropActive(false);
             const files = Array.from(e.dataTransfer?.files || []);
             for (const file of files) {
-                await this.handleAttachment(file, attachmentArea, (result) => {
+                await this.handleAttachment(file, attachmentTray, (result) => {
                     selectedAttachments.push(result);
-                    const count = selectedAttachments.length;
-                    attachmentArea.textContent = t('selectedFiles', this.lang, { count: String(count) });
+                    renderAttachmentTray();
                 });
             }
         });
@@ -600,11 +619,10 @@ export class JotView extends ItemView {
             for (const file of imageFiles) {
                 await this.handleAttachment(
                     file,
-                    attachmentArea,
+                    attachmentTray,
                     (result) => {
-                        if (result.type === "image") {
-                            this.insertMarkdownEmbedAtCursor(textarea, result.path, "image");
-                        }
+                        selectedAttachments.push(result);
+                        renderAttachmentTray();
                     },
                     { failureNoticeKey: "pasteImageUploadFailed" }
                 );
@@ -612,23 +630,54 @@ export class JotView extends ItemView {
             if (plain) {
                 this.insertTextAtCursor(textarea, plain);
             }
+            refreshEmbedPreviews();
             textarea.focus();
         });
 
-        const buttonRow = this.inputCard.createDiv();
-        buttonRow.style.display = "flex";
-        buttonRow.style.justifyContent = "flex-end";
-        buttonRow.style.marginTop = "12px";
-        
-        const saveBtn = buttonRow.createEl("button");
-        saveBtn.textContent = t('save', this.lang);
-        saveBtn.style.padding = "6px 16px";
-        saveBtn.style.borderRadius = "6px";
-        saveBtn.style.backgroundColor = "var(--interactive-accent)";
-        saveBtn.style.color = "var(--text-on-accent)";
-        saveBtn.style.border = "none";
-        saveBtn.style.cursor = "pointer";
-        saveBtn.style.fontWeight = "500";
+        const toolbarRow = this.inputCard.createDiv({ cls: "jots-quick-toolbar-row" });
+        const toolGroup = toolbarRow.createDiv({ cls: "jots-quick-tools" });
+
+        const createToolBtn = (label: string, tooltip: string, onClick: () => void) => {
+            const btn = toolGroup.createEl("button", { cls: "jots-quick-tool-btn" });
+            btn.type = "button";
+            btn.textContent = label;
+            btn.title = tooltip;
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                onClick();
+            });
+        };
+
+        const addToolDivider = () => {
+            toolGroup.createDiv({ cls: "jots-quick-tool-divider" });
+        };
+
+        const toggleSection = (section: HTMLElement, focusInput: HTMLInputElement) => {
+            const isHidden = section.style.display === "none" || window.getComputedStyle(section).display === "none";
+            const willShow = isHidden;
+            section.style.display = willShow ? "block" : "none";
+            if (willShow) focusInput.focus();
+        };
+
+        createToolBtn("#", t('tagsInputPlaceholder', this.lang), () => toggleSection(tagSection, tagInput));
+        createToolBtn("🖼", t('attachmentPlaceholder', this.lang), () => openAttachmentPicker());
+        addToolDivider();
+        createToolBtn("Aa", t('quickRecord', this.lang), () => textarea.focus());
+        createToolBtn("☰", t('quickRecord', this.lang), () => {
+            this.insertTextAtCursor(textarea, (textarea.value.endsWith("\n") || textarea.value.length === 0) ? "- " : "\n- ");
+            textarea.focus();
+        });
+        createToolBtn("1.", t('quickRecord', this.lang), () => {
+            this.insertTextAtCursor(textarea, (textarea.value.endsWith("\n") || textarea.value.length === 0) ? "1. " : "\n1. ");
+            textarea.focus();
+        });
+        addToolDivider();
+        createToolBtn("@", t('sourcePlaceholder', this.lang), () => toggleSection(sourceSection, sourceInput));
+
+        const saveBtn = toolbarRow.createEl("button", { cls: "jots-quick-send-btn" });
+        saveBtn.type = "button";
+        saveBtn.textContent = "➤";
+        saveBtn.title = t('save', this.lang);
 
         saveBtn.addEventListener("click", async () => {
             const content = textarea.value.trim();
@@ -648,9 +697,10 @@ export class JotView extends ItemView {
             tagInput.value = "";
             sourceInput.value = "";
             selectedAttachments = [];
-            attachmentArea.textContent = t('attachmentPlaceholder', this.lang);
-            attachmentArea.style.borderColor = "var(--background-modifier-border)";
-            attachmentArea.style.backgroundColor = "var(--background-primary)";
+            tagSection.style.display = "none";
+            sourceSection.style.display = "none";
+            renderAttachmentTray();
+            refreshEmbedPreviews();
             
             this.focusTextarea();
         });
@@ -706,12 +756,6 @@ export class JotView extends ItemView {
         textarea.selectionEnd = cursor;
     }
 
-    /** Insert `![[path]]` or `[[path]]` at the textarea caret without replacing unrelated text. */
-    insertMarkdownEmbedAtCursor(textarea: HTMLTextAreaElement, vaultPath: string, kind: "image" | "file") {
-        const embed = kind === "image" ? `![[${vaultPath}]]` : `[[${vaultPath}]]`;
-        this.insertTextAtCursor(textarea, embed);
-    }
-    
     renderStats(container: HTMLElement) {
         const stats = this.getStats();
 

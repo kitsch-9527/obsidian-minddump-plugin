@@ -74,9 +74,11 @@ export class CaptureModal extends Modal {
                     file,
                     attachmentArea,
                     (result) => {
-                        if (result.type === "image") {
-                            this.insertMarkdownEmbedAtCursor(textarea, result.path, "image");
-                        }
+                        this.selectedAttachments.push(result);
+                        const count = this.selectedAttachments.length;
+                        attachmentArea.textContent = t("selectedFiles", this.lang, { count: String(count) });
+                        attachmentArea.style.borderColor = "var(--interactive-accent)";
+                        attachmentArea.style.backgroundColor = "var(--background-primary-alt)";
                     },
                     { failureNoticeKey: "pasteImageUploadFailed" }
                 );
@@ -294,11 +296,6 @@ export class CaptureModal extends Modal {
         textarea.selectionEnd = cursor;
     }
 
-    private insertMarkdownEmbedAtCursor(textarea: HTMLTextAreaElement, vaultPath: string, kind: "image" | "file") {
-        const embed = kind === "image" ? `![[${vaultPath}]]` : `[[${vaultPath}]]`;
-        this.insertTextAtCursor(textarea, embed);
-    }
-    
     async handleSave() {
         const content = this.contentInput.value.trim();
         if (!content) {
