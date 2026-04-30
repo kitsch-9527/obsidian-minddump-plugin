@@ -9,6 +9,7 @@ import {
     setupTagAutocomplete,
     renderTagList
 } from './utils';
+import { createPaperPlaneSendIcon } from './quick-compose-card';
 
 export class CaptureModal extends Modal {
     plugin: JotPlugin;
@@ -20,6 +21,7 @@ export class CaptureModal extends Modal {
     private tagListContainer: HTMLElement | null = null;
     private currentTags: string[] = [];
     private wikilinkCleanup: (() => void) | null = null;
+    private captureSaveBtn: HTMLButtonElement | null = null;
 
     get lang() {
         return this.plugin.lang;
@@ -31,6 +33,7 @@ export class CaptureModal extends Modal {
     }
 
     async onOpen() {
+        this.modalEl.addClass("jots-capture-modal");
         const { contentEl } = this;
         contentEl.empty();
 
@@ -63,6 +66,7 @@ export class CaptureModal extends Modal {
         textarea.style.fontSize = "14px";
         textarea.style.lineHeight = "1.6";
         this.contentInput = textarea;
+        textarea.addEventListener("input", () => this.syncCaptureSaveReady());
 
         textarea.addEventListener("paste", async (e: ClipboardEvent) => {
             const imageFiles = getClipboardImageFiles(e.clipboardData);
@@ -87,6 +91,7 @@ export class CaptureModal extends Modal {
                 this.insertTextAtCursor(textarea, plain);
             }
             textarea.focus();
+            this.syncCaptureSaveReady();
         });
         
         this.setupWikilinkAutocomplete(textarea, textareaContainer);
@@ -170,34 +175,35 @@ export class CaptureModal extends Modal {
             }
         });
         
-        const buttonContainer = container.createDiv();
-        buttonContainer.style.display = "flex";
-        buttonContainer.style.justifyContent = "flex-end";
-        buttonContainer.style.gap = "10px";
+        const buttonContainer = container.createDiv({ cls: "jots-quick-toolbar-send-group" });
         
-        const cancelBtn = buttonContainer.createEl("button");
-        cancelBtn.textContent = t('cancel', this.lang);
-        cancelBtn.style.padding = "8px 16px";
-        cancelBtn.style.borderRadius = "6px";
-        cancelBtn.style.cursor = "pointer";
-        cancelBtn.style.backgroundColor = "var(--background-primary)";
-        cancelBtn.style.border = "1px solid var(--background-modifier-border)";
+        const cancelBtn = buttonContainer.createEl("button", {
+            cls: "jots-quick-edit-cancel-btn",
+            type: "button",
+        });
+        cancelBtn.textContent = t("cancel", this.lang);
         cancelBtn.addEventListener("click", () => this.close());
-        
-        const saveBtn = buttonContainer.createEl("button");
-        saveBtn.textContent = t('save', this.lang);
-        saveBtn.style.padding = "8px 24px";
-        saveBtn.style.borderRadius = "6px";
-        saveBtn.style.backgroundColor = "var(--interactive-accent)";
-        saveBtn.style.color = "var(--text-on-accent)";
-        saveBtn.style.border = "none";
-        saveBtn.style.cursor = "pointer";
-        saveBtn.style.fontWeight = "500";
+
+        const saveBtn = buttonContainer.createEl("button", {
+            cls: "jots-quick-send-btn mod-cta",
+            type: "button",
+        });
+        saveBtn.appendChild(createPaperPlaneSendIcon());
+        saveBtn.title = t("save", this.lang);
+        this.captureSaveBtn = saveBtn;
         saveBtn.addEventListener("click", async () => {
             await this.handleSave();
         });
-        
+        this.syncCaptureSaveReady();
+
         textarea.focus();
+    }
+
+    private syncCaptureSaveReady() {
+        if (!this.captureSaveBtn || !this.contentInput) return;
+        const ready =
+            this.contentInput.value.trim().length > 0 || this.selectedAttachments.length > 0;
+        this.captureSaveBtn.classList.toggle("is-ready", ready);
     }
     
     private setupTagAutocomplete(tagInput: HTMLInputElement, container: HTMLElement, tagListContainer: HTMLElement) {
@@ -215,6 +221,7 @@ export class CaptureModal extends Modal {
     private getExistingTags(): string[] {
         const tags = new Set<string>();
         for (const jot of this.plugin.jots) {
+            if (jot.deleted) continue;
             jot.tags.forEach(tag => tags.add(tag));
         }
         return Array.from(tags);
@@ -274,6 +281,7 @@ export class CaptureModal extends Modal {
             (result) => {
                 if (callback) {
                     callback(result);
+                    this.syncCaptureSaveReady();
                     return;
                 }
                 this.selectedAttachments.push(result);
@@ -281,6 +289,7 @@ export class CaptureModal extends Modal {
                 area.textContent = t('selectedFiles', this.lang, { count: String(count) });
                 area.style.borderColor = "var(--interactive-accent)";
                 area.style.backgroundColor = "var(--background-primary-alt)";
+                this.syncCaptureSaveReady();
             },
             options
         );
@@ -316,6 +325,8 @@ export class CaptureModal extends Modal {
     }
 
     onClose() {
+        this.modalEl.removeClass("jots-capture-modal");
+        this.captureSaveBtn = null;
         // 清理 wikilink 建议容器
         if (this.wikilinkCleanup) {
             this.wikilinkCleanup();

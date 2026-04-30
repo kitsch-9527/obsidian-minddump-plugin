@@ -53,8 +53,15 @@ export function stableLegacyJotId(filePath: string, date: string, time: string):
     return `jot-legacy-${(h >>> 0).toString(16)}`;
 }
 
-export function formatJotEntryBlock(fullDateTime: string, id: string, updatedAt: string, body: string): string {
-    return `### ${fullDateTime}\n#### id: ${id}\n#### updatedAt: ${updatedAt}\n\n${body}\n\n---\n\n`;
+export function formatJotEntryBlock(
+    fullDateTime: string,
+    id: string,
+    updatedAt: string,
+    body: string,
+    options?: { deleted?: boolean }
+): string {
+    const del = options?.deleted === true ? "#### deleted: true\n" : "";
+    return `### ${fullDateTime}\n#### id: ${id}\n#### updatedAt: ${updatedAt}\n${del}\n${body}\n\n---\n\n`;
 }
 
 export function composeJotMarkdownBody(
@@ -116,6 +123,10 @@ export function replaceJotBlockById(
                     j++;
                     continue;
                 }
+                if (/^####\s+deleted:\s*.+$/i.test(t)) {
+                    j++;
+                    continue;
+                }
                 break;
             }
             const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
@@ -168,6 +179,10 @@ export function removeJotBlockById(
                     j++;
                     continue;
                 }
+                if (/^####\s+deleted:\s*.+$/i.test(t)) {
+                    j++;
+                    continue;
+                }
                 break;
             }
             const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
@@ -217,10 +232,12 @@ export function parseFileContent(
             let j = i + 1;
             let idMeta = "";
             let updatedAtMeta = "";
+            let deletedMeta = false;
             while (j < lines.length) {
                 const t = lines[j].trim();
                 const idMatch = t.match(/^####\s+id:\s*(.*)$/i);
                 const updMatch = t.match(/^####\s+updatedAt:\s*(.*)$/i);
+                const delMatch = t.match(/^####\s+deleted:\s*(.*)$/i);
                 if (idMatch) {
                     idMeta = idMatch[1].trim();
                     j++;
@@ -228,6 +245,11 @@ export function parseFileContent(
                 }
                 if (updMatch) {
                     updatedAtMeta = updMatch[1].trim();
+                    j++;
+                    continue;
+                }
+                if (delMatch) {
+                    deletedMeta = /^(true|yes|1)$/i.test(delMatch[1].trim());
                     j++;
                     continue;
                 }
@@ -287,7 +309,7 @@ export function parseFileContent(
                 j++;
             }
 
-            if (jotContent.trim() || tags.length > 0) {
+            if (jotContent.trim() || tags.length > 0 || source || attachments.length > 0 || deletedMeta) {
                 entries.push({
                     id,
                     createdAt,
@@ -300,7 +322,8 @@ export function parseFileContent(
                     fullText: jotContent.trim(),
                     attachments: attachments,
                     attachmentTypes: attachmentTypes,
-                    filePath: filePath
+                    filePath: filePath,
+                    deleted: deletedMeta || undefined
                 });
             }
 
@@ -759,7 +782,9 @@ export function setupTagAutocomplete(
 export function renderTagList(
     container: HTMLElement,
     tags: string[],
-    onRemoveTag: (tag: string) => void
+    onRemoveTag: (tag: string) => void,
+    onEditTag?: (tag: string) => void,
+    editHintTitle?: string
 ): void {
     container.empty();
 
@@ -776,6 +801,10 @@ export function renderTagList(
         tagPill.style.border = "1px solid var(--background-modifier-border)";
         tagPill.style.cursor = "pointer";
 
+        if (onEditTag && editHintTitle) {
+            tagPill.title = editHintTitle;
+        }
+
         const removeBtn = tagPill.createSpan();
         removeBtn.textContent = "×";
         removeBtn.style.cursor = "pointer";
@@ -786,6 +815,12 @@ export function renderTagList(
             e.stopPropagation();
             onRemoveTag(tag);
         });
+
+        if (onEditTag) {
+            tagPill.addEventListener("click", () => {
+                onEditTag(tag);
+            });
+        }
     });
 }
 

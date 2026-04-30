@@ -384,6 +384,193 @@
     transform: scale(1.04);
 }
 
+/* GitHub-style contribution heatmap (soft mint / grey card) */
+.jots-contrib-section {
+    margin-bottom: 12px;
+    padding: 14px 12px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #f7f7f7;
+}
+.theme-dark .jots-contrib-section {
+    background: var(--background-secondary);
+    border-color: var(--background-modifier-border);
+}
+.jots-contrib-section--compact {
+    margin-bottom: 8px;
+    padding: 10px 8px 8px;
+    border-radius: 8px;
+}
+.jots-contrib-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding: 0 2px;
+}
+.jots-contrib-section--compact .jots-contrib-stats {
+    margin-bottom: 10px;
+}
+.jots-contrib-stat {
+    text-align: center;
+    flex: 1;
+    min-width: 0;
+}
+.jots-contrib-stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #666666;
+    line-height: 1.05;
+}
+.theme-dark .jots-contrib-stat-value {
+    color: var(--text-normal);
+}
+.jots-contrib-stat-label {
+    font-size: 11px;
+    font-weight: 400;
+    color: #999999;
+    margin-top: 4px;
+}
+.theme-dark .jots-contrib-stat-label {
+    color: var(--text-muted);
+}
+.jots-contrib-section--compact .jots-contrib-stat-value {
+    font-size: 18px;
+}
+.jots-contrib-section--compact .jots-contrib-stat-label {
+    font-size: 9px;
+    margin-top: 2px;
+}
+.jots-contrib-grid-wrap {
+    width: 100%;
+}
+.jots-contrib-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    grid-template-columns: repeat(var(--contrib-weeks, 8), minmax(0, 1fr));
+    grid-auto-flow: column;
+    gap: 4px;
+    width: 100%;
+}
+.jots-contrib-grid--compact {
+    gap: 3px;
+}
+/* 活动格：中性底 + ::before 叠主题色，与旧热力图一致、避免 color-mix 兼容问题 */
+.jots-contrib-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    aspect-ratio: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 26%;
+    box-sizing: border-box;
+    background-color: var(--background-modifier-border);
+    border: 1px solid transparent;
+    transition: filter 0.12s ease, transform 0.12s ease;
+}
+.jots-contrib-cell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--interactive-accent);
+    opacity: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+.jots-contrib-cell-date {
+    position: relative;
+    z-index: 1;
+    display: block;
+    max-width: 100%;
+    padding: 0 1px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    color: var(--text-muted);
+    pointer-events: none;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.jots-contrib-l1 .jots-contrib-cell-date,
+.jots-contrib-l2 .jots-contrib-cell-date,
+.jots-contrib-l3 .jots-contrib-cell-date {
+    color: var(--text-normal);
+}
+.jots-contrib-l4 .jots-contrib-cell-date {
+    color: var(--text-on-accent);
+}
+.jots-contrib-cell--future .jots-contrib-cell-date {
+    color: var(--text-faint);
+}
+.jots-contrib-cell--future {
+    opacity: 0.42;
+    pointer-events: none;
+}
+.jots-contrib-l1::before {
+    opacity: 0.22;
+}
+.jots-contrib-l2::before {
+    opacity: 0.42;
+}
+.jots-contrib-l3::before {
+    opacity: 0.68;
+}
+.jots-contrib-l4::before {
+    opacity: 1;
+}
+.jots-contrib-cell.jots-contrib-l1:hover,
+.jots-contrib-cell.jots-contrib-l2:hover,
+.jots-contrib-cell.jots-contrib-l3:hover,
+.jots-contrib-cell.jots-contrib-l4:hover {
+    filter: brightness(1.04);
+    transform: scale(1.06);
+}
+.jots-contrib-cell--today.jots-contrib-l1,
+.jots-contrib-cell--today.jots-contrib-l2,
+.jots-contrib-cell--today.jots-contrib-l3,
+.jots-contrib-cell--today.jots-contrib-l4 {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+.jots-contrib-months {
+    display: grid;
+    grid-template-columns: repeat(var(--contrib-weeks, 8), minmax(0, 1fr));
+    gap: 4px;
+    margin-top: 8px;
+    padding: 0 1px;
+    font-size: 10px;
+    color: #999999;
+    line-height: 1.2;
+    min-height: 1.1em;
+}
+.theme-dark .jots-contrib-months {
+    color: var(--text-muted);
+}
+.jots-contrib-months--compact {
+    font-size: 9px;
+    margin-top: 6px;
+    gap: 3px;
+}
+.jots-contrib-month-cell {
+    text-align: center;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.jots-contrib-section--compact .jots-contrib-month-cell {
+    font-variant-numeric: tabular-nums;
+}
+
 /* 搜索栏样式 */
 .jots-search-section {
     background: var(--background-primary-alt);
@@ -909,7 +1096,30 @@
     border-color: var(--interactive-accent);
 }
 
-/* 主视图快速记录：细边框卡片 + 底部工具栏 + 浅灰发送键（参考现代输入框样式） */
+/* 侧栏「快速记录」入口：与发送键一致，主色文字 + 主题底栏 */
+.jots-quick-capture-entry-btn {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background: var(--background-secondary);
+    color: var(--interactive-accent);
+    padding: 8px 12px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-family: inherit;
+}
+
+.jots-quick-capture-entry-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border);
+    color: var(--interactive-accent-hover, var(--interactive-accent));
+}
+
+/* 主视图快速记录：细边框卡片 + 底部工具栏 + 主题色发送键（accent 随主题变化） */
 .jots-quick-compose-card {
     background: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
@@ -981,6 +1191,60 @@
     width: auto;
     height: auto;
     object-fit: contain;
+}
+
+.jots-quick-embed-thumb--removable {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.jots-quick-embed-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.jots-quick-embed-remove:hover {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* 附件托盘里的图片：与正文 ![[ ]] 预览相同的大缩略图 + 角标删除 */
+.jots-quick-attachment-item--image-tile {
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 132px;
+    padding: 8px;
+    gap: 6px;
+}
+
+.jots-quick-attachment-item--image-tile .jots-quick-embed-thumb {
+    width: 100%;
+}
+
+.jots-quick-attachment-item-caption {
+    font-size: 10px;
+    color: var(--text-muted);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .jots-quick-meta-section,
@@ -1077,65 +1341,148 @@
     flex-wrap: nowrap !important;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 }
 
-.jots-view .jots-quick-tools {
+.jots-view .jots-quick-toolbar-send-group,
+.jots-capture-modal .jots-quick-toolbar-send-group {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.jots-capture-modal .jots-quick-toolbar-send-group {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.jots-quick-edit-cancel-btn {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+}
+
+.jots-quick-edit-cancel-btn:hover {
+    background: var(--background-modifier-hover);
+}
+
+.jots-capture-modal .jots-quick-edit-cancel-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.jots-view .jots-quick-compose-card--inline-edit {
+    margin-top: 4px;
+}
+
+/* Text icon bar (Element-style toolMenu + el-button--text) */
+.jots-view .jots-quick-tools.jots-tool-menu {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center;
+    justify-content: flex-start;
     border-top: none;
     padding-top: 0;
     flex: 1;
-    gap: 2px;
+    gap: 0;
     min-width: 0;
     overflow-x: auto;
 }
 
-.jots-view .jots-quick-tool-btn {
+.jots-view .jots-quick-tool-btn.jots-tool-btn--text {
     border: none;
+    box-shadow: none;
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 17px;
+    font-size: 16px;
+    font-weight: 400;
     line-height: 1;
-    padding: 6px 10px;
-    min-height: 34px;
-    border-radius: 6px;
+    padding: 0 7px;
+    min-width: 0;
+    min-height: 30px;
+    height: 30px;
+    margin: 2px 3px 0 0;
+    border-radius: 4px;
     flex-shrink: 0;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
 }
 
-.jots-view .jots-quick-tool-divider {
-    width: 1px;
-    align-self: stretch;
-    min-height: 18px;
-    max-height: 22px;
-    margin: 0 6px;
-    background: var(--background-modifier-border);
-    flex-shrink: 0;
-    opacity: 0.85;
+.jots-view .jots-tool-btn-inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
-.jots-view .jots-quick-tool-btn:hover {
+.jots-view .jots-quick-tool-btn .jots-toolbar-image-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.jots-view .jots-vertical-line {
+    display: inline-block;
+    width: 1px;
+    height: 14px;
+    margin: 2px 4px 0;
+    background: var(--background-modifier-border);
+    flex-shrink: 0;
+    align-self: center;
+    opacity: 0.9;
+}
+
+.jots-view .jots-quick-tool-btn.jots-tool-btn--text:hover {
     color: var(--text-normal);
     background: var(--background-modifier-hover);
 }
 
-.jots-view .jots-quick-send-btn {
-    border: 1px solid #cfcfcf;
+.jots-view .jots-quick-tool-btn.jots-tool-btn--text:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
+}
+
+.jots-quick-send-btn .jots-quick-send-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* 飞机描边用 currentColor；核心在 hover 时可能把按钮 color 调成与背景同色，图标会“没掉”，固定在衬底文字色上 */
+.jots-quick-send-btn.mod-cta .jots-quick-send-icon,
+.jots-capture-modal button.jots-quick-send-btn.mod-cta .jots-quick-send-icon {
+    color: var(--text-on-accent);
+}
+
+.jots-quick-send-btn.mod-cta:hover .jots-quick-send-icon,
+.jots-quick-send-btn.mod-cta:focus-visible .jots-quick-send-icon,
+.jots-capture-modal button.jots-quick-send-btn.mod-cta:hover .jots-quick-send-icon,
+.jots-capture-modal button.jots-quick-send-btn.mod-cta:focus-visible .jots-quick-send-icon {
+    color: var(--text-on-accent);
+}
+
+/* 使用 Obsidian 核心 .mod-cta（与 ButtonComponent.setCta() 一致），保证强调色、hover、明暗主题与主题切换一致 */
+.jots-quick-send-btn.mod-cta,
+.jots-capture-modal button.jots-quick-send-btn.mod-cta {
     border-radius: 8px;
-    /* 浅灰底 + 白箭头，与参考图一致 */
-    background: #d8d8d8;
-    color: #ffffff;
-    min-width: 40px;
-    width: 40px;
-    min-height: 36px;
-    height: 36px;
-    padding: 0;
+    min-width: 0;
+    width: auto;
+    min-height: 30px;
+    height: 30px;
+    padding: 0 14px;
     cursor: pointer;
     font-size: 15px;
     font-weight: 500;
@@ -1144,43 +1491,26 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: none;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-.jots-view .jots-quick-send-btn:hover {
-    background: #cecece;
-    border-color: #c4c4c4;
+/* 无内容时略淡，仍可见主题强调色；不覆盖背景色以免压过 .mod-cta */
+.jots-quick-send-btn.mod-cta:not(.is-ready),
+.jots-capture-modal button.jots-quick-send-btn.mod-cta:not(.is-ready) {
+    opacity: 0.58;
 }
 
-.jots-view .jots-quick-send-btn.is-ready {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-color: var(--interactive-accent);
+.jots-quick-send-btn.mod-cta:not(.is-ready):hover,
+.jots-capture-modal button.jots-quick-send-btn.mod-cta:not(.is-ready):hover {
+    opacity: 0.75;
 }
 
-.jots-view .jots-quick-send-btn.is-ready:hover {
-    filter: brightness(1.06);
-    background: var(--interactive-accent);
-    border-color: var(--interactive-accent);
-}
-
-.theme-dark .jots-view .jots-quick-send-btn {
-    background: color-mix(in srgb, var(--text-muted) 38%, var(--background-secondary));
-    color: #f6f6f6;
-    border-color: var(--background-modifier-border);
-}
-
-.theme-dark .jots-view .jots-quick-send-btn:hover {
-    background: color-mix(in srgb, var(--text-muted) 48%, var(--background-secondary));
-}
-
-.theme-dark .jots-view .jots-quick-send-btn.is-ready {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-color: var(--interactive-accent);
-}
-
-.theme-dark .jots-view .jots-quick-send-btn.is-ready:hover {
-    filter: brightness(1.08);
+.jots-quick-send-btn.mod-cta.is-ready,
+.jots-capture-modal button.jots-quick-send-btn.mod-cta.is-ready {
+    opacity: 1;
 }
 
 /* 工具提示 */
@@ -1273,4 +1603,215 @@
 /* 确保搜索框输入框有右侧内边距，为清空按钮留出空间 */
 .jots-search-section input {
     padding-right: 32px !important;
+}
+
+/* Right rail: all tags (collapsible) + recycle bin */
+.jots-right-rail {
+    margin-bottom: 14px;
+    padding: 12px 10px 14px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.theme-dark .jots-right-rail {
+    background-color: var(--background-secondary);
+}
+
+.jots-right-rail-tags.is-collapsed .jots-right-rail-tags-body {
+    display: none;
+}
+
+.jots-right-rail-tags-head {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    user-select: none;
+    padding: 2px 0 10px;
+    margin-bottom: 2px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.jots-right-rail-tags-head-left {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 0%;
+    cursor: pointer;
+}
+
+.jots-right-rail-tags-head-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.jots-right-rail-tags-sort {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-normal);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.jots-right-rail-tags-sort:hover {
+    color: var(--text-accent);
+}
+
+.jots-right-rail-tags-search-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.jots-right-rail-tags-search-btn:hover {
+    color: var(--text-normal);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.theme-dark .jots-right-rail-tags-search-btn:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.jots-right-rail-tags-search-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+.jots-right-rail-tags-title {
+    display: inline-block;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.theme-dark .jots-right-rail-tags-title {
+    color: var(--text-muted);
+}
+
+.jots-right-rail-tags-chevron {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.jots-right-rail-tags-chevron svg {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+}
+
+.jots-right-rail-tags-chevron.is-collapsed svg {
+    transform: rotate(-90deg);
+}
+
+.jots-right-rail-tags-filter {
+    margin: 0 0 8px;
+}
+
+.jots-right-rail-tags-filter-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    font-size: 12px;
+    line-height: 1.3;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.jots-right-rail-tags-filter-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.jots-right-rail-tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.jots-right-rail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-normal);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.jots-right-rail-row:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.theme-dark .jots-right-rail-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.jots-right-rail-row.is-selected,
+.jots-right-rail-row.is-active {
+    background-color: rgba(0, 0, 0, 0.06);
+    font-weight: 600;
+}
+
+.theme-dark .jots-right-rail-row.is-selected,
+.theme-dark .jots-right-rail-row.is-active {
+    background-color: var(--background-modifier-hover);
+}
+
+.jots-right-rail-row-hash {
+    font-weight: 600;
+    flex-shrink: 0;
+    color: var(--text-normal);
+}
+
+.jots-right-rail-row-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--text-normal);
+}
+
+.jots-right-rail-row-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.jots-right-rail-row--bin {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.jots-card--in-trash {
+    opacity: 0.94;
 }

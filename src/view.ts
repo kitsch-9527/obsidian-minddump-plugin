@@ -1,21 +1,17 @@
 // src/view.ts
-import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component, normalizePath, setIcon } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component, normalizePath, setIcon, Menu } from 'obsidian';
 import moment from 'moment';
 import JotPlugin from './main';
 import { Jot, HeatDayCell, Language } from './types';
 import { translations, t, Translations } from './i18n';
 import {
     parseFileContent,
-    handleAttachment,
-    getClipboardImageFiles,
-    setupWikilinkAutocomplete,
-    setupTagAutocomplete,
-    renderTagList as renderTagPills,
     highlightMarkdownContent,
     debounce,
     stableLegacyJotId,
     normalizeJotTags
 } from './utils';
+import { mountQuickComposeCard } from './quick-compose-card';
 
 const CARD_LONG_PRESS_MS = 480;
 const CARD_TAP_MOVE_PX = 14;
@@ -26,6 +22,7 @@ const AUDIO_EXT_RE = /\.(mp3|m4a|wav|ogg|aac|flac|webm)(\]|$|\s|\?)/i;
 type SearchTimePreset = "none" | "onThisDay" | "thisMonth" | "lastMonth" | "last7" | "last30" | "custom";
 type TagMatchMode = "include" | "exclude" | "noTags";
 type ContentTypeFilter = "image" | "link" | "audio";
+type RightRailTagSort = "nameAsc" | "nameDesc" | "countDesc" | "countAsc";
 
 export const VIEW_TYPE_JOTS = "jot-view";
 
@@ -34,8 +31,6 @@ export class JotView extends ItemView {
     jots: Jot[] = [];
     searchQuery: string = "";
     selectedTags: Set<string> = new Set();
-    currentYear: number;
-    currentMonth: number;
     isSidebar: boolean = false;
     private suggestionContainer: HTMLElement | null = null;
     private currentTextarea: HTMLTextAreaElement | null = null;
@@ -44,14 +39,11 @@ export class JotView extends ItemView {
     private searchContainer: HTMLElement | null = null;
     private renderedComponents: Component[] = [];
     private tagSuggestionContainer: HTMLElement | null = null;
-    private tagListContainer: HTMLElement | null = null;
-    private currentTags: string[] = [];
     private debouncedRender: (() => void) | null = null;
     private debouncedSearch: (query: string) => void;
     private wikilinkCleanup: (() => void) | null = null;
     /** Inline jot edit */
     private editingJotId: string | null = null;
-    private editSessionTags: string[] = [];
     private jotListCleanups: (() => void)[] = [];
     /** Tears down floating card ⋮ menu (outside list DOM). */
     private cardMenuUnmount: (() => void) | null = null;
@@ -63,6 +55,11 @@ export class JotView extends ItemView {
     private contentTypeFilters = new Set<ContentTypeFilter>();
     private searchTagsSectionCollapsed = false;
     private searchContentSectionCollapsed = false;
+    private viewingRecycleBin = false;
+    private rightRailTagsCollapsed = false;
+    /** Right rail tag list: substring filter (sidebar / main layout) */
+    private rightRailTagListQuery = "";
+    private rightRailTagSort: RightRailTagSort = "nameAsc";
 
     get lang(): Language {
         return this.plugin.lang;
@@ -71,13 +68,11 @@ export class JotView extends ItemView {
     constructor(leaf: WorkspaceLeaf, plugin: JotPlugin) {
         super(leaf);
         this.plugin = plugin;
-        const now = new Date();
-        this.currentYear = now.getFullYear();
-        this.currentMonth = now.getMonth();
 
         // 初始化防抖搜索函数
         this.debouncedSearch = debounce((query: string) => {
             this.searchQuery = query;
+            this.viewingRecycleBin = false;
             this.updateSearchAndFilter();
         }, 300);
     }
@@ -471,7 +466,131 @@ export class JotView extends ItemView {
         menu.style.top = `${top}px`;
     }
 
+    private openDeletedCardMenu(anchor: HTMLElement, jot: Jot) {
+        this.closeCardMenu();
+        const lang = this.lang;
+        const { mountEl, doc, win } = this.getCardMenuMount();
+
+        const menu = mountEl.createDiv({ cls: "jots-card-menu-popover" });
+        menu.dataset.anchorId = jot.id;
+        this.applyCardMenuShellStyles(menu, win);
+
+        const addDivider = () => menu.createDiv({ cls: "jots-card-menu-divider" });
+
+        const addIconRow = (iconId: string, label: string, onActivate: () => void) => {
+            const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--action" });
+            const iconWrap = row.createSpan({ cls: "jots-card-menu-row-icon" });
+            setIcon(iconWrap, iconId);
+            row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+            row.addEventListener("pointerdown", (e) => e.stopPropagation());
+            row.addEventListener("click", (e) => {
+                e.stopPropagation();
+                onActivate();
+            });
+        };
+
+        addIconRow("share", t("cardMenuShare", lang), async () => {
+            this.closeCardMenu();
+            try {
+                if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+                    await navigator.share({ text: jot.content });
+                } else {
+                    await navigator.clipboard.writeText(jot.content);
+                    new Notice(t("cardMenuShareCopied", lang));
+                }
+            } catch (err) {
+                if ((err as { name?: string })?.name === "AbortError") return;
+                try {
+                    await navigator.clipboard.writeText(jot.content);
+                    new Notice(t("cardMenuShareCopied", lang));
+                } catch {
+                    /* ignore */
+                }
+            }
+        });
+
+        addIconRow("undo-2", t("cardMenuRestore", lang), async () => {
+            this.closeCardMenu();
+            try {
+                await this.plugin.updateJot({ ...jot, deleted: false });
+                new Notice(t("cardMenuRestored", lang));
+            } catch {
+                /* updateJot already showed Notice */
+            }
+        });
+
+        addDivider();
+
+        const purRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--danger" });
+        purRow.textContent = t("cardMenuPurge", lang);
+        purRow.addEventListener("pointerdown", (e) => e.stopPropagation());
+        purRow.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            this.closeCardMenu();
+            if (!confirm(t("cardMenuPurgeConfirm", lang))) return;
+            try {
+                await this.plugin.purgeJot(jot);
+                new Notice(t("cardMenuPurged", lang));
+            } catch {
+                /* purgeJot already showed Notice */
+            }
+        });
+
+        addDivider();
+
+        const footer = menu.createDiv({ cls: "jots-card-menu-footer" });
+        const wc = this.jotWordCount(jot);
+        footer.createDiv({
+            cls: "jots-card-menu-footer-line",
+            text: t("cardMenuWordCount", lang, { count: String(wc) })
+        });
+        const timeDisplay = moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid()
+            ? moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm")
+            : (jot.updatedAt.includes(" ") ? jot.updatedAt.split(/\s+/).pop() ?? jot.updatedAt : jot.updatedAt);
+        footer.createDiv({
+            cls: "jots-card-menu-footer-line",
+            text: t("cardMenuEditedAtFooter", lang, { time: timeDisplay })
+        });
+
+        const onDocPointer = (ev: PointerEvent) => {
+            const tEl = ev.target as Node;
+            if (!menu.contains(tEl) && !anchor.contains(tEl)) {
+                this.closeCardMenu();
+            }
+        };
+        const onKey = (ev: KeyboardEvent) => {
+            if (ev.key === "Escape") this.closeCardMenu();
+        };
+        const onScrollClose = () => this.closeCardMenu();
+        const onReposition = () => this.positionCardMenu(menu, anchor);
+
+        win.addEventListener("resize", onReposition);
+        win.addEventListener("scroll", onScrollClose, true);
+        this.contentEl.addEventListener("scroll", onScrollClose, true);
+
+        this.cardMenuUnmount = () => {
+            win.removeEventListener("resize", onReposition);
+            win.removeEventListener("scroll", onScrollClose, true);
+            this.contentEl.removeEventListener("scroll", onScrollClose, true);
+            doc.removeEventListener("pointerdown", onDocPointer, true);
+            win.removeEventListener("keydown", onKey);
+            menu.remove();
+        };
+
+        requestAnimationFrame(() => {
+            this.positionCardMenu(menu, anchor);
+            setTimeout(() => {
+                doc.addEventListener("pointerdown", onDocPointer, true);
+                win.addEventListener("keydown", onKey);
+            }, 0);
+        });
+    }
+
     private openCardMenu(anchor: HTMLElement, jot: Jot) {
+        if (jot.deleted) {
+            this.openDeletedCardMenu(anchor, jot);
+            return;
+        }
         this.closeCardMenu();
         const lang = this.lang;
         const { mountEl, doc, win } = this.getCardMenuMount();
@@ -666,7 +785,6 @@ export class JotView extends ItemView {
 
     private enterEditMode(jot: Jot) {
         this.editingJotId = jot.id;
-        this.editSessionTags = [...jot.tags];
         const listSection = this.contentEl.querySelector(".jots-list-section");
         if (listSection) {
             this.renderJotList(listSection as HTMLElement);
@@ -675,51 +793,19 @@ export class JotView extends ItemView {
 
     private exitEditMode() {
         this.editingJotId = null;
-        this.editSessionTags = [];
         const listSection = this.contentEl.querySelector(".jots-list-section");
         if (listSection) {
             this.renderJotList(listSection as HTMLElement);
         }
     }
-    
-    private renderTagList(container: HTMLElement, tags: string[]) {
-        this.currentTags = tags;
-        renderTagPills(container, tags, (tag) => {
-            this.currentTags = this.currentTags.filter(t => t !== tag);
-            this.renderTagList(container, this.currentTags);
-            const tagInput = this.inputCard?.querySelector(".jots-tag-input") as HTMLInputElement;
-            if (tagInput) {
-                tagInput.value = "";
-            }
-        });
-    }
-    
-    private setupTagAutocomplete(tagInput: HTMLInputElement, container: HTMLElement, tagListContainer: HTMLElement) {
-        setupTagAutocomplete(
-            () => this.getExistingTags(),
-            tagInput,
-            container,
-            tagListContainer,
-            this.currentTags,
-            (tag) => this.addTagToInput(tag, tagInput, tagListContainer),
-            (tags) => this.renderTagList(tagListContainer, tags)
-        );
-    }
-    
+
     private getExistingTags(): string[] {
         const tags = new Set<string>();
         for (const jot of this.jots) {
+            if (jot.deleted) continue;
             jot.tags.forEach(tag => tags.add(tag));
         }
         return Array.from(tags);
-    }
-
-    private addTagToInput(tag: string, tagInput: HTMLInputElement, tagListContainer: HTMLElement) {
-        if (tag && !this.currentTags.includes(tag)) {
-            this.currentTags.push(tag);
-            this.renderTagList(tagListContainer, this.currentTags);
-            tagInput.value = "";
-        }
     }
 
     checkIfSidebar() {
@@ -795,10 +881,10 @@ export class JotView extends ItemView {
         listContainer.style.marginTop = "20px";
         this.renderJotList(listContainer);
         
-        this.renderStats(rightPanel);
         this.renderSearch(rightPanel);
         const calendarRoot = rightPanel.createDiv({ cls: "jots-calendar" });
         this.renderCalendar(calendarRoot);
+        this.renderRightRail(rightPanel);
     }
     
     renderSidebarLayout() {
@@ -810,22 +896,16 @@ export class JotView extends ItemView {
         container.style.overflow = "auto";
         container.style.padding = "8px";
         
-        const addBtn = container.createDiv();
-        addBtn.textContent = "+ " + t('quickCapture', this.lang);
-        addBtn.style.background = "var(--interactive-accent)";
-        addBtn.style.color = "var(--text-on-accent)";
-        addBtn.style.padding = "8px 12px";
-        addBtn.style.borderRadius = "6px";
-        addBtn.style.cursor = "pointer";
-        addBtn.style.textAlign = "center";
-        addBtn.style.fontSize = "13px";
-        addBtn.style.marginBottom = "4px";
+        const addBtn = container.createEl("button", {
+            cls: "jots-quick-capture-entry-btn",
+            type: "button",
+        });
+        addBtn.textContent = "+ " + t("quickCapture", this.lang);
         addBtn.addEventListener("click", () => {
             const { CaptureModal } = require('./capture-modal');
             new CaptureModal(this.app, this.plugin).open();
         });
         
-        this.renderStatsCompact(container);
         this.renderSearchCompact(container);
         const calendarRoot = container.createDiv({ cls: "jots-calendar" });
         this.renderCalendarCompact(calendarRoot);
@@ -836,374 +916,137 @@ export class JotView extends ItemView {
     }
     
     renderFullInput(container: HTMLElement) {
-        this.inputCard = container.createDiv({ cls: "jots-quick-compose-card" });
-
-        const textareaContainer = this.inputCard.createDiv({ cls: "jots-quick-textarea-container" });
-        const textarea = textareaContainer.createEl("textarea", { cls: "jots-quick-textarea" });
-        textarea.placeholder = t('contentPlaceholder', this.lang);
-
-        this.currentTextarea = textarea;
-        this.setupWikilinkAutocomplete(textarea, textareaContainer);
-
-        const embedPreviewRow = this.inputCard.createDiv({ cls: "jots-quick-embed-preview" });
-
-        const isVaultImagePath = (p: string) =>
-            /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i.test(p);
-
-        const refreshEmbedPreviews = () => {
-            embedPreviewRow.empty();
-            const text = textarea.value;
-            const re = /!\[\[([^\]]+)\]\]/g;
-            const seen = new Set<string>();
-            let m: RegExpExecArray | null;
-            while ((m = re.exec(text)) != null) {
-                const raw = m[1].trim();
-                const vaultPath = normalizePath(raw);
-                if (seen.has(vaultPath)) continue;
-                seen.add(vaultPath);
-                const af = this.app.vault.getAbstractFileByPath(vaultPath);
-                if (!(af instanceof TFile) || !isVaultImagePath(af.path)) continue;
-                const thumb = embedPreviewRow.createDiv({ cls: "jots-quick-embed-thumb" });
-                const img = thumb.createEl("img", { cls: "jots-quick-embed-img" });
-                img.src = this.app.vault.getResourcePath(af);
-                img.alt = af.name;
+        if (this.wikilinkCleanup) {
+            try {
+                this.wikilinkCleanup();
+            } catch {
+                /* ignore */
             }
+            this.wikilinkCleanup = null;
+        }
+
+        const deps = {
+            app: this.app,
+            lang: this.lang,
+            pluginSettings: this.plugin.settings,
+            getExistingTags: () => this.getExistingTags(),
         };
 
-        const tagSection = this.inputCard.createDiv({ cls: "jots-quick-meta-section" });
-        const tagInputContainer = tagSection.createDiv({ cls: "jots-quick-meta-input-container" });
-        const tagInput = tagInputContainer.createEl("input", { cls: "jots-tag-input jots-quick-meta-input" });
-        tagInput.placeholder = t('tagsInputPlaceholder', this.lang);
-
-        this.tagListContainer = tagSection.createDiv({ cls: "jots-quick-tag-list" });
-        this.currentTags = [];
-        this.setupTagAutocomplete(tagInput, tagInputContainer, this.tagListContainer);
-
-        const sourceSection = this.inputCard.createDiv({ cls: "jots-quick-source-section" });
-        const sourceInput = sourceSection.createEl("input", { cls: "jots-quick-meta-input" });
-        sourceInput.placeholder = t('sourcePlaceholder', this.lang);
-
-        tagSection.style.display = "none";
-        sourceSection.style.display = "none";
-
-        const attachmentTray = this.inputCard.createDiv({ cls: "jots-quick-attachment-tray" });
-        let selectedAttachments: { path: string; type: "image" | "file" }[] = [];
-        let syncQuickSendReady: () => void = () => {};
-
-        const openAttachmentPicker = () => {
-            const input = document.createElement("input");
-            input.type = "file";
-            input.multiple = true;
-            input.addEventListener("change", async () => {
-                const files = Array.from(input.files || []);
-                for (const file of files) {
-                    await this.handleAttachment(file, attachmentTray, (result) => {
-                        selectedAttachments.push(result);
-                        renderAttachmentTray();
-                    });
-                }
-            });
-            input.click();
-        };
-
-        const renderAttachmentTray = () => {
-            attachmentTray.empty();
-
-            selectedAttachments.forEach((attachment, index) => {
-                const item = attachmentTray.createDiv({ cls: "jots-quick-attachment-item" });
-                if (attachment.type === "image") {
-                    const imgFile = this.app.vault.getAbstractFileByPath(normalizePath(attachment.path));
-                    if (imgFile instanceof TFile) {
-                        const thumb = item.createEl("img", { cls: "jots-quick-attachment-thumb" });
-                        thumb.src = this.app.vault.getResourcePath(imgFile);
-                        thumb.alt = imgFile.name;
-                    } else {
-                        const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
-                        icon.textContent = "🖼️";
-                    }
-                } else {
-                    const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
-                    icon.textContent = "📎";
-                }
-
-                const label = item.createSpan({ cls: "jots-quick-attachment-label" });
-                label.textContent = attachment.path.split("/").pop() || attachment.path;
-                label.title = attachment.path;
-
-                const removeBtn = item.createEl("button", { cls: "jots-quick-attachment-remove" });
-                removeBtn.type = "button";
-                removeBtn.textContent = "×";
-                removeBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    selectedAttachments.splice(index, 1);
-                    renderAttachmentTray();
-                });
-            });
-            syncQuickSendReady();
-        };
-
-        renderAttachmentTray();
-        refreshEmbedPreviews();
-
-        textarea.addEventListener("input", () => {
-            refreshEmbedPreviews();
-            syncQuickSendReady();
-        });
-
-        const setDropActive = (active: boolean) => {
-            textareaContainer.classList.toggle("is-drop-active", active);
-        };
-
-        textareaContainer.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            setDropActive(true);
-        });
-
-        textareaContainer.addEventListener("dragleave", () => {
-            setDropActive(false);
-        });
-
-        textareaContainer.addEventListener("drop", async (e) => {
-            e.preventDefault();
-            setDropActive(false);
-            const files = Array.from(e.dataTransfer?.files || []);
-            for (const file of files) {
-                await this.handleAttachment(file, attachmentTray, (result) => {
-                    selectedAttachments.push(result);
-                    renderAttachmentTray();
-                });
-            }
-        });
-
-        textarea.addEventListener("paste", async (e: ClipboardEvent) => {
-            const imageFiles = getClipboardImageFiles(e.clipboardData);
-            if (imageFiles.length === 0) return;
-            e.preventDefault();
-            const plain = e.clipboardData?.getData("text/plain") ?? "";
-            for (const file of imageFiles) {
-                await this.handleAttachment(
-                    file,
-                    attachmentTray,
-                    (result) => {
-                        selectedAttachments.push(result);
-                        renderAttachmentTray();
-                    },
-                    { failureNoticeKey: "pasteImageUploadFailed" }
+        const api = mountQuickComposeCard({
+            mode: "capture",
+            parent: container,
+            deps,
+            onSave: async (payload) => {
+                await this.plugin.saveJot(
+                    payload.content,
+                    payload.tags,
+                    payload.source,
+                    payload.attachments
                 );
-            }
-            if (plain) {
-                this.insertTextAtCursor(textarea, plain);
-            }
-            refreshEmbedPreviews();
-            textarea.focus();
+            },
+            onAfterSave: () => this.focusTextarea(),
         });
 
-        const toolbarRow = this.inputCard.createDiv({ cls: "jots-quick-toolbar-row" });
-        const toolGroup = toolbarRow.createDiv({ cls: "jots-quick-tools" });
+        this.inputCard = api.root;
+        this.currentTextarea = api.textarea;
+        this.wikilinkCleanup = api.wikilinkCleanup;
+    }
 
-        const createToolBtn = (label: string, tooltip: string, onClick: () => void) => {
-            const btn = toolGroup.createEl("button", { cls: "jots-quick-tool-btn" });
-            btn.type = "button";
-            btn.textContent = label;
-            btn.title = tooltip;
-            btn.addEventListener("click", (e) => {
-                e.preventDefault();
-                onClick();
+    /** Right panel: all tags (collapsible) + recycle bin — main layout only */
+    private renderRightRail(container: HTMLElement) {
+        const rail = container.createDiv({ cls: "jots-right-rail" });
+        const tagsBlock = rail.createDiv({ cls: "jots-right-rail-tags" });
+        const tagsHead = tagsBlock.createDiv({ cls: "jots-right-rail-tags-head" });
+
+        const tagsHeadLeft = tagsHead.createDiv({ cls: "jots-right-rail-tags-head-left" });
+        const tagsChevron = tagsHeadLeft.createSpan({ cls: "jots-right-rail-tags-chevron" });
+        setIcon(tagsChevron, "chevron-down");
+        tagsHeadLeft.createSpan({ cls: "jots-right-rail-tags-title", text: t("rightRailAllTags", this.lang) });
+        if (this.rightRailTagsCollapsed) {
+            tagsChevron.addClass("is-collapsed");
+            tagsBlock.addClass("is-collapsed");
+        }
+        tagsHeadLeft.addEventListener("mousedown", (e) => e.preventDefault());
+        tagsHeadLeft.addEventListener("click", () => {
+            this.rightRailTagsCollapsed = !this.rightRailTagsCollapsed;
+            tagsBlock.toggleClass("is-collapsed", this.rightRailTagsCollapsed);
+            tagsChevron.toggleClass("is-collapsed", this.rightRailTagsCollapsed);
+        });
+
+        const tagsHeadActions = tagsHead.createDiv({ cls: "jots-right-rail-tags-head-actions" });
+        const sortLabel = tagsHeadActions.createSpan({ cls: "jots-right-rail-tags-sort", text: t("rightRailTagSort", this.lang) });
+        const searchBtn = tagsHeadActions.createSpan({ cls: "jots-right-rail-tags-search-btn" });
+        setIcon(searchBtn, "search");
+        sortLabel.addEventListener("mousedown", (e) => e.preventDefault());
+        sortLabel.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const menu = new Menu();
+            const sortOptions: { id: RightRailTagSort; labelKey: keyof Translations }[] = [
+                { id: "nameAsc", labelKey: "rightRailTagSortNameAsc" },
+                { id: "nameDesc", labelKey: "rightRailTagSortNameDesc" },
+                { id: "countDesc", labelKey: "rightRailTagSortCountDesc" },
+                { id: "countAsc", labelKey: "rightRailTagSortCountAsc" },
+            ];
+            for (const { id, labelKey } of sortOptions) {
+                menu.addItem((item) => {
+                    item.setTitle(t(labelKey, this.lang));
+                    item.setChecked(this.rightRailTagSort === id);
+                    item.onClick(() => {
+                        this.rightRailTagSort = id;
+                        this.render();
+                    });
+                });
+            }
+            const ev = e as unknown as MouseEvent;
+            menu.showAtMouseEvent(ev);
+        });
+        searchBtn.addEventListener("mousedown", (e) => e.preventDefault());
+        searchBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const body = tagsBlock.querySelector(".jots-right-rail-tags-body") as HTMLElement | null;
+            const input = body?.querySelector(".jots-right-rail-tags-filter-input") as HTMLInputElement | null;
+            input?.focus();
+            input?.select();
+        });
+
+        const tagsBody = tagsBlock.createDiv({ cls: "jots-right-rail-tags-body" });
+        const filterWrap = tagsBody.createDiv({ cls: "jots-right-rail-tags-filter" });
+        const filterInput = filterWrap.createEl("input", {
+            type: "search",
+            cls: "jots-right-rail-tags-filter-input",
+            attr: { placeholder: t("rightRailTagFilterPlaceholder", this.lang) },
+        });
+        filterInput.value = this.rightRailTagListQuery;
+        filterInput.addEventListener("pointerdown", (e) => e.stopPropagation());
+        filterInput.addEventListener("input", () => {
+            this.rightRailTagListQuery = filterInput.value;
+            if (this.debouncedRender) this.debouncedRender();
+        });
+
+        const tagsList = tagsBody.createDiv({ cls: "jots-right-rail-tag-list" });
+        for (const { tag } of this.getRightRailTagEntries()) {
+            const row = tagsList.createDiv({ cls: "jots-right-rail-row jots-right-rail-row--tag" });
+            row.createSpan({ cls: "jots-right-rail-row-hash", text: "#" });
+            row.createSpan({ cls: "jots-right-rail-row-label", text: tag });
+            if (this.selectedTags.has(tag)) row.addClass("is-selected");
+            row.addEventListener("click", () => {
+                this.viewingRecycleBin = false;
+                if (this.selectedTags.has(tag)) this.selectedTags.delete(tag);
+                else this.selectedTags.add(tag);
+                this.render();
             });
-        };
+        }
 
-        const addToolDivider = () => {
-            toolGroup.createDiv({ cls: "jots-quick-tool-divider" });
-        };
-
-        const toggleSection = (section: HTMLElement, focusInput: HTMLInputElement) => {
-            const isHidden = section.style.display === "none" || window.getComputedStyle(section).display === "none";
-            const willShow = isHidden;
-            section.style.display = willShow ? "block" : "none";
-            if (willShow) focusInput.focus();
-        };
-
-        createToolBtn("#", t('tagsInputPlaceholder', this.lang), () => toggleSection(tagSection, tagInput));
-        createToolBtn("🖼", t('attachmentPlaceholder', this.lang), () => openAttachmentPicker());
-        addToolDivider();
-        createToolBtn("Aa", t('quickRecord', this.lang), () => textarea.focus());
-        createToolBtn("☰", t('quickRecord', this.lang), () => {
-            this.insertTextAtCursor(textarea, (textarea.value.endsWith("\n") || textarea.value.length === 0) ? "- " : "\n- ");
-            textarea.focus();
+        const binRow = rail.createDiv({ cls: "jots-right-rail-row jots-right-rail-row--bin" });
+        if (this.viewingRecycleBin) binRow.addClass("is-active");
+        const binIcon = binRow.createSpan({ cls: "jots-right-rail-row-icon" });
+        setIcon(binIcon, "trash-2");
+        binRow.createSpan({ cls: "jots-right-rail-row-label", text: t("rightRailRecycleBin", this.lang) });
+        binRow.addEventListener("click", () => {
+            this.viewingRecycleBin = !this.viewingRecycleBin;
+            if (this.viewingRecycleBin) this.selectedTags.clear();
+            this.render();
         });
-        createToolBtn("1.", t('quickRecord', this.lang), () => {
-            this.insertTextAtCursor(textarea, (textarea.value.endsWith("\n") || textarea.value.length === 0) ? "1. " : "\n1. ");
-            textarea.focus();
-        });
-        addToolDivider();
-        createToolBtn("@", t('sourcePlaceholder', this.lang), () => toggleSection(sourceSection, sourceInput));
-
-        const saveBtn = toolbarRow.createEl("button", { cls: "jots-quick-send-btn" });
-        saveBtn.type = "button";
-        saveBtn.textContent = "➤";
-        saveBtn.title = t('save', this.lang);
-
-        syncQuickSendReady = () => {
-            const ready =
-                textarea.value.trim().length > 0 || selectedAttachments.length > 0;
-            saveBtn.classList.toggle("is-ready", ready);
-        };
-        syncQuickSendReady();
-
-        saveBtn.addEventListener("click", async () => {
-            const content = textarea.value.trim();
-            if (!content) {
-                new Notice(t('contentRequired', this.lang));
-                return;
-            }
-
-            const tags = [...this.currentTags];
-            const source = sourceInput.value.trim();
-
-            await this.plugin.saveJot(content, tags, source, selectedAttachments);
-
-            textarea.value = "";
-            this.currentTags = [];
-            this.renderTagList(this.tagListContainer!, []);
-            tagInput.value = "";
-            sourceInput.value = "";
-            selectedAttachments = [];
-            tagSection.style.display = "none";
-            sourceSection.style.display = "none";
-            renderAttachmentTray();
-            refreshEmbedPreviews();
-            
-            this.focusTextarea();
-        });
-    }
-    
-    setupWikilinkAutocomplete(textarea: HTMLTextAreaElement, container: HTMLElement): () => void {
-        this.wikilinkCleanup = setupWikilinkAutocomplete(
-            this.app,
-            textarea,
-            container,
-            (file, textarea, bracketStart) => {
-                const cursorPos = textarea.selectionStart;
-                const textBefore = textarea.value.substring(0, bracketStart);
-                const textAfter = textarea.value.substring(cursorPos);
-                const newText = textBefore + `[[${file.basename}]]` + textAfter;
-                textarea.value = newText;
-
-                const newCursorPos = bracketStart + file.basename.length + 4;
-                textarea.selectionStart = newCursorPos;
-                textarea.selectionEnd = newCursorPos;
-
-                textarea.focus();
-                textarea.dispatchEvent(new Event("input", { bubbles: true }));
-            }
-        );
-        return this.wikilinkCleanup;
-    }
-    
-
-    async handleAttachment(
-        file: File,
-        area: HTMLElement,
-        callback: (result: { path: string; type: "image" | "file" }) => void,
-        options?: { failureNoticeKey?: keyof Translations }
-    ) {
-        await handleAttachment(
-            this.app,
-            file,
-            this.plugin.settings,
-            this.lang,
-            callback,
-            options
-        );
-    }
-
-    /** Insert arbitrary text at the caret (used after image paste when clipboard also carries plain text). */
-    insertTextAtCursor(textarea: HTMLTextAreaElement, text: string) {
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const val = textarea.value;
-        textarea.value = val.slice(0, start) + text + val.slice(end);
-        const cursor = start + text.length;
-        textarea.selectionStart = cursor;
-        textarea.selectionEnd = cursor;
-        textarea.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-
-    renderStats(container: HTMLElement) {
-        const stats = this.getStats();
-
-        const section = container.createDiv();
-        section.style.marginBottom = "12px";
-        section.style.backgroundColor = "var(--background-secondary)";
-        section.style.borderRadius = "8px";
-        section.style.padding = "12px";
-        section.style.border = "1px solid var(--background-modifier-border)";
-
-        const contentDiv = section.createDiv();
-        contentDiv.style.display = "flex";
-        contentDiv.style.justifyContent = "space-around";
-
-        const totalDiv = contentDiv.createDiv();
-        totalDiv.style.textAlign = "center";
-        totalDiv.style.flex = "1";
-        totalDiv.createDiv({ text: stats.total.toString(), style: "font-size: 24px; font-weight: bold; color: var(--text-normal);" });
-        totalDiv.createDiv({ text: t('total', this.lang), style: "font-size: 11px; color: var(--text-muted);" });
-
-        const todayDiv = contentDiv.createDiv();
-        todayDiv.style.textAlign = "center";
-        todayDiv.style.flex = "1";
-        todayDiv.createDiv({ text: stats.today.toString(), style: "font-size: 24px; font-weight: bold; color: var(--text-normal);" });
-        todayDiv.createDiv({ text: t('today', this.lang), style: "font-size: 11px; color: var(--text-muted);" });
-
-        const monthDiv = contentDiv.createDiv();
-        monthDiv.style.textAlign = "center";
-        monthDiv.style.flex = "1";
-        monthDiv.createDiv({ text: stats.thisMonth.toString(), style: "font-size: 24px; font-weight: bold; color: var(--text-normal);" });
-        monthDiv.createDiv({ text: t('thisMonth', this.lang), style: "font-size: 11px; color: var(--text-muted);" });
-    }
-    
-    renderStatsCompact(container: HTMLElement) {
-        const stats = this.getStats();
-
-        const section = container.createDiv();
-        section.style.marginBottom = "8px";
-        section.style.backgroundColor = "var(--background-secondary)";
-        section.style.borderRadius = "6px";
-        section.style.padding = "10px";
-        section.style.border = "1px solid var(--background-modifier-border)";
-
-        const contentDiv = section.createDiv();
-        contentDiv.style.display = "flex";
-        contentDiv.style.justifyContent = "space-around";
-        contentDiv.style.gap = "8px";
-
-        const totalDiv = contentDiv.createDiv();
-        totalDiv.style.textAlign = "center";
-        totalDiv.style.flex = "1";
-        totalDiv.createDiv({ text: stats.total.toString(), style: "font-size: 18px; font-weight: bold; color: var(--text-normal);" });
-        totalDiv.createDiv({ text: t('total', this.lang), style: "font-size: 10px; color: var(--text-muted); margin-top: 2px;" });
-
-        const todayDiv = contentDiv.createDiv();
-        todayDiv.style.textAlign = "center";
-        todayDiv.style.flex = "1";
-        todayDiv.createDiv({ text: stats.today.toString(), style: "font-size: 18px; font-weight: bold; color: var(--text-normal);" });
-        todayDiv.createDiv({ text: t('today', this.lang), style: "font-size: 10px; color: var(--text-muted); margin-top: 2px;" });
-
-        const monthDiv = contentDiv.createDiv();
-        monthDiv.style.textAlign = "center";
-        monthDiv.style.flex = "1";
-        monthDiv.createDiv({ text: stats.thisMonth.toString(), style: "font-size: 18px; font-weight: bold; color: var(--text-normal);" });
-        monthDiv.createDiv({ text: t('thisMonth', this.lang), style: "font-size: 10px; color: var(--text-muted); margin-top: 2px;" });
-    }
-    
-    getStats() {
-        const total = this.jots.length;
-        const today = moment().format("YYYY-MM-DD");
-        const todayCount = this.jots.filter(m => m.date === today).length;
-        const thisMonth = moment().format("YYYY-MM");
-        const thisMonthCount = this.jots.filter(m => m.date.startsWith(thisMonth)).length;
-        return { total, today: todayCount, thisMonth: thisMonthCount };
     }
 
     /** YYYY-MM-DD from jot timestamp fields */
@@ -1219,11 +1062,8 @@ export class JotView extends ItemView {
         return prefix ? prefix[1] : null;
     }
 
-    private isDateInMonth(dateKey: string, year: number, monthIndex: number): boolean {
-        const m = moment(dateKey, "YYYY-MM-DD", true);
-        if (!m.isValid()) return false;
-        return m.year() === year && m.month() === monthIndex;
-    }
+    /** Columns in the activity heatmap (one column = one week). Kept modest so cells stay readable in the sidebar. */
+    private static readonly CONTRIB_WEEKS = 8;
 
     private heatLevel(score: number, maxScore: number): number {
         if (score <= 0 || maxScore <= 0) return 0;
@@ -1234,11 +1074,16 @@ export class JotView extends ItemView {
         return 4;
     }
 
-    /** Per-day create+update event counts and unique jots for the heatmap month */
-    getHeatmapForMonth(year: number, monthIndex: number): Map<string, HeatDayCell> {
+    /** Sunday (local) start-of-week; use English locale so week starts on Sunday regardless of global moment locale */
+    private startOfWeekSunday(m: moment.Moment): moment.Moment {
+        const d = m.clone().locale("en").startOf("day");
+        return d.subtract(d.day(), "days");
+    }
+
+    /** Per-day create+update event counts and unique jots (all time, non-deleted) */
+    private buildHeatCellMap(): Map<string, HeatDayCell> {
         const raw = new Map<string, { activityScore: number; byId: Map<string, Jot> }>();
         const bump = (dateKey: string, jot: Jot) => {
-            if (!this.isDateInMonth(dateKey, year, monthIndex)) return;
             let e = raw.get(dateKey);
             if (!e) {
                 e = { activityScore: 0, byId: new Map<string, Jot>() };
@@ -1248,6 +1093,7 @@ export class JotView extends ItemView {
             e.byId.set(jot.id, jot);
         };
         for (const jot of this.jots) {
+            if (jot.deleted) continue;
             const c =
                 this.jotDateKey(jot.createdAt) ??
                 (/^\d{4}-\d{2}-\d{2}$/.test(jot.date) ? jot.date : null);
@@ -1261,291 +1107,139 @@ export class JotView extends ItemView {
         }
         return out;
     }
-    
+
+    private heatmapHeaderCounts(heat: Map<string, HeatDayCell>): { notes: number; tags: number; activeDays: number } {
+        const active = this.jots.filter((j) => !j.deleted);
+        const tagSet = new Set<string>();
+        for (const jot of active) {
+            for (const tag of jot.tags) {
+                const s = tag?.trim();
+                if (s) tagSet.add(s);
+            }
+        }
+        let activeDays = 0;
+        for (const [, cell] of heat) {
+            if (cell.activityScore > 0) activeDays++;
+        }
+        return { notes: active.length, tags: tagSet.size, activeDays };
+    }
+
     renderCalendar(container: HTMLElement) {
         container.empty();
-        const section = container.createDiv();
-        section.style.marginBottom = "12px";
-        section.style.backgroundColor = "var(--background-secondary)";
-        section.style.borderRadius = "8px";
-        section.style.padding = "12px";
-        section.style.border = "1px solid var(--background-modifier-border)";
-        
-        const title = section.createDiv();
-        title.textContent = "▦ " + t('heatmap', this.lang);
-        title.style.fontSize = "13px";
-        title.style.fontWeight = "500";
-        title.style.marginBottom = "2px";
-        title.style.color = "var(--text-normal)";
-        const sub = section.createDiv();
-        sub.textContent = t('heatmapSubtitle', this.lang);
-        sub.style.fontSize = "10px";
-        sub.style.color = "var(--text-muted)";
-        sub.style.marginBottom = "8px";
-        
-        const contentDiv = section.createDiv();
-        this.renderCalendarGrid(contentDiv);
+        const section = container.createDiv({ cls: "jots-contrib-section" });
+        this.renderContributionHeatmap(section, false);
     }
-    
+
     renderCalendarCompact(container: HTMLElement) {
         container.empty();
-        const section = container.createDiv();
-        section.style.marginBottom = "8px";
-        section.style.backgroundColor = "var(--background-secondary)";
-        section.style.borderRadius = "6px";
-        section.style.padding = "10px";
-        section.style.border = "1px solid var(--background-modifier-border)";
-        
-        const title = section.createDiv();
-        title.textContent = "▦ " + t('heatmap', this.lang);
-        title.style.fontSize = "12px";
-        title.style.fontWeight = "500";
-        title.style.marginBottom = "2px";
-        title.style.color = "var(--text-normal)";
-        const sub = section.createDiv();
-        sub.textContent = t('heatmapSubtitle', this.lang);
-        sub.style.fontSize = "9px";
-        sub.style.color = "var(--text-muted)";
-        sub.style.marginBottom = "6px";
-        
-        const contentDiv = section.createDiv();
-        this.renderCalendarGridCompact(contentDiv);
+        const section = container.createDiv({ cls: "jots-contrib-section" });
+        this.renderContributionHeatmap(section, true);
     }
-    
-    renderCalendarGrid(container: HTMLElement) {
-        const firstDay = new Date(this.currentYear, this.currentMonth, 1);
-        const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
-        const startWeekday = firstDay.getDay();
-        
-        const header = container.createDiv();
-        header.style.display = "flex";
-        header.style.justifyContent = "space-between";
-        header.style.alignItems = "center";
-        header.style.marginBottom = "10px";
-        
-        const prevBtn = header.createDiv();
-        prevBtn.textContent = "←";
-        prevBtn.style.cursor = "pointer";
-        prevBtn.style.padding = "4px 8px";
-        prevBtn.style.borderRadius = "4px";
-        prevBtn.style.color = "var(--text-muted)";
-        prevBtn.addEventListener("mouseenter", () => { prevBtn.style.backgroundColor = "var(--background-modifier-hover)"; });
-        prevBtn.addEventListener("mouseleave", () => { prevBtn.style.backgroundColor = "transparent"; });
-        prevBtn.addEventListener("click", () => this.changeMonth(-1));
-        
-        const title = header.createDiv();
-        title.textContent = `${this.currentYear}${t('year', this.lang)} ${this.currentMonth + 1}${t('month', this.lang)}`;
-        title.style.fontSize = "13px";
-        title.style.fontWeight = "500";
-        title.style.color = "var(--text-normal)";
-        title.classList.add("jots-calendar-title");
-        
-        const nextBtn = header.createDiv();
-        nextBtn.textContent = "→";
-        nextBtn.style.cursor = "pointer";
-        nextBtn.style.padding = "4px 8px";
-        nextBtn.style.borderRadius = "4px";
-        nextBtn.style.color = "var(--text-muted)";
-        nextBtn.addEventListener("mouseenter", () => { nextBtn.style.backgroundColor = "var(--background-modifier-hover)"; });
-        nextBtn.addEventListener("mouseleave", () => { nextBtn.style.backgroundColor = "transparent"; });
-        nextBtn.addEventListener("click", () => this.changeMonth(1));
-        
-        const weekdays = translations[this.lang].weekdays;
-        const weekdayRow = container.createDiv();
-        weekdayRow.style.display = "grid";
-        weekdayRow.style.gridTemplateColumns = "repeat(7, 1fr)";
-        weekdayRow.style.gap = "2px";
-        weekdayRow.style.marginBottom = "4px";
-        
-        weekdays.forEach(day => {
-            const dayEl = weekdayRow.createDiv();
-            dayEl.textContent = day;
-            dayEl.style.textAlign = "center";
-            dayEl.style.fontSize = "10px";
-            dayEl.style.color = "var(--text-muted)";
-        });
-        
-        const daysGrid = container.createDiv();
-        daysGrid.style.display = "grid";
-        daysGrid.style.gridTemplateColumns = "repeat(7, 1fr)";
-        daysGrid.style.gap = "2px";
-        
-        for (let i = 0; i < startWeekday; i++) {
-            const emptyDay = daysGrid.createDiv();
-            emptyDay.style.aspectRatio = "1";
-        }
-        
-        const heatCells = this.getHeatmapForMonth(this.currentYear, this.currentMonth);
+
+    private renderContributionHeatmap(section: HTMLElement, compact: boolean) {
+        if (compact) section.addClass("jots-contrib-section--compact");
+        section.style.setProperty("--contrib-weeks", String(JotView.CONTRIB_WEEKS));
+        const heatCells = this.buildHeatCellMap();
+        const { notes, tags, activeDays } = this.heatmapHeaderCounts(heatCells);
+        const tr = translations[this.lang];
+
+        const header = section.createDiv({ cls: "jots-contrib-stats" });
+        const mkStat = (value: number, label: string) => {
+            const col = header.createDiv({ cls: "jots-contrib-stat" });
+            col.createDiv({ cls: "jots-contrib-stat-value", text: String(value) });
+            col.createDiv({ cls: "jots-contrib-stat-label", text: label });
+        };
+        mkStat(notes, t("heatmapStatNotes", this.lang));
+        mkStat(tags, t("heatmapStatTags", this.lang));
+        mkStat(activeDays, t("heatmapStatActiveDays", this.lang));
+
+        const today = moment().locale("en").startOf("day");
+        const gridEndSunday = this.startOfWeekSunday(today);
+        const gridStartSunday = gridEndSunday.clone().subtract(JotView.CONTRIB_WEEKS - 1, "weeks");
+
         let maxScore = 0;
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            maxScore = Math.max(maxScore, heatCells.get(dateStr)?.activityScore ?? 0);
+        for (let w = 0; w < JotView.CONTRIB_WEEKS; w++) {
+            for (let r = 0; r < 7; r++) {
+                const dayMoment = gridStartSunday.clone().add(w * 7 + r, "days");
+                if (dayMoment.isAfter(today, "day")) continue;
+                const key = dayMoment.format("YYYY-MM-DD");
+                maxScore = Math.max(maxScore, heatCells.get(key)?.activityScore ?? 0);
+            }
         }
         if (maxScore < 1) maxScore = 1;
 
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const cell = heatCells.get(dateStr);
-            const score = cell?.activityScore ?? 0;
-            const level = this.heatLevel(score, maxScore);
-            const hasActivity = score > 0;
-            const noteCount = cell?.jots.length ?? 0;
-
-            const dayDiv = daysGrid.createDiv();
-            dayDiv.addClass("jots-heat-cell");
-            dayDiv.addClass(`jots-heat-l${level}`);
-            const dayNum = dayDiv.createSpan({ cls: "jots-heat-daynum", text: String(d) });
-            dayNum.style.pointerEvents = "none";
-            dayDiv.style.display = "flex";
-            dayDiv.style.alignItems = "center";
-            dayDiv.style.justifyContent = "center";
-            dayDiv.style.aspectRatio = "1";
-            dayDiv.style.borderRadius = "2px";
-            dayDiv.style.fontSize = "11px";
-            dayDiv.style.fontWeight = hasActivity ? "600" : "400";
-            dayDiv.style.cursor = hasActivity ? "pointer" : "default";
-
-            if (hasActivity) {
-                dayDiv.title = t("heatmapTooltip", this.lang, {
-                    date: dateStr,
-                    notes: String(noteCount),
-                    events: String(score),
-                });
-                dayDiv.addEventListener("click", () => {
-                    this.filterByActivityDate(dateStr);
-                });
-            }
-        }
-    }
-
-    renderCalendarGridCompact(container: HTMLElement) {
-        const firstDay = new Date(this.currentYear, this.currentMonth, 1);
-        const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
-        const startWeekday = firstDay.getDay();
-        
-        const navRow = container.createDiv();
-        navRow.style.display = "flex";
-        navRow.style.justifyContent = "space-between";
-        navRow.style.alignItems = "center";
-        navRow.style.marginBottom = "8px";
-        navRow.style.padding = "0 4px";
-        
-        const prevBtn = navRow.createDiv();
-        prevBtn.textContent = "←";
-        prevBtn.style.cursor = "pointer";
-        prevBtn.style.padding = "2px 6px";
-        prevBtn.style.fontSize = "11px";
-        prevBtn.style.borderRadius = "4px";
-        prevBtn.style.color = "var(--text-muted)";
-        prevBtn.addEventListener("mouseenter", () => { prevBtn.style.backgroundColor = "var(--background-modifier-hover)"; });
-        prevBtn.addEventListener("mouseleave", () => { prevBtn.style.backgroundColor = "transparent"; });
-        prevBtn.addEventListener("click", () => this.changeMonth(-1));
-        
-        const title = navRow.createDiv();
-        title.textContent = `${this.currentYear}/${this.currentMonth + 1}`;
-        title.style.fontSize = "11px";
-        title.style.fontWeight = "500";
-        title.style.color = "var(--text-normal)";
-        title.classList.add("jots-calendar-title");
-        
-        const nextBtn = navRow.createDiv();
-        nextBtn.textContent = "→";
-        nextBtn.style.cursor = "pointer";
-        nextBtn.style.padding = "2px 6px";
-        nextBtn.style.fontSize = "11px";
-        nextBtn.style.borderRadius = "4px";
-        nextBtn.style.color = "var(--text-muted)";
-        nextBtn.addEventListener("mouseenter", () => { nextBtn.style.backgroundColor = "var(--background-modifier-hover)"; });
-        nextBtn.addEventListener("mouseleave", () => { nextBtn.style.backgroundColor = "transparent"; });
-        nextBtn.addEventListener("click", () => this.changeMonth(1));
-        
-        const weekdaysShort = translations[this.lang].weekdays;
-        const weekdayRow = container.createDiv();
-        weekdayRow.style.display = "grid";
-        weekdayRow.style.gridTemplateColumns = "repeat(7, 1fr)";
-        weekdayRow.style.gap = "1px";
-        weekdayRow.style.marginBottom = "4px";
-        
-        weekdaysShort.forEach(day => {
-            const dayEl = weekdayRow.createDiv();
-            dayEl.textContent = day;
-            dayEl.style.textAlign = "center";
-            dayEl.style.fontSize = "8px";
-            dayEl.style.color = "var(--text-muted)";
-            dayEl.style.padding = "2px 0";
+        const gridWrap = section.createDiv({ cls: "jots-contrib-grid-wrap" });
+        const grid = gridWrap.createDiv({
+            cls: "jots-contrib-grid" + (compact ? " jots-contrib-grid--compact" : ""),
         });
-        
-        const daysGrid = container.createDiv();
-        daysGrid.style.display = "grid";
-        daysGrid.style.gridTemplateColumns = "repeat(7, 1fr)";
-        daysGrid.style.gap = "1px";
-        
-        for (let i = 0; i < startWeekday; i++) {
-            const emptyDay = daysGrid.createDiv();
-            emptyDay.style.aspectRatio = "1";
-        }
-        
-        const heatCells = this.getHeatmapForMonth(this.currentYear, this.currentMonth);
-        let maxScore = 0;
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            maxScore = Math.max(maxScore, heatCells.get(dateStr)?.activityScore ?? 0);
-        }
-        if (maxScore < 1) maxScore = 1;
 
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const cell = heatCells.get(dateStr);
-            const score = cell?.activityScore ?? 0;
-            const level = this.heatLevel(score, maxScore);
-            const hasActivity = score > 0;
-            const noteCount = cell?.jots.length ?? 0;
+        for (let w = 0; w < JotView.CONTRIB_WEEKS; w++) {
+            for (let r = 0; r < 7; r++) {
+                const dayMoment = gridStartSunday.clone().add(w * 7 + r, "days");
+                const dateStr = dayMoment.format("YYYY-MM-DD");
+                const isFuture = dayMoment.isAfter(today, "day");
+                const isToday = dayMoment.isSame(today, "day");
+                const cell = heatCells.get(dateStr);
+                const score = isFuture ? 0 : cell?.activityScore ?? 0;
+                const level = isFuture ? 0 : this.heatLevel(score, maxScore);
+                const hasActivity = !isFuture && score > 0;
+                const noteCount = cell?.jots.length ?? 0;
 
-            const dayDiv = daysGrid.createDiv();
-            dayDiv.addClass("jots-heat-cell");
-            dayDiv.addClass(`jots-heat-l${level}`);
-            const dayNum = dayDiv.createSpan({ cls: "jots-heat-daynum", text: String(d) });
-            dayNum.style.pointerEvents = "none";
-            dayDiv.style.display = "flex";
-            dayDiv.style.alignItems = "center";
-            dayDiv.style.justifyContent = "center";
-            dayDiv.style.aspectRatio = "1";
-            dayDiv.style.borderRadius = "2px";
-            dayDiv.style.fontSize = "9px";
-            dayDiv.style.fontWeight = hasActivity ? "600" : "400";
-            dayDiv.style.cursor = hasActivity ? "pointer" : "default";
+                const dayDiv = grid.createDiv({ cls: "jots-contrib-cell" });
+                dayDiv.addClass(`jots-contrib-l${level}`);
+                if (isFuture) dayDiv.addClass("jots-contrib-cell--future");
+                if (isToday) dayDiv.addClass("jots-contrib-cell--today");
 
-            if (hasActivity) {
-                dayDiv.title = t("heatmapTooltip", this.lang, {
-                    date: dateStr,
-                    notes: String(noteCount),
-                    events: String(score),
-                });
-                dayDiv.addEventListener("click", () => {
-                    this.filterByActivityDate(dateStr);
-                });
+                const loc = this.lang === "zh" ? "zh-cn" : "en";
+                const dateTitle = dayMoment.clone().locale(loc).format("LL");
+                if (compact) {
+                    if (!isFuture) dayDiv.setAttr("aria-label", dateTitle);
+                    else dayDiv.setAttr("aria-hidden", "true");
+                }
+                /* Compact sidebar: color-only cells (no day digits) to avoid truncation; full width uses tooltip + month row. */
+                if (!compact) {
+                    dayDiv.createSpan({
+                        cls: "jots-contrib-cell-date",
+                        text: String(dayMoment.date()),
+                        attr: { "aria-hidden": "true" },
+                    });
+                }
+
+                if (hasActivity) {
+                    dayDiv.title = t("heatmapTooltip", this.lang, {
+                        date: dateTitle,
+                        notes: String(noteCount),
+                        events: String(score),
+                    });
+                    dayDiv.style.cursor = "pointer";
+                    dayDiv.addEventListener("click", () => {
+                        this.filterByActivityDate(dateStr);
+                    });
+                } else {
+                    dayDiv.title = isFuture ? "" : dateTitle;
+                    dayDiv.style.cursor = "default";
+                }
             }
         }
-    }
 
-    changeMonth(delta: number) {
-        this.currentMonth += delta;
-        if (this.currentMonth < 0) {
-            this.currentMonth = 11;
-            this.currentYear--;
-        } else if (this.currentMonth > 11) {
-            this.currentMonth = 0;
-            this.currentYear++;
-        }
-
-        // 重新渲染整个日历部分
-        const calendarContainer = this.contentEl.querySelector(".jots-calendar") as HTMLElement | null;
-        if (calendarContainer) {
-            calendarContainer.empty();
-            if (this.isSidebar) {
-                this.renderCalendarCompact(calendarContainer);
-            } else {
-                this.renderCalendar(calendarContainer);
+        const monthNames = tr.heatmapMonthShort;
+        const monthsRow = section.createDiv({
+            cls: "jots-contrib-months" + (compact ? " jots-contrib-months--compact" : ""),
+        });
+        let lastMonth = -1;
+        for (let w = 0; w < JotView.CONTRIB_WEEKS; w++) {
+            const weekStart = gridStartSunday.clone().add(w * 7, "days");
+            /* Week straddling two months: weekStart is Sunday, so label by Thursday's month
+             * so the trailing month (e.g. April when Sun–Mon are still March) still shows. */
+            const m = weekStart.clone().add(4, "days").month();
+            const cell = monthsRow.createDiv({ cls: "jots-contrib-month-cell" });
+            if (m !== lastMonth) {
+                const label =
+                    compact && this.lang === "zh"
+                        ? `${m + 1}月`
+                        : monthNames[m] ?? String(m + 1);
+                cell.setText(label);
+                lastMonth = m;
             }
         }
     }
@@ -1700,6 +1394,7 @@ export class JotView extends ItemView {
             btn.textContent = t(labelKey, this.lang);
             if (this.searchTimePreset === key) btn.addClass("is-active");
             btn.addEventListener("click", () => {
+                this.viewingRecycleBin = false;
                 this.searchTimePreset = key;
                 if (key !== "custom" && key !== "none") {
                     this.stripDateActivityFromSearchQuery();
@@ -1743,6 +1438,7 @@ export class JotView extends ItemView {
             btn.textContent = t(labelKey, this.lang);
             if (this.tagMatchMode === mode) btn.addClass("is-active");
             btn.addEventListener("click", () => {
+                this.viewingRecycleBin = false;
                 this.tagMatchMode = mode;
                 tagModeButtons.forEach(({ el, mode: m }) => el.toggleClass("is-active", this.tagMatchMode === m));
                 tagFilter.toggleClass("is-hidden", this.tagMatchMode === "noTags");
@@ -1758,6 +1454,7 @@ export class JotView extends ItemView {
             tagBtn.textContent = `#${tag}`;
             if (this.selectedTags.has(tag)) tagBtn.addClass("is-selected");
             tagBtn.addEventListener("click", () => {
+                this.viewingRecycleBin = false;
                 if (this.selectedTags.has(tag)) this.selectedTags.delete(tag);
                 else this.selectedTags.add(tag);
                 tagBtn.toggleClass("is-selected", this.selectedTags.has(tag));
@@ -1802,6 +1499,7 @@ export class JotView extends ItemView {
             btn.textContent = t(labelKey, this.lang);
             if (this.contentTypeFilters.has(key)) btn.addClass("is-active");
             btn.addEventListener("click", () => {
+                this.viewingRecycleBin = false;
                 if (this.contentTypeFilters.has(key)) this.contentTypeFilters.delete(key);
                 else this.contentTypeFilters.add(key);
                 btn.toggleClass("is-active", this.contentTypeFilters.has(key));
@@ -1811,12 +1509,47 @@ export class JotView extends ItemView {
         }
     }
     
+    /** Tags for right rail: usage counts, optional text filter, user-chosen sort */
+    private getRightRailTagEntries(): { tag: string; count: number }[] {
+        const counts = new Map<string, number>();
+        for (const jot of this.jots) {
+            if (jot.deleted) continue;
+            for (const tag of jot.tags) {
+                counts.set(tag, (counts.get(tag) ?? 0) + 1);
+            }
+        }
+        let entries = Array.from(counts.entries()).map(([tag, count]) => ({ tag, count }));
+        const q = this.rightRailTagListQuery.trim().toLowerCase();
+        if (q) {
+            entries = entries.filter((e) => e.tag.toLowerCase().includes(q));
+        }
+        const loc = this.lang === "zh" ? "zh" : "en";
+        const byName = (a: { tag: string }, b: { tag: string }) => a.tag.localeCompare(b.tag, loc);
+        switch (this.rightRailTagSort) {
+            case "nameDesc":
+                entries.sort((a, b) => b.tag.localeCompare(a.tag, loc));
+                break;
+            case "countDesc":
+                entries.sort((a, b) => b.count - a.count || byName(a, b));
+                break;
+            case "countAsc":
+                entries.sort((a, b) => a.count - b.count || byName(a, b));
+                break;
+            case "nameAsc":
+            default:
+                entries.sort(byName);
+                break;
+        }
+        return entries;
+    }
+
     getAllTags(): string[] {
         const tags = new Set<string>();
         for (const jot of this.jots) {
-            jot.tags.forEach(tag => tags.add(tag));
+            if (jot.deleted) continue;
+            jot.tags.forEach((tag) => tags.add(tag));
         }
-        return Array.from(tags);
+        return Array.from(tags).sort((a, b) => a.localeCompare(b, this.lang === "zh" ? "zh" : "en"));
     }
     
     renderJotList(container: HTMLElement) {
@@ -1847,7 +1580,7 @@ export class JotView extends ItemView {
 
         if (filteredJots.length === 0) {
             const empty = container.createDiv();
-            empty.textContent = t('noRecords', this.lang);
+            empty.textContent = this.viewingRecycleBin ? t("recycleBinEmpty", this.lang) : t("noRecords", this.lang);
             empty.style.textAlign = "center";
             empty.style.padding = "40px";
             empty.style.color = "var(--text-muted)";
@@ -1887,6 +1620,7 @@ export class JotView extends ItemView {
                 card.style.marginBottom = "8px";
                 card.style.transition = "all 0.2s";
                 card.style.border = "1px solid var(--background-modifier-border)";
+                if (jot.deleted) card.addClass("jots-card--in-trash");
 
                 if (this.editingJotId === jot.id) {
                     card.style.cursor = "default";
@@ -1906,144 +1640,53 @@ export class JotView extends ItemView {
                     updSpan.style.color = "var(--text-normal)";
                     updSpan.style.fontWeight = "600";
 
-                    const textareaContainer = card.createDiv();
-                    textareaContainer.style.position = "relative";
-                    const textarea = textareaContainer.createEl("textarea");
-                    textarea.classList.add("jots-edit-textarea");
-                    textarea.value = jot.content;
-                    textarea.style.width = "100%";
-                    textarea.style.minHeight = "100px";
-                    textarea.style.padding = "8px";
-                    textarea.style.borderRadius = "6px";
-                    textarea.style.border = "1px solid var(--background-modifier-border)";
-                    textarea.style.backgroundColor = "var(--background-primary)";
-                    textarea.style.color = "var(--text-normal)";
-                    textarea.style.resize = "vertical";
-                    textarea.style.fontFamily = "var(--font-text)";
-                    textarea.style.fontSize = "15px";
-                    textarea.style.lineHeight = "1.6";
-                    textarea.placeholder = t("placeholderWithLink", this.lang);
+                    const initialAttachments = (jot.attachments ?? []).map((path, i) => ({
+                        path,
+                        type: (jot.attachmentTypes?.[i] ?? "file") as "image" | "file",
+                    }));
 
-                    const wlCleanup = this.setupWikilinkAutocomplete(textarea, textareaContainer);
-                    if (wlCleanup) this.jotListCleanups.push(wlCleanup);
-
-                    const tagSection = card.createDiv();
-                    tagSection.style.marginTop = "8px";
-                    const tagInputContainer = tagSection.createDiv();
-                    tagInputContainer.style.position = "relative";
-                    tagInputContainer.style.marginBottom = "8px";
-                    const tagInput = tagInputContainer.createEl("input");
-                    tagInput.classList.add("jots-tag-input");
-                    tagInput.placeholder = t("tagsInputPlaceholder", this.lang);
-                    tagInput.style.width = "100%";
-                    tagInput.style.padding = "8px";
-                    tagInput.style.borderRadius = "6px";
-                    tagInput.style.border = "1px solid var(--background-modifier-border)";
-                    tagInput.style.backgroundColor = "var(--background-primary)";
-                    tagInput.style.color = "var(--text-normal)";
-
-                    const tagListContainer = tagSection.createDiv();
-                    tagListContainer.style.display = "flex";
-                    tagListContainer.style.flexWrap = "wrap";
-                    tagListContainer.style.gap = "6px";
-
-                    const refreshEditTags = () => {
-                        renderTagPills(tagListContainer, this.editSessionTags, (tag) => {
-                            this.editSessionTags = this.editSessionTags.filter((x) => x !== tag);
-                            refreshEditTags();
-                        });
-                    };
-                    refreshEditTags();
-
-                    setupTagAutocomplete(
-                        () => this.getExistingTags(),
-                        tagInput,
-                        tagInputContainer,
-                        tagListContainer,
-                        this.editSessionTags,
-                        (tag) => {
-                            const cleaned = tag.replace(/^#+/, "").trim();
-                            if (cleaned && !this.editSessionTags.includes(cleaned)) {
-                                this.editSessionTags.push(cleaned);
-                                refreshEditTags();
-                                tagInput.value = "";
+                    const editApi = mountQuickComposeCard({
+                        mode: "edit",
+                        parent: card,
+                        deps: {
+                            app: this.app,
+                            lang: this.lang,
+                            pluginSettings: this.plugin.settings,
+                            getExistingTags: () => this.getExistingTags(),
+                        },
+                        initial: {
+                            content: jot.content,
+                            tags: [...jot.tags],
+                            source: jot.source,
+                            attachments: initialAttachments,
+                        },
+                        onSave: async (payload) => {
+                            const prevId = this.editingJotId;
+                            this.editingJotId = null;
+                            try {
+                                await this.plugin.updateJot({
+                                    ...jot,
+                                    content: payload.content.trim(),
+                                    tags: normalizeJotTags(payload.tags),
+                                    source: payload.source.trim(),
+                                    attachments: payload.attachments.map((a) => a.path),
+                                    attachmentTypes: payload.attachments.map((a) => a.type),
+                                });
+                                new Notice(t("saved", this.lang));
+                            } catch {
+                                this.editingJotId = prevId;
+                                const listSection = this.contentEl.querySelector(".jots-list-section");
+                                if (listSection) {
+                                    this.renderJotList(listSection as HTMLElement);
+                                }
                             }
                         },
-                        () => {}
-                    );
-
-                    const sourceInput = card.createEl("input");
-                    sourceInput.classList.add("jots-edit-source");
-                    sourceInput.value = jot.source;
-                    sourceInput.placeholder = t("sourcePlaceholder", this.lang);
-                    sourceInput.style.width = "100%";
-                    sourceInput.style.padding = "8px";
-                    sourceInput.style.borderRadius = "6px";
-                    sourceInput.style.border = "1px solid var(--background-modifier-border)";
-                    sourceInput.style.backgroundColor = "var(--background-primary)";
-                    sourceInput.style.color = "var(--text-normal)";
-                    sourceInput.style.marginTop = "8px";
-
-                    const buttonRow = card.createDiv();
-                    buttonRow.style.display = "flex";
-                    buttonRow.style.justifyContent = "flex-end";
-                    buttonRow.style.gap = "8px";
-                    buttonRow.style.marginTop = "12px";
-
-                    const cancelBtn = buttonRow.createEl("button");
-                    cancelBtn.textContent = t("cancel", this.lang);
-                    cancelBtn.style.padding = "6px 14px";
-                    cancelBtn.style.borderRadius = "6px";
-                    cancelBtn.style.border = "1px solid var(--background-modifier-border)";
-                    cancelBtn.style.backgroundColor = "var(--background-primary)";
-                    cancelBtn.style.color = "var(--text-normal)";
-                    cancelBtn.style.cursor = "pointer";
-                    cancelBtn.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        this.exitEditMode();
+                        onCancel: () => this.exitEditMode(),
                     });
-
-                    const saveBtn = buttonRow.createEl("button");
-                    saveBtn.textContent = t("save", this.lang);
-                    saveBtn.style.padding = "6px 16px";
-                    saveBtn.style.borderRadius = "6px";
-                    saveBtn.style.backgroundColor = "var(--interactive-accent)";
-                    saveBtn.style.color = "var(--text-on-accent)";
-                    saveBtn.style.border = "none";
-                    saveBtn.style.cursor = "pointer";
-                    saveBtn.style.fontWeight = "500";
-                    saveBtn.addEventListener("click", async (e) => {
-                        e.stopPropagation();
-                        const body = textarea.value.trim();
-                        if (!body) {
-                            new Notice(t("contentRequired", this.lang));
-                            return;
-                        }
-                        const tags = normalizeJotTags(this.editSessionTags);
-                        const source = sourceInput.value.trim();
-                        const prevId = this.editingJotId;
-                        const prevTags = [...this.editSessionTags];
-                        this.editingJotId = null;
-                        this.editSessionTags = [];
-                        try {
-                            await this.plugin.updateJot({
-                                ...jot,
-                                content: body,
-                                tags,
-                                source
-                            });
-                            new Notice(t("saved", this.lang));
-                        } catch {
-                            this.editingJotId = prevId;
-                            this.editSessionTags = prevTags;
-                            const listSection = this.contentEl.querySelector(".jots-list-section");
-                            if (listSection) {
-                                this.renderJotList(listSection as HTMLElement);
-                            }
-                        }
-                    });
-
-                    setTimeout(() => textarea.focus(), 0);
+                    if (editApi.wikilinkCleanup) {
+                        this.jotListCleanups.push(editApi.wikilinkCleanup);
+                    }
+                    editApi.focusTextarea();
                     return;
                 }
 
@@ -2267,7 +1910,10 @@ export class JotView extends ItemView {
     }
     
     filterJots(): Jot[] {
-        let filtered = [...this.jots];
+        if (this.viewingRecycleBin) {
+            return this.jots.filter((j) => j.deleted);
+        }
+        let filtered = this.jots.filter((j) => !j.deleted);
         const { date, updated, activity, keywords } = this.parseSearchFilters(this.searchQuery);
 
         if (date) {
@@ -2313,6 +1959,7 @@ export class JotView extends ItemView {
     }
     
     filterByTag(tag: string) {
+        this.viewingRecycleBin = false;
         if (this.selectedTags.has(tag)) {
             this.selectedTags.delete(tag);
         } else {

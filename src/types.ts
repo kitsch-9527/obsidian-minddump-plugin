@@ -29,6 +29,8 @@ export interface Jot {
     attachments?: string[];
     attachmentTypes?: ("image" | "file")[];
     filePath?: string;
+    /** Soft-deleted; block kept in vault with `#### deleted: true` */
+    deleted?: boolean;
 }
 
 export interface DayRecord {

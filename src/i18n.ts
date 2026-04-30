@@ -14,8 +14,12 @@ export interface Translations {
     placeholderWithLink: string;
     tagsPlaceholder: string;
     tagsInputPlaceholder: string;
+    /** Tooltip on tag pills when click-to-rename is available */
+    tagPillClickToEdit: string;
     sourcePlaceholder: string;
     attachmentPlaceholder: string;
+    /** Remove image embed from editor (textarea or attachment strip). */
+    removeEditorImage: string;
     attachmentSelected: string;
     save: string;
     cancel: string;
@@ -26,13 +30,16 @@ export interface Translations {
     jotUpdateFileMissing: string;
     saveFailed: string;
     attachmentSaved: string;
-    total: string;
-    today: string;
-    thisMonth: string;
     calendar: string;
     heatmap: string;
     heatmapSubtitle: string;
     heatmapTooltip: string;
+    /** Contribution-style heatmap header */
+    heatmapStatNotes: string;
+    heatmapStatTags: string;
+    heatmapStatActiveDays: string;
+    /** Short month labels for heatmap footer (Jan… / 一月…) */
+    heatmapMonthShort: string[];
     year: string;
     month: string;
     searchAndTags: string;
@@ -119,6 +126,21 @@ export interface Translations {
     cardMenuDeleteConfirm: string;
     cardMenuComingSoon: string;
     cardMenuAiBadge: string;
+    cardMenuRestore: string;
+    cardMenuPurge: string;
+    cardMenuPurgeConfirm: string;
+    cardMenuRestored: string;
+    cardMenuPurged: string;
+    rightRailAllTags: string;
+    rightRailRecycleBin: string;
+    recycleBinEmpty: string;
+    /** Right rail tag strip: sort menu label */
+    rightRailTagSort: string;
+    rightRailTagSortNameAsc: string;
+    rightRailTagSortNameDesc: string;
+    rightRailTagSortCountDesc: string;
+    rightRailTagSortCountAsc: string;
+    rightRailTagFilterPlaceholder: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -135,8 +157,10 @@ export const translations: Record<Language, Translations> = {
         placeholderWithLink: "现在的想法是...\n输入 [[ 可快速插入笔记链接",
         tagsPlaceholder: "标签",
         tagsInputPlaceholder: "按回车添加标签，使用 / 进行嵌套",
+        tagPillClickToEdit: "点击编辑标签；× 删除",
         sourcePlaceholder: "来源",
         attachmentPlaceholder: "📎 点击或拖拽文件到这里",
+        removeEditorImage: "移除图片",
         attachmentSelected: "✅ 已选择: {filename}",
         save: "保存",
         cancel: "取消",
@@ -147,13 +171,14 @@ export const translations: Record<Language, Translations> = {
         jotUpdateFileMissing: "源文件不存在。",
         saveFailed: "保存失败: {error}",
         attachmentSaved: "附件已保存: {filename}",
-        total: "总计",
-        today: "今日",
-        thisMonth: "本月",
         calendar: "日历",
         heatmap: "活动热力图",
         heatmapSubtitle: "按创建与更新时间",
         heatmapTooltip: "{date} · {notes} 条 · {events} 次活动（创建/更新）",
+        heatmapStatNotes: "笔记",
+        heatmapStatTags: "标签",
+        heatmapStatActiveDays: "天",
+        heatmapMonthShort: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
         year: "年",
         month: "月",
         searchAndTags: "🔍 搜索与标签",
@@ -236,10 +261,24 @@ export const translations: Record<Language, Translations> = {
         cardMenuEditedAtFooter: "编辑于 {time}",
         cardMenuLinkCopied: "已复制链接",
         cardMenuShareCopied: "已复制到剪贴板",
-        cardMenuDeleted: "已删除",
-        cardMenuDeleteConfirm: "确定删除这条随手记？此操作不可撤销。",
+        cardMenuDeleted: "已移至回收站",
+        cardMenuDeleteConfirm: "确定删除这条随手记？删除后将进入回收站，可在回收站彻底删除。",
         cardMenuComingSoon: "敬请期待",
         cardMenuAiBadge: "AI",
+        cardMenuRestore: "恢复",
+        cardMenuPurge: "彻底删除",
+        cardMenuPurgeConfirm: "确定从回收站永久删除？无法恢复。",
+        cardMenuRestored: "已恢复",
+        cardMenuPurged: "已永久删除",
+        rightRailAllTags: "全部标签",
+        rightRailRecycleBin: "回收站",
+        recycleBinEmpty: "回收站为空",
+        rightRailTagSort: "排序",
+        rightRailTagSortNameAsc: "名称 A → Z",
+        rightRailTagSortNameDesc: "名称 Z → A",
+        rightRailTagSortCountDesc: "使用次数（多 → 少）",
+        rightRailTagSortCountAsc: "使用次数（少 → 多）",
+        rightRailTagFilterPlaceholder: "筛选标签…",
     },
     en: {
         pluginName: "Jot",
@@ -254,8 +293,10 @@ export const translations: Record<Language, Translations> = {
         placeholderWithLink: "What's on your mind...\nType [[ to quickly insert note links",
         tagsPlaceholder: "Tags",
         tagsInputPlaceholder: "Press Enter to add tag, use / for nesting",
+        tagPillClickToEdit: "Click to rename tag; × to remove",
         sourcePlaceholder: "Source",
         attachmentPlaceholder: "📎 Click or drag file here",
+        removeEditorImage: "Remove image",
         attachmentSelected: "✅ Selected: {filename}",
         save: "Save",
         cancel: "Cancel",
@@ -266,13 +307,14 @@ export const translations: Record<Language, Translations> = {
         jotUpdateFileMissing: "Source file not found.",
         saveFailed: "Save failed: {error}",
         attachmentSaved: "Attachment saved: {filename}",
-        total: "Total",
-        today: "Today",
-        thisMonth: "This Month",
         calendar: "Calendar",
         heatmap: "Activity heatmap",
         heatmapSubtitle: "By created & updated time",
         heatmapTooltip: "{date} · {notes} notes · {events} events (create/update)",
+        heatmapStatNotes: "Notes",
+        heatmapStatTags: "Tags",
+        heatmapStatActiveDays: "Active days",
+        heatmapMonthShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         year: "",
         month: "/",
         searchAndTags: "🔍 Search & Tags",
@@ -355,15 +397,34 @@ export const translations: Record<Language, Translations> = {
         cardMenuEditedAtFooter: "Edited at {time}",
         cardMenuLinkCopied: "Link copied",
         cardMenuShareCopied: "Copied to clipboard",
-        cardMenuDeleted: "Deleted",
-        cardMenuDeleteConfirm: "Delete this jot? This cannot be undone.",
+        cardMenuDeleted: "Moved to recycle bin",
+        cardMenuDeleteConfirm: "Delete this jot? It will go to the recycle bin; you can remove it permanently there.",
         cardMenuComingSoon: "Coming soon",
         cardMenuAiBadge: "AI",
+        cardMenuRestore: "Restore",
+        cardMenuPurge: "Delete permanently",
+        cardMenuPurgeConfirm: "Permanently delete this jot? This cannot be undone.",
+        cardMenuRestored: "Restored",
+        cardMenuPurged: "Permanently deleted",
+        rightRailAllTags: "All tags",
+        rightRailRecycleBin: "Recycle bin",
+        recycleBinEmpty: "Recycle bin is empty",
+        rightRailTagSort: "Sort",
+        rightRailTagSortNameAsc: "Name A → Z",
+        rightRailTagSortNameDesc: "Name Z → A",
+        rightRailTagSortCountDesc: "Usage count (high → low)",
+        rightRailTagSortCountAsc: "Usage count (low → high)",
+        rightRailTagFilterPlaceholder: "Filter tags…",
     }
 };
 
-export function t(key: keyof Translations, lang: Language, params?: Record<string, string>): string {
-    const text = translations[lang][key];
+/** Keys whose values are localized strings (not string[] like weekdays). */
+export type TranslationStringKey = {
+    [K in keyof Translations]: Translations[K] extends string ? K : never;
+}[keyof Translations];
+
+export function t(key: TranslationStringKey, lang: Language, params?: Record<string, string>): string {
+    const text = translations[lang][key] as string;
     if (!params) return text;
     return Object.entries(params).reduce((result, [param, value]) => {
         return result.replace(`{${param}}`, value);
