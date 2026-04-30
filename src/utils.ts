@@ -22,6 +22,124 @@ export function debounce<T extends (...args: any[]) => any>(
     };
 }
 
+/** Strip leading #, trim, drop empties, dedupe (first occurrence wins). */
+export function normalizeJotTags(tags: string[]): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const raw of tags) {
+        const s = raw.replace(/^#+/, "").trim();
+        if (!s || seen.has(s)) continue;
+        seen.add(s);
+        out.push(s);
+    }
+    return out;
+}
+
+export function newJotId(): string {
+    if (typeof globalThis.crypto !== "undefined" && typeof globalThis.crypto.randomUUID === "function") {
+        return globalThis.crypto.randomUUID();
+    }
+    return `jot-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+/** Deterministic id for entries that have no `#### id:` line (backward compatibility). */
+export function stableLegacyJotId(filePath: string, date: string, time: string): string {
+    const s = `${filePath}\0${date}\0${time}`;
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return `jot-legacy-${(h >>> 0).toString(16)}`;
+}
+
+export function formatJotEntryBlock(fullDateTime: string, id: string, updatedAt: string, body: string): string {
+    return `### ${fullDateTime}\n#### id: ${id}\n#### updatedAt: ${updatedAt}\n\n${body}\n\n---\n\n`;
+}
+
+export function composeJotMarkdownBody(
+    content: string,
+    tags: string[],
+    source: string,
+    attachments: { path: string; type: "image" | "file" }[] | undefined,
+    lang: Language,
+    useFixedTag: boolean,
+    fixedTag: string
+): { body: string; allTags: string[] } {
+    let allTags = normalizeJotTags(tags);
+    if (useFixedTag && fixedTag) {
+        const fixedTagClean = fixedTag.replace(/^#+/, "").trim();
+        if (!allTags.includes(fixedTagClean)) allTags.push(fixedTagClean);
+    }
+    allTags = normalizeJotTags(allTags);
+    const tagLine = allTags.length > 0 ? allTags.map(x => `#${x}`).join(" ") : "";
+    let finalContent = content;
+    const attachmentLines =
+        attachments && attachments.length > 0
+            ? attachments.map(att => (att.type === "image" ? `![[${att.path}]]` : `[[${att.path}]]`)).join("\n")
+            : "";
+    if (tagLine) finalContent += `\n\n${tagLine}`;
+    if (source) {
+        const sourcePrefix = lang === "zh" ? "来源:" : "Source:";
+        finalContent += `\n\n${sourcePrefix} ${source}`;
+    }
+    if (attachmentLines) finalContent += `\n\n${attachmentLines}`;
+    return { body: finalContent, allTags };
+}
+
+/** Replace one `###` jot block by id; preserves prefix (e.g. frontmatter) and other blocks. */
+export function replaceJotBlockById(
+    content: string,
+    filePath: string,
+    targetId: string,
+    newBlock: string
+): { content: string; found: boolean } {
+    const lines = content.split("\n");
+    let i = 0;
+    while (i < lines.length) {
+        const lineTrim = lines[i].trim();
+        if (lineTrim.startsWith("### ")) {
+            const blockStart = i;
+            const headerRest = lineTrim.substring(4).trim();
+            const [date, time] = headerRest.split(" ");
+            let metaId = "";
+            let j = i + 1;
+            while (j < lines.length) {
+                const t = lines[j].trim();
+                const idMatch = t.match(/^####\s+id:\s*(.+)$/i);
+                if (idMatch) {
+                    metaId = idMatch[1].trim();
+                    j++;
+                    continue;
+                }
+                if (/^####\s+updatedAt:\s*.+$/i.test(t)) {
+                    j++;
+                    continue;
+                }
+                break;
+            }
+            const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
+            let k = j;
+            while (k < lines.length && !lines[k].trim().startsWith("### ")) {
+                k++;
+            }
+            if (id === targetId) {
+                const prefix = lines.slice(0, blockStart).join("\n");
+                const suffix = lines.slice(k).join("\n");
+                let next = "";
+                if (prefix) next = prefix + "\n";
+                next += newBlock;
+                if (suffix) next += suffix;
+                return { content: next, found: true };
+            }
+            i = k;
+        } else {
+            i++;
+        }
+    }
+    return { content, found: false };
+}
+
 /**
  * 解析文件内容为 Jot 数组
  */
@@ -41,15 +159,35 @@ export function parseFileContent(
         if (line.startsWith("### ")) {
             const fullDateTime = line.substring(4).trim();
             const [date, time] = fullDateTime.split(" ");
+            const createdAt = [date, time].filter(Boolean).join(" ");
 
             let j = i + 1;
+            let idMeta = "";
+            let updatedAtMeta = "";
+            while (j < lines.length) {
+                const t = lines[j].trim();
+                const idMatch = t.match(/^####\s+id:\s*(.*)$/i);
+                const updMatch = t.match(/^####\s+updatedAt:\s*(.*)$/i);
+                if (idMatch) {
+                    idMeta = idMatch[1].trim();
+                    j++;
+                    continue;
+                }
+                if (updMatch) {
+                    updatedAtMeta = updMatch[1].trim();
+                    j++;
+                    continue;
+                }
+                break;
+            }
+            const id = idMeta || stableLegacyJotId(filePath, date || "", time || "");
+            const updatedAt = updatedAtMeta || createdAt;
+
             let jotContent = "";
             let tags: string[] = [];
             let source = "";
             let attachments: string[] = [];
             let attachmentTypes: ("image" | "file")[] = [];
-            let hasTags = false;
-            let hasSource = false;
 
             while (j < lines.length && !lines[j].trim().startsWith("### ")) {
                 const currentLine = lines[j];
@@ -64,8 +202,7 @@ export function parseFileContent(
                 if (trimmedLine.match(/^#[\w\u4e00-\u9fff\/\-_]+(\s+#[\w\u4e00-\u9fff\/\-_]+)*$/)) {
                     const tagMatches = trimmedLine.match(/#[\w\u4e00-\u9fff\/\-_]+/g);
                     if (tagMatches) {
-                        tags = tagMatches.map(t => t.substring(1));
-                        hasTags = true;
+                        tags = normalizeJotTags(tagMatches);
                     }
                 }
                 // 检查是否是来源行
@@ -73,7 +210,6 @@ export function parseFileContent(
                     const matchedPrefix = sourcePrefixes.find(p => trimmedLine.startsWith(p));
                     if (matchedPrefix) {
                         source = trimmedLine.substring(matchedPrefix.length).trim();
-                        hasSource = true;
                     }
                     // 检查是否是附件行
                     else {
@@ -100,6 +236,9 @@ export function parseFileContent(
 
             if (jotContent.trim() || tags.length > 0) {
                 entries.push({
+                    id,
+                    createdAt,
+                    updatedAt,
                     date: date || "",
                     time: time || "",
                     content: jotContent.trim(),

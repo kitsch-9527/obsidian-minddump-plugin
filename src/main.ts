@@ -5,8 +5,14 @@ import { JotView, VIEW_TYPE_JOTS } from './view';
 import { JotSettings, DEFAULT_SETTINGS, Language, Jot } from './types';
 import { JotSettingTab } from './settings';
 import { CaptureModal } from './capture-modal';
-import { t } from './i18n';
-import { parseFileContent } from './utils';
+import { t, Translations } from './i18n';
+import {
+    parseFileContent,
+    newJotId,
+    composeJotMarkdownBody,
+    formatJotEntryBlock,
+    replaceJotBlockById
+} from './utils';
 
 export default class JotPlugin extends Plugin {
     settings: JotSettings;
@@ -153,35 +159,22 @@ export default class JotPlugin extends Plugin {
         const dateStr = moment(now).format("YYYY-MM-DD");
         const fullDateTime = moment(now).format("YYYY-MM-DD HH:mm:ss");
 
-        let allTags = [...tags];
-        if (this.settings.useFixedTag && this.settings.fixedTag) {
-            const fixedTagClean = this.settings.fixedTag.replace(/^#+/, "");
-            if (!allTags.includes(fixedTagClean)) allTags.push(fixedTagClean);
-        }
-
-        allTags = [...new Set(allTags)];
-        const tagLine = allTags.length > 0 ? allTags.map(t => `#${t}`).join(" ") : "";
-
-        let finalContent = content;
-        let attachmentLines = "";
-
-        if (attachments && attachments.length > 0) {
-            attachmentLines = attachments.map(att =>
-                att.type === "image" ? `![[${att.path}]]` : `[[${att.path}]]`
-            ).join("\n");
-        }
-
-        if (tagLine) finalContent += `\n\n${tagLine}`;
-        if (source) {
-            const sourcePrefix = this.lang === 'zh' ? "来源:" : "Source:";
-            finalContent += `\n\n${sourcePrefix} ${source}`;
-        }
-        if (attachmentLines) finalContent += `\n\n${attachmentLines}`;
+        const id = newJotId();
+        const { body, allTags } = composeJotMarkdownBody(
+            content,
+            tags,
+            source,
+            attachments,
+            this.lang,
+            this.settings.useFixedTag,
+            this.settings.fixedTag
+        );
+        const newEntry = formatJotEntryBlock(fullDateTime, id, fullDateTime, body);
 
         if (this.settings.logMode === "multi") {
-            await this.saveToMultiFile(dateStr, fullDateTime, finalContent, allTags);
+            await this.saveToMultiFile(dateStr, newEntry, allTags);
         } else {
-            await this.saveToSingleFile(fullDateTime, finalContent);
+            await this.saveToSingleFile(newEntry);
         }
 
         this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach(leaf => {
@@ -193,7 +186,59 @@ export default class JotPlugin extends Plugin {
         new Notice(t('saved', this.lang));
     }
 
-    async saveToMultiFile(dateStr: string, fullDateTime: string, content: string, tags: string[]) {
+    /**
+     * Replace one jot in its source file by `id`. Keeps `###` created time; sets `updatedAt` to now.
+     */
+    async updateJot(updated: Jot): Promise<void> {
+        if (!updated.filePath) {
+            const msg = t('jotUpdateNoFile', this.lang);
+            new Notice(msg);
+            throw new Error(msg);
+        }
+        const pathNorm = normalizePath(updated.filePath);
+        const file = this.app.vault.getAbstractFileByPath(pathNorm);
+        if (!(file instanceof TFile)) {
+            const msg = t('jotUpdateFileMissing', this.lang);
+            new Notice(msg);
+            throw new Error(msg);
+        }
+        const attachmentsPayload =
+            updated.attachments?.map((p, i) => ({
+                path: p,
+                type: updated.attachmentTypes?.[i] ?? ("file" as const)
+            })) ?? undefined;
+        const { body } = composeJotMarkdownBody(
+            updated.content,
+            updated.tags,
+            updated.source,
+            attachmentsPayload,
+            this.lang,
+            this.settings.useFixedTag,
+            this.settings.fixedTag
+        );
+        const fullDateTime = `${updated.date} ${updated.time}`.trim();
+        const updatedAtNow = moment().format("YYYY-MM-DD HH:mm:ss");
+        const newBlock = formatJotEntryBlock(fullDateTime, updated.id, updatedAtNow, body);
+
+        let found = false;
+        await this.app.vault.process(file, (text) => {
+            const result = replaceJotBlockById(text, file.path, updated.id, newBlock);
+            found = result.found;
+            return result.content;
+        });
+        if (!found) {
+            const msg = t('jotUpdateNotFound', this.lang);
+            new Notice(msg);
+            throw new Error(msg);
+        }
+
+        this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach(leaf => {
+            if (leaf.view instanceof JotView) leaf.view.refresh();
+        });
+        await this.loadJotsData();
+    }
+
+    async saveToMultiFile(dateStr: string, newEntry: string, tags: string[]) {
         const folder = normalizePath(this.settings.saveFolder);
         let filename = this.settings.multiFileFormat.replace("YYYYMMDD", dateStr.replace(/-/g, ""));
         if (!filename.endsWith(".md")) filename += ".md";
@@ -202,8 +247,6 @@ export default class JotPlugin extends Plugin {
         if (!this.app.vault.getAbstractFileByPath(folder)) {
             await this.app.vault.createFolder(folder);
         }
-
-        const newEntry = `### ${fullDateTime}\n\n${content}\n\n---\n\n`;
 
         // 检查文件是否存在
         const existingFile = this.app.vault.getAbstractFileByPath(filePath);
@@ -230,7 +273,7 @@ export default class JotPlugin extends Plugin {
             let frontmatter = "";
             if (this.settings.enableTagsInFrontmatter && tags.length > 0) {
                 frontmatter = "---\n";
-                frontmatter += `tags:\n${tags.map(t => `  - ${t}`).join("\n")}\n`;
+                frontmatter += `tags:\n${tags.map(tg => `  - ${tg}`).join("\n")}\n`;
                 frontmatter += "---\n\n";
             }
             const fileContent = frontmatter + newEntry;
@@ -238,12 +281,10 @@ export default class JotPlugin extends Plugin {
         }
     }
 
-    async saveToSingleFile(fullDateTime: string, content: string) {
+    async saveToSingleFile(newEntry: string) {
         const folder = normalizePath(this.settings.saveFolder);
         const filePath = `${folder}/jots.md`;
         if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
-
-        const newEntry = `### ${fullDateTime}\n\n${content}\n\n---\n\n`;
 
         // 检查文件是否存在
         const existingFile = this.app.vault.getAbstractFileByPath(filePath);

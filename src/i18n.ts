@@ -21,6 +21,9 @@ export interface Translations {
     cancel: string;
     contentRequired: string;
     saved: string;
+    jotUpdateNotFound: string;
+    jotUpdateNoFile: string;
+    jotUpdateFileMissing: string;
     saveFailed: string;
     attachmentSaved: string;
     total: string;
@@ -77,6 +80,7 @@ export interface Translations {
     recordsCount: string;
     autoOpenView: string;
     autoOpenViewDesc: string;
+    jotUpdatedAt: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -100,6 +104,9 @@ export const translations: Record<Language, Translations> = {
         cancel: "取消",
         contentRequired: "内容不能为空",
         saved: "已保存！",
+        jotUpdateNotFound: "在文件中找不到该条随手记。",
+        jotUpdateNoFile: "该记录没有关联的文件。",
+        jotUpdateFileMissing: "源文件不存在。",
         saveFailed: "保存失败: {error}",
         attachmentSaved: "附件已保存: {filename}",
         total: "总计",
@@ -109,8 +116,8 @@ export const translations: Record<Language, Translations> = {
         year: "年",
         month: "月",
         searchAndTags: "🔍 搜索与标签",
-        searchPlaceholder: "搜索关键词...",
-        searchPlaceholderShort: "搜索...",
+        searchPlaceholder: "关键词；可选 date: / updated: 筛选",
+        searchPlaceholderShort: "搜索；date: / updated:",
         moreTags: "还有 {count} 个标签...",
         noRecords: "暂无记录，开始记录你的想法吧！",
         settings: "设置",
@@ -156,6 +163,7 @@ export const translations: Record<Language, Translations> = {
         recordsCount: "{count}条记录",
         autoOpenView: "打开 vault 时自动打开随手记视图",
         autoOpenViewDesc: "启动 Obsidian 时自动打开随手记视图",
+        jotUpdatedAt: "更新",
     },
     en: {
         pluginName: "Jot",
@@ -177,6 +185,9 @@ export const translations: Record<Language, Translations> = {
         cancel: "Cancel",
         contentRequired: "Content cannot be empty",
         saved: "Saved!",
+        jotUpdateNotFound: "Could not find that jot in the file.",
+        jotUpdateNoFile: "This jot has no source file.",
+        jotUpdateFileMissing: "Source file not found.",
         saveFailed: "Save failed: {error}",
         attachmentSaved: "Attachment saved: {filename}",
         total: "Total",
@@ -186,8 +197,8 @@ export const translations: Record<Language, Translations> = {
         year: "",
         month: "/",
         searchAndTags: "🔍 Search & Tags",
-        searchPlaceholder: "Search keywords...",
-        searchPlaceholderShort: "Search...",
+        searchPlaceholder: "Keywords; optional date: / updated: filters",
+        searchPlaceholderShort: "Search; date: / updated:",
         moreTags: "{count} more tags...",
         noRecords: "No records yet. Start capturing your thoughts!",
         settings: "Settings",
@@ -233,6 +244,7 @@ export const translations: Record<Language, Translations> = {
         recordsCount: "{count} record(s)",
         autoOpenView: "Auto-open Jot View on vault open",
         autoOpenViewDesc: "Automatically open Jot View when Obsidian starts",
+        jotUpdatedAt: "Updated",
     }
 };
 

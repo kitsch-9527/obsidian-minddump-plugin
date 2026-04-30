@@ -14,6 +14,12 @@ export interface JotSettings {
 }
 
 export interface Jot {
+    /** Stable id; persisted for new records, derived for legacy entries without metadata */
+    id: string;
+    /** Created timestamp YYYY-MM-DD HH:mm:ss (same as date + time) */
+    createdAt: string;
+    /** Last update timestamp YYYY-MM-DD HH:mm:ss */
+    updatedAt: string;
     date: string;
     time: string;
     content: string;

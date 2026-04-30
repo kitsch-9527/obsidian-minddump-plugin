@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.js",
-    "build": "node esbuild.config.js production"
+    "build": "node esbuild.config.js production",
+    "dev:obsidian-jot": "node scripts/dev-obsidian-jot.js"
   },
   "keywords": ["obsidian", "plugin", "jot", "memo"],
   "author": "",

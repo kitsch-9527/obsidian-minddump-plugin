@@ -1,5 +1,5 @@
 // src/view.ts
-import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component, normalizePath } from 'obsidian';
 import moment from 'moment';
 import JotPlugin from './main';
 import { Jot, DayRecord, Language } from './types';
@@ -9,10 +9,15 @@ import {
     handleAttachment,
     setupWikilinkAutocomplete,
     setupTagAutocomplete,
-    renderTagList,
+    renderTagList as renderTagPills,
     highlightMarkdownContent,
-    debounce
+    debounce,
+    stableLegacyJotId,
+    normalizeJotTags
 } from './utils';
+
+const CARD_LONG_PRESS_MS = 480;
+const CARD_TAP_MOVE_PX = 14;
 
 export const VIEW_TYPE_JOTS = "jot-view";
 
@@ -36,6 +41,10 @@ export class JotView extends ItemView {
     private debouncedRender: (() => void) | null = null;
     private debouncedSearch: (query: string) => void;
     private wikilinkCleanup: (() => void) | null = null;
+    /** Inline jot edit */
+    private editingJotId: string | null = null;
+    private editSessionTags: string[] = [];
+    private jotListCleanups: (() => void)[] = [];
 
     get lang(): Language {
         return this.plugin.lang;
@@ -193,61 +202,124 @@ export class JotView extends ItemView {
             }
         }
     }
-    
-    private highlightMarkdownContent(container: HTMLElement, keywords: string[]) {
-        if (!keywords.length) return;
-        
-        const walker = document.createTreeWalker(
-            container,
-            NodeFilter.SHOW_TEXT,
-            {
-                acceptNode: (node) => {
-                    if (node.parentElement?.classList?.contains('search-highlight')) {
-                        return NodeFilter.FILTER_REJECT;
-                    }
-                    return NodeFilter.FILTER_ACCEPT;
-                }
+
+    private parseSearchFilters(query: string): { date?: string; updated?: string; keywords: string[] } {
+        const keywords: string[] = [];
+        let date: string | undefined;
+        let updated: string | undefined;
+        for (const part of query.trim().split(/\s+/).filter(Boolean)) {
+            const lower = part.toLowerCase();
+            if (lower.startsWith("date:")) {
+                date = part.slice(5);
+            } else if (lower.startsWith("updated:")) {
+                updated = part.slice(8);
+            } else {
+                keywords.push(part.toLowerCase());
             }
-        );
-        
-        const textNodes: Text[] = [];
-        let node: Text | null;
-        while (node = walker.nextNode() as Text | null) {
-            textNodes.push(node);
         }
-        
-        const pattern = keywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-        const regex = new RegExp(`(${pattern})`, 'gi');
-        
-        textNodes.forEach(textNode => {
-            const text = textNode.textContent || '';
-            if (regex.test(text)) {
-                regex.lastIndex = 0;
-                const fragment = document.createDocumentFragment();
-                let lastIndex = 0;
-                let match;
-                
-                while ((match = regex.exec(text)) !== null) {
-                    if (match.index > lastIndex) {
-                        fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
-                    }
-                    const mark = document.createElement('mark');
-                    mark.className = 'search-highlight';
-                    mark.textContent = match[0];
-                    fragment.appendChild(mark);
-                    lastIndex = match.index + match[0].length;
-                }
-                if (lastIndex < text.length) {
-                    fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
-                }
-                textNode.parentNode?.replaceChild(fragment, textNode);
+        return { date, updated, keywords };
+    }
+
+    private attachCardTapAndLongPress(card: HTMLElement, jot: Jot) {
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let longPressFired = false;
+        let startX = 0;
+        let startY = 0;
+        let movedTooFar = false;
+
+        const clearTimer = () => {
+            if (timer !== null) {
+                clearTimeout(timer);
+                timer = null;
             }
+        };
+
+        const onPointerDown = (e: PointerEvent) => {
+            if (e.pointerType === "mouse" && e.button !== 0) return;
+            longPressFired = false;
+            movedTooFar = false;
+            startX = e.clientX;
+            startY = e.clientY;
+            clearTimer();
+            try {
+                card.setPointerCapture(e.pointerId);
+            } catch {
+                /* ignore */
+            }
+            timer = setTimeout(() => {
+                timer = null;
+                longPressFired = true;
+                void this.openJot(jot);
+            }, CARD_LONG_PRESS_MS);
+        };
+
+        const onPointerMove = (e: PointerEvent) => {
+            if (timer === null && !longPressFired) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            if (dx * dx + dy * dy > CARD_TAP_MOVE_PX * CARD_TAP_MOVE_PX) {
+                movedTooFar = true;
+                clearTimer();
+            }
+        };
+
+        const onPointerUp = (e: PointerEvent) => {
+            clearTimer();
+            try {
+                card.releasePointerCapture(e.pointerId);
+            } catch {
+                /* ignore */
+            }
+            if (longPressFired) return;
+            if (movedTooFar) return;
+            if (e.pointerType === "mouse" && e.button !== 0) return;
+            this.enterEditMode(jot);
+        };
+
+        const onPointerCancel = (e: PointerEvent) => {
+            clearTimer();
+            try {
+                card.releasePointerCapture(e.pointerId);
+            } catch {
+                /* ignore */
+            }
+        };
+
+        card.addEventListener("pointerdown", onPointerDown);
+        card.addEventListener("pointermove", onPointerMove);
+        card.addEventListener("pointerup", onPointerUp);
+        card.addEventListener("pointercancel", onPointerCancel);
+
+        this.jotListCleanups.push(() => {
+            clearTimer();
+            card.removeEventListener("pointerdown", onPointerDown);
+            card.removeEventListener("pointermove", onPointerMove);
+            card.removeEventListener("pointerup", onPointerUp);
+            card.removeEventListener("pointercancel", onPointerCancel);
         });
+    }
+
+    private enterEditMode(jot: Jot) {
+        this.editingJotId = jot.id;
+        this.editSessionTags = [...jot.tags];
+        const listSection = this.contentEl.querySelector(".jots-list-section");
+        if (listSection) {
+            this.renderJotList(listSection as HTMLElement);
+        }
+    }
+
+    private exitEditMode() {
+        this.editingJotId = null;
+        this.editSessionTags = [];
+        const listSection = this.contentEl.querySelector(".jots-list-section");
+        if (listSection) {
+            this.renderJotList(listSection as HTMLElement);
+        }
     }
     
     private renderTagList(container: HTMLElement, tags: string[]) {
         this.currentTags = tags;
-        renderTagList(container, tags, (tag) => {
+        renderTagPills(container, tags, (tag) => {
             this.currentTags = this.currentTags.filter(t => t !== tag);
             this.renderTagList(container, this.currentTags);
             const tagInput = this.inputCard?.querySelector(".jots-tag-input") as HTMLInputElement;
@@ -562,7 +634,7 @@ export class JotView extends ItemView {
         });
     }
     
-    setupWikilinkAutocomplete(textarea: HTMLTextAreaElement, container: HTMLElement) {
+    setupWikilinkAutocomplete(textarea: HTMLTextAreaElement, container: HTMLElement): () => void {
         this.wikilinkCleanup = setupWikilinkAutocomplete(
             this.app,
             textarea,
@@ -581,6 +653,7 @@ export class JotView extends ItemView {
                 textarea.focus();
             }
         );
+        return this.wikilinkCleanup;
     }
     
 
@@ -1119,6 +1192,15 @@ export class JotView extends ItemView {
         });
         this.renderedComponents = [];
 
+        this.jotListCleanups.forEach((fn) => {
+            try {
+                fn();
+            } catch {
+                /* ignore */
+            }
+        });
+        this.jotListCleanups = [];
+
         let filteredJots = this.filterJots();
 
         if (filteredJots.length === 0) {
@@ -1131,10 +1213,8 @@ export class JotView extends ItemView {
             return;
         }
 
-        let searchKeywords: string[] = [];
-        if (this.searchQuery && !this.searchQuery.startsWith("date:")) {
-            searchKeywords = this.searchQuery.toLowerCase().split(/\s+/).filter(k => k.length > 0);
-        }
+        const searchKeywords =
+            this.searchQuery.trim().length > 0 ? this.parseSearchFilters(this.searchQuery).keywords : [];
 
         const groupedByDate = new Map<string, Jot[]>();
         filteredJots.forEach(jot => {
@@ -1163,10 +1243,168 @@ export class JotView extends ItemView {
                 card.style.borderRadius = "8px";
                 card.style.padding = "10px 12px";
                 card.style.marginBottom = "8px";
-                card.style.cursor = "pointer";
                 card.style.transition = "all 0.2s";
                 card.style.border = "1px solid var(--background-modifier-border)";
-                card.addEventListener("click", () => this.openJot(jot));
+
+                if (this.editingJotId === jot.id) {
+                    card.style.cursor = "default";
+                    card.style.borderColor = "var(--interactive-accent)";
+
+                    const metaRow = card.createDiv();
+                    metaRow.style.display = "flex";
+                    metaRow.style.flexWrap = "wrap";
+                    metaRow.style.alignItems = "baseline";
+                    metaRow.style.gap = "12px";
+                    metaRow.style.marginBottom = "8px";
+                    metaRow.style.fontSize = "10px";
+                    metaRow.style.color = "var(--text-muted)";
+                    metaRow.createSpan({ text: jot.time });
+                    const updSpan = metaRow.createSpan();
+                    updSpan.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
+                    updSpan.style.color = "var(--text-normal)";
+                    updSpan.style.fontWeight = "600";
+
+                    const textareaContainer = card.createDiv();
+                    textareaContainer.style.position = "relative";
+                    const textarea = textareaContainer.createEl("textarea");
+                    textarea.classList.add("jots-edit-textarea");
+                    textarea.value = jot.content;
+                    textarea.style.width = "100%";
+                    textarea.style.minHeight = "100px";
+                    textarea.style.padding = "8px";
+                    textarea.style.borderRadius = "6px";
+                    textarea.style.border = "1px solid var(--background-modifier-border)";
+                    textarea.style.backgroundColor = "var(--background-primary)";
+                    textarea.style.color = "var(--text-normal)";
+                    textarea.style.resize = "vertical";
+                    textarea.style.fontFamily = "var(--font-text)";
+                    textarea.placeholder = t("placeholderWithLink", this.lang);
+
+                    const wlCleanup = this.setupWikilinkAutocomplete(textarea, textareaContainer);
+                    if (wlCleanup) this.jotListCleanups.push(wlCleanup);
+
+                    const tagSection = card.createDiv();
+                    tagSection.style.marginTop = "8px";
+                    const tagInputContainer = tagSection.createDiv();
+                    tagInputContainer.style.position = "relative";
+                    tagInputContainer.style.marginBottom = "8px";
+                    const tagInput = tagInputContainer.createEl("input");
+                    tagInput.classList.add("jots-tag-input");
+                    tagInput.placeholder = t("tagsInputPlaceholder", this.lang);
+                    tagInput.style.width = "100%";
+                    tagInput.style.padding = "8px";
+                    tagInput.style.borderRadius = "6px";
+                    tagInput.style.border = "1px solid var(--background-modifier-border)";
+                    tagInput.style.backgroundColor = "var(--background-primary)";
+                    tagInput.style.color = "var(--text-normal)";
+
+                    const tagListContainer = tagSection.createDiv();
+                    tagListContainer.style.display = "flex";
+                    tagListContainer.style.flexWrap = "wrap";
+                    tagListContainer.style.gap = "6px";
+
+                    const refreshEditTags = () => {
+                        renderTagPills(tagListContainer, this.editSessionTags, (tag) => {
+                            this.editSessionTags = this.editSessionTags.filter((x) => x !== tag);
+                            refreshEditTags();
+                        });
+                    };
+                    refreshEditTags();
+
+                    setupTagAutocomplete(
+                        () => this.getExistingTags(),
+                        tagInput,
+                        tagInputContainer,
+                        tagListContainer,
+                        this.editSessionTags,
+                        (tag) => {
+                            const cleaned = tag.replace(/^#+/, "").trim();
+                            if (cleaned && !this.editSessionTags.includes(cleaned)) {
+                                this.editSessionTags.push(cleaned);
+                                refreshEditTags();
+                                tagInput.value = "";
+                            }
+                        },
+                        () => {}
+                    );
+
+                    const sourceInput = card.createEl("input");
+                    sourceInput.classList.add("jots-edit-source");
+                    sourceInput.value = jot.source;
+                    sourceInput.placeholder = t("sourcePlaceholder", this.lang);
+                    sourceInput.style.width = "100%";
+                    sourceInput.style.padding = "8px";
+                    sourceInput.style.borderRadius = "6px";
+                    sourceInput.style.border = "1px solid var(--background-modifier-border)";
+                    sourceInput.style.backgroundColor = "var(--background-primary)";
+                    sourceInput.style.color = "var(--text-normal)";
+                    sourceInput.style.marginTop = "8px";
+
+                    const buttonRow = card.createDiv();
+                    buttonRow.style.display = "flex";
+                    buttonRow.style.justifyContent = "flex-end";
+                    buttonRow.style.gap = "8px";
+                    buttonRow.style.marginTop = "12px";
+
+                    const cancelBtn = buttonRow.createEl("button");
+                    cancelBtn.textContent = t("cancel", this.lang);
+                    cancelBtn.style.padding = "6px 14px";
+                    cancelBtn.style.borderRadius = "6px";
+                    cancelBtn.style.border = "1px solid var(--background-modifier-border)";
+                    cancelBtn.style.backgroundColor = "var(--background-primary)";
+                    cancelBtn.style.color = "var(--text-normal)";
+                    cancelBtn.style.cursor = "pointer";
+                    cancelBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        this.exitEditMode();
+                    });
+
+                    const saveBtn = buttonRow.createEl("button");
+                    saveBtn.textContent = t("save", this.lang);
+                    saveBtn.style.padding = "6px 16px";
+                    saveBtn.style.borderRadius = "6px";
+                    saveBtn.style.backgroundColor = "var(--interactive-accent)";
+                    saveBtn.style.color = "var(--text-on-accent)";
+                    saveBtn.style.border = "none";
+                    saveBtn.style.cursor = "pointer";
+                    saveBtn.style.fontWeight = "500";
+                    saveBtn.addEventListener("click", async (e) => {
+                        e.stopPropagation();
+                        const body = textarea.value.trim();
+                        if (!body) {
+                            new Notice(t("contentRequired", this.lang));
+                            return;
+                        }
+                        const tags = normalizeJotTags(this.editSessionTags);
+                        const source = sourceInput.value.trim();
+                        const prevId = this.editingJotId;
+                        const prevTags = [...this.editSessionTags];
+                        this.editingJotId = null;
+                        this.editSessionTags = [];
+                        try {
+                            await this.plugin.updateJot({
+                                ...jot,
+                                content: body,
+                                tags,
+                                source
+                            });
+                            new Notice(t("saved", this.lang));
+                        } catch {
+                            this.editingJotId = prevId;
+                            this.editSessionTags = prevTags;
+                            const listSection = this.contentEl.querySelector(".jots-list-section");
+                            if (listSection) {
+                                this.renderJotList(listSection as HTMLElement);
+                            }
+                        }
+                    });
+
+                    setTimeout(() => textarea.focus(), 0);
+                    return;
+                }
+
+                card.style.cursor = "pointer";
+                this.attachCardTapAndLongPress(card, jot);
                 card.addEventListener("mouseenter", () => {
                     card.style.borderColor = "var(--interactive-accent)";
                     card.style.transform = "translateY(-1px)";
@@ -1176,11 +1414,19 @@ export class JotView extends ItemView {
                     card.style.transform = "translateY(0)";
                 });
 
-                const timeDiv = card.createDiv();
-                timeDiv.textContent = jot.time;
-                timeDiv.style.fontSize = "10px";
-                timeDiv.style.color = "var(--text-muted)";
-                timeDiv.style.marginBottom = "4px";
+                const metaRow = card.createDiv();
+                metaRow.style.display = "flex";
+                metaRow.style.flexWrap = "wrap";
+                metaRow.style.alignItems = "baseline";
+                metaRow.style.gap = "12px";
+                metaRow.style.marginBottom = "6px";
+                metaRow.style.fontSize = "10px";
+                metaRow.style.color = "var(--text-muted)";
+                metaRow.createSpan({ text: jot.time });
+                const updLabel = metaRow.createSpan();
+                updLabel.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
+                updLabel.style.color = "var(--text-normal)";
+                updLabel.style.fontWeight = "600";
 
                 const contentContainer = card.createDiv();
                 contentContainer.style.fontSize = "12px";
@@ -1196,67 +1442,90 @@ export class JotView extends ItemView {
 
                 // 修复：传入实际的源文件路径
                 const sourcePath = jot.filePath || "";
-                MarkdownRenderer.renderMarkdown(
-                    jot.content,
-                    contentContainer,
-                    sourcePath,
-                    component
-                );
+                const wireRenderedContent = () => {
+                    contentContainer.querySelectorAll('a.internal-link').forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href) {
+                            link.addEventListener('mouseenter', (e) => {
+                                const file = this.app.metadataCache.getFirstLinkpathDest(href, sourcePath);
+                                if (file) {
+                                    this.app.workspace.trigger("hover-link", {
+                                        event: e,
+                                        source: this.getViewType(),
+                                        hoverParent: this,
+                                        targetEl: link,
+                                        linktext: href,
+                                        sourcePath: sourcePath
+                                    });
+                                }
+                            });
 
-                contentContainer.querySelectorAll('a.internal-link').forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (href) {
-                        link.addEventListener('mouseenter', (e) => {
-                            const file = this.app.metadataCache.getFirstLinkpathDest(href, sourcePath);
-                            if (file) {
+                            link.addEventListener('pointerdown', (e) => {
+                                e.stopPropagation();
+                            });
+
+                            link.addEventListener('pointerup', (e) => {
+                                e.stopPropagation();
+                            });
+
+                            link.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                this.app.workspace.openLinkText(href, sourcePath, false);
+                            });
+                        }
+                    });
+
+                    contentContainer.querySelectorAll('.internal-embed').forEach(embed => {
+                        const src = embed.getAttribute('src');
+                        if (src) {
+                            embed.addEventListener('mouseenter', (e) => {
                                 this.app.workspace.trigger("hover-link", {
                                     event: e,
                                     source: this.getViewType(),
                                     hoverParent: this,
-                                    targetEl: link,
-                                    linktext: href,
+                                    targetEl: embed,
+                                    linktext: src,
                                     sourcePath: sourcePath
                                 });
-                            }
-                        });
-
-                        link.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            this.app.workspace.openLinkText(href, sourcePath, false);
-                        });
-                    }
-                });
-
-                contentContainer.querySelectorAll('.internal-embed').forEach(embed => {
-                    const src = embed.getAttribute('src');
-                    if (src) {
-                        embed.addEventListener('mouseenter', (e) => {
-                            this.app.workspace.trigger("hover-link", {
-                                event: e,
-                                source: this.getViewType(),
-                                hoverParent: this,
-                                targetEl: embed,
-                                linktext: src,
-                                sourcePath: sourcePath
                             });
-                        });
 
-                        embed.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            this.app.workspace.openLinkText(src, sourcePath, false);
-                        });
-                    }
-                });
+                            embed.addEventListener('pointerdown', (e) => {
+                                e.stopPropagation();
+                            });
 
-                contentContainer.querySelectorAll('input.task-list-item-checkbox').forEach(checkbox => {
-                    checkbox.addEventListener('click', (e) => {
-                        e.stopPropagation();
+                            embed.addEventListener('pointerup', (e) => {
+                                e.stopPropagation();
+                            });
+
+                            embed.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                this.app.workspace.openLinkText(src, sourcePath, false);
+                            });
+                        }
                     });
-                });
 
-                if (searchKeywords.length > 0) {
-                    highlightMarkdownContent(contentContainer, searchKeywords);
-                }
+                    contentContainer.querySelectorAll('input.task-list-item-checkbox').forEach(checkbox => {
+                        checkbox.addEventListener('pointerdown', (e) => {
+                            e.stopPropagation();
+                        });
+                        checkbox.addEventListener('pointerup', (e) => {
+                            e.stopPropagation();
+                        });
+                        checkbox.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                        });
+                    });
+
+                    if (searchKeywords.length > 0) {
+                        highlightMarkdownContent(contentContainer, searchKeywords);
+                    }
+                };
+                void Promise.resolve(MarkdownRenderer.renderMarkdown(
+                    jot.content,
+                    contentContainer,
+                    sourcePath,
+                    component
+                )).then(wireRenderedContent);
 
                 const tagsDiv = card.createDiv();
                 tagsDiv.style.display = "flex";
@@ -1277,6 +1546,12 @@ export class JotView extends ItemView {
                     tagSpan.style.display = "inline-flex";
                     tagSpan.style.alignItems = "center";
                     tagSpan.style.whiteSpace = "nowrap";
+                    tagSpan.addEventListener("pointerdown", (e) => {
+                        e.stopPropagation();
+                    });
+                    tagSpan.addEventListener("pointerup", (e) => {
+                        e.stopPropagation();
+                    });
                     tagSpan.addEventListener("click", (e) => {
                         e.stopPropagation();
                         this.filterByTag(tag);
@@ -1308,27 +1583,25 @@ export class JotView extends ItemView {
     
     filterJots(): Jot[] {
         let filtered = [...this.jots];
-        
-        if (this.searchQuery && this.searchQuery.startsWith("date:")) {
-            const targetDate = this.searchQuery.substring(5);
-            filtered = filtered.filter(jot => jot.date === targetDate);
-        } 
-        else if (this.searchQuery) {
-            const keywords = this.searchQuery.toLowerCase().split(/\s+/).filter(k => k.length > 0);
-            if (keywords.length > 0) {
-                filtered = filtered.filter(jot => {
-                    const contentLower = jot.content.toLowerCase();
-                    return keywords.every(keyword => contentLower.includes(keyword));
-                });
-            }
+        const { date, updated, keywords } = this.parseSearchFilters(this.searchQuery);
+
+        if (date) {
+            filtered = filtered.filter((jot) => jot.date === date);
         }
-        
+        if (updated) {
+            filtered = filtered.filter((jot) => jot.updatedAt.startsWith(updated));
+        }
+        if (keywords.length > 0) {
+            filtered = filtered.filter((jot) => {
+                const contentLower = jot.content.toLowerCase();
+                return keywords.every((kw) => contentLower.includes(kw));
+            });
+        }
+
         if (this.selectedTags.size > 0) {
-            filtered = filtered.filter(jot =>
-                jot.tags.some(tag => this.selectedTags.has(tag))
-            );
+            filtered = filtered.filter((jot) => jot.tags.some((tag) => this.selectedTags.has(tag)));
         }
-        
+
         return filtered;
     }
     
@@ -1343,10 +1616,12 @@ export class JotView extends ItemView {
     }
     
     async openJot(jot: Jot) {
-        const folder = this.plugin.settings.saveFolder;
+        const folder = normalizePath(this.plugin.settings.saveFolder);
         let filePath: string;
 
-        if (this.plugin.settings.logMode === "multi") {
+        if (jot.filePath) {
+            filePath = normalizePath(jot.filePath);
+        } else if (this.plugin.settings.logMode === "multi") {
             const dateStr = jot.date;
             let filename = this.plugin.settings.multiFileFormat.replace("YYYYMMDD", dateStr.replace(/-/g, ""));
             if (!filename.endsWith(".md")) {
@@ -1365,7 +1640,7 @@ export class JotView extends ItemView {
             for (const leaf of leaves) {
                 if (leaf.view instanceof MarkdownView) {
                     const activeFile = leaf.view.file;
-                    if (activeFile && activeFile.path === filePath) {
+                    if (activeFile && activeFile.path === file.path) {
                         targetLeaf = leaf;
                         break;
                     }
@@ -1386,20 +1661,60 @@ export class JotView extends ItemView {
                 const content = await this.app.vault.read(file);
                 const lines = content.split("\n");
                 let foundLine = -1;
-                const targetHeader = "### " + jot.date + " " + jot.time;
-                
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].trim() === targetHeader) {
-                        foundLine = i;
-                        break;
+
+                let idx = 0;
+                while (idx < lines.length) {
+                    const lineTrim = lines[idx].trim();
+                    if (lineTrim.startsWith("### ")) {
+                        const blockStart = idx;
+                        const headerRest = lineTrim.substring(4).trim();
+                        const [datePart, timePart] = headerRest.split(" ");
+                        let metaId = "";
+                        let j = idx + 1;
+                        while (j < lines.length) {
+                            const tl = lines[j].trim();
+                            const idMatch = tl.match(/^####\s+id:\s*(.+)$/i);
+                            if (idMatch) {
+                                metaId = idMatch[1].trim();
+                                j++;
+                                continue;
+                            }
+                            if (/^####\s+updatedAt:\s*.+$/i.test(tl)) {
+                                j++;
+                                continue;
+                            }
+                            break;
+                        }
+                        const resolvedId = metaId || stableLegacyJotId(file.path, datePart || "", timePart || "");
+                        if (resolvedId === jot.id) {
+                            foundLine = blockStart;
+                            break;
+                        }
+                        let k = j;
+                        while (k < lines.length && !lines[k].trim().startsWith("### ")) {
+                            k++;
+                        }
+                        idx = k;
+                    } else {
+                        idx++;
                     }
                 }
-                
+
+                if (foundLine === -1) {
+                    const targetHeader = "### " + jot.date + " " + jot.time;
+                    for (let line = 0; line < lines.length; line++) {
+                        if (lines[line].trim() === targetHeader) {
+                            foundLine = line;
+                            break;
+                        }
+                    }
+                }
+
                 if (foundLine !== -1) {
                     editor.setCursor({ line: foundLine, ch: 0 });
-                    editor.scrollIntoView({ 
-                        from: { line: foundLine, ch: 0 }, 
-                        to: { line: foundLine + 1, ch: 0 } 
+                    editor.scrollIntoView({
+                        from: { line: foundLine, ch: 0 },
+                        to: { line: foundLine + 1, ch: 0 }
                     }, true);
                 }
             }
