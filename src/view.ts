@@ -3,10 +3,11 @@ import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, Markdown
 import moment from 'moment';
 import JotPlugin from './main';
 import { Jot, DayRecord, Language } from './types';
-import { translations, t } from './i18n';
+import { translations, t, Translations } from './i18n';
 import {
     parseFileContent,
     handleAttachment,
+    getClipboardImageFiles,
     setupWikilinkAutocomplete,
     setupTagAutocomplete,
     renderTagList as renderTagPills,
@@ -590,7 +591,30 @@ export class JotView extends ItemView {
                 });
             }
         });
-        
+
+        textarea.addEventListener("paste", async (e: ClipboardEvent) => {
+            const imageFiles = getClipboardImageFiles(e.clipboardData);
+            if (imageFiles.length === 0) return;
+            e.preventDefault();
+            const plain = e.clipboardData?.getData("text/plain") ?? "";
+            for (const file of imageFiles) {
+                await this.handleAttachment(
+                    file,
+                    attachmentArea,
+                    (result) => {
+                        if (result.type === "image") {
+                            this.insertMarkdownEmbedAtCursor(textarea, result.path, "image");
+                        }
+                    },
+                    { failureNoticeKey: "pasteImageUploadFailed" }
+                );
+            }
+            if (plain) {
+                this.insertTextAtCursor(textarea, plain);
+            }
+            textarea.focus();
+        });
+
         const buttonRow = this.inputCard.createDiv();
         buttonRow.style.display = "flex";
         buttonRow.style.justifyContent = "flex-end";
@@ -616,8 +640,6 @@ export class JotView extends ItemView {
             const tags = [...this.currentTags];
             const source = sourceInput.value.trim();
 
-            console.log("保存时附件数量:", selectedAttachments.length);
-            
             await this.plugin.saveJot(content, tags, source, selectedAttachments);
 
             textarea.value = "";
@@ -657,14 +679,37 @@ export class JotView extends ItemView {
     }
     
 
-    async handleAttachment(file: File, area: HTMLElement, callback: (result: { path: string; type: "image" | "file" }) => void) {
+    async handleAttachment(
+        file: File,
+        area: HTMLElement,
+        callback: (result: { path: string; type: "image" | "file" }) => void,
+        options?: { failureNoticeKey?: keyof Translations }
+    ) {
         await handleAttachment(
             this.app,
             file,
             this.plugin.settings,
             this.lang,
-            callback
+            callback,
+            options
         );
+    }
+
+    /** Insert arbitrary text at the caret (used after image paste when clipboard also carries plain text). */
+    insertTextAtCursor(textarea: HTMLTextAreaElement, text: string) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const val = textarea.value;
+        textarea.value = val.slice(0, start) + text + val.slice(end);
+        const cursor = start + text.length;
+        textarea.selectionStart = cursor;
+        textarea.selectionEnd = cursor;
+    }
+
+    /** Insert `![[path]]` or `[[path]]` at the textarea caret without replacing unrelated text. */
+    insertMarkdownEmbedAtCursor(textarea: HTMLTextAreaElement, vaultPath: string, kind: "image" | "file") {
+        const embed = kind === "image" ? `![[${vaultPath}]]` : `[[${vaultPath}]]`;
+        this.insertTextAtCursor(textarea, embed);
     }
     
     renderStats(container: HTMLElement) {

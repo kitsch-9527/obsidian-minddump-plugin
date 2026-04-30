@@ -2,7 +2,7 @@
 import { App, TFile, TFolder, Notice } from 'obsidian';
 import moment from 'moment';
 import { Jot, JotSettings, Language } from './types';
-import { t } from './i18n';
+import { t, Translations } from './i18n';
 
 /**
  * 防抖函数
@@ -261,6 +261,32 @@ export function parseFileContent(
 }
 
 /**
+ * Image detection for clipboard + vault saves: trust `image/*`, and when MIME is missing
+ * or generic (`application/octet-stream`) use common image extensions (platform paste quirks).
+ */
+function isProbablyImageFile(file: File): boolean {
+    if (file.type.startsWith("image/")) return true;
+    if (file.type && file.type !== "application/octet-stream") return false;
+    return /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i.test(file.name);
+}
+
+/** Clipboard image files for paste handling (`files` first, then `items` for some browsers). */
+export function getClipboardImageFiles(dataTransfer: DataTransfer | null): File[] {
+    if (!dataTransfer) return [];
+    const fromFiles = Array.from(dataTransfer.files ?? []).filter(isProbablyImageFile);
+    if (fromFiles.length > 0) return fromFiles;
+    const out: File[] = [];
+    for (const item of Array.from(dataTransfer.items ?? [])) {
+        if (item.kind !== "file") continue;
+        const t = item.type;
+        if (!t.startsWith("image/") && t !== "" && t !== "application/octet-stream") continue;
+        const f = item.getAsFile();
+        if (f && isProbablyImageFile(f)) out.push(f);
+    }
+    return out;
+}
+
+/**
  * 处理附件保存（修复无限递归和文件名匹配问题）
  */
 export async function handleAttachment(
@@ -268,7 +294,8 @@ export async function handleAttachment(
     file: File,
     settings: JotSettings,
     lang: Language,
-    callback: (result: { path: string; type: "image" | "file" }) => void
+    callback: (result: { path: string; type: "image" | "file" }) => void,
+    options?: { failureNoticeKey?: keyof Translations }
 ): Promise<void> {
     const dateStr = moment().format("YYYY-MM-DD");
     const dateStrNoDash = dateStr.replace(/-/g, "");
@@ -326,12 +353,13 @@ export async function handleAttachment(
         const arrayBuffer = await file.arrayBuffer();
         await app.vault.createBinary(filePath, arrayBuffer);
 
-        const isImage = file.type.startsWith("image/");
+        const isImage = isProbablyImageFile(file);
         callback({ path: filePath, type: isImage ? "image" : "file" });
         new Notice(t('attachmentSaved', lang, { filename }));
     } catch (error) {
         console.error("保存附件失败:", error);
-        new Notice(t('saveFailed', lang, { error: (error as Error).message }));
+        const noticeKey = options?.failureNoticeKey ?? "saveFailed";
+        new Notice(t(noticeKey, lang, { error: (error as Error).message }));
     }
 }
 

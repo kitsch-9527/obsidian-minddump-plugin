@@ -81,6 +81,7 @@ export interface Translations {
     autoOpenView: string;
     autoOpenViewDesc: string;
     jotUpdatedAt: string;
+    pasteImageUploadFailed: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -164,6 +165,7 @@ export const translations: Record<Language, Translations> = {
         autoOpenView: "打开 vault 时自动打开随手记视图",
         autoOpenViewDesc: "启动 Obsidian 时自动打开随手记视图",
         jotUpdatedAt: "更新",
+        pasteImageUploadFailed: "图片上传失败：{error}",
     },
     en: {
         pluginName: "Jot",
@@ -245,6 +247,7 @@ export const translations: Record<Language, Translations> = {
         autoOpenView: "Auto-open Jot View on vault open",
         autoOpenViewDesc: "Automatically open Jot View when Obsidian starts",
         jotUpdatedAt: "Updated",
+        pasteImageUploadFailed: "Image upload failed: {error}",
     }
 };
 

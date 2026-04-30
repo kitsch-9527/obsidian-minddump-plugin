@@ -1,9 +1,10 @@
 // src/capture-modal.ts
 import { App, Modal, Notice } from 'obsidian';
 import JotPlugin from './main';
-import { t } from './i18n';
+import { t, Translations } from './i18n';
 import {
     handleAttachment,
+    getClipboardImageFiles,
     setupWikilinkAutocomplete,
     setupTagAutocomplete,
     renderTagList
@@ -62,6 +63,29 @@ export class CaptureModal extends Modal {
         textarea.style.fontSize = "14px";
         textarea.style.lineHeight = "1.6";
         this.contentInput = textarea;
+
+        textarea.addEventListener("paste", async (e: ClipboardEvent) => {
+            const imageFiles = getClipboardImageFiles(e.clipboardData);
+            if (imageFiles.length === 0) return;
+            e.preventDefault();
+            const plain = e.clipboardData?.getData("text/plain") ?? "";
+            for (const file of imageFiles) {
+                await this.handleAttachment(
+                    file,
+                    attachmentArea,
+                    (result) => {
+                        if (result.type === "image") {
+                            this.insertMarkdownEmbedAtCursor(textarea, result.path, "image");
+                        }
+                    },
+                    { failureNoticeKey: "pasteImageUploadFailed" }
+                );
+            }
+            if (plain) {
+                this.insertTextAtCursor(textarea, plain);
+            }
+            textarea.focus();
+        });
         
         this.setupWikilinkAutocomplete(textarea, textareaContainer);
         
@@ -234,20 +258,45 @@ export class CaptureModal extends Modal {
         );
     }
 
-    async handleAttachment(file: File, area: HTMLElement) {
+    async handleAttachment(
+        file: File,
+        area: HTMLElement,
+        callback?: (result: { path: string; type: "image" | "file" }) => void,
+        options?: { failureNoticeKey?: keyof Translations }
+    ) {
         await handleAttachment(
             this.app,
             file,
             this.plugin.settings,
             this.lang,
             (result) => {
+                if (callback) {
+                    callback(result);
+                    return;
+                }
                 this.selectedAttachments.push(result);
                 const count = this.selectedAttachments.length;
                 area.textContent = t('selectedFiles', this.lang, { count: String(count) });
                 area.style.borderColor = "var(--interactive-accent)";
                 area.style.backgroundColor = "var(--background-primary-alt)";
-            }
+            },
+            options
         );
+    }
+
+    private insertTextAtCursor(textarea: HTMLTextAreaElement, text: string) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const val = textarea.value;
+        textarea.value = val.slice(0, start) + text + val.slice(end);
+        const cursor = start + text.length;
+        textarea.selectionStart = cursor;
+        textarea.selectionEnd = cursor;
+    }
+
+    private insertMarkdownEmbedAtCursor(textarea: HTMLTextAreaElement, vaultPath: string, kind: "image" | "file") {
+        const embed = kind === "image" ? `![[${vaultPath}]]` : `[[${vaultPath}]]`;
+        this.insertTextAtCursor(textarea, embed);
     }
     
     async handleSave() {
