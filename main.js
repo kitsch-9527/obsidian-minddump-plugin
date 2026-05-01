@@ -5054,8 +5054,16 @@ function serializeParagraphLikeBlock(el) {
 }
 function serializeRootToMarkdown(root) {
   const blocks = Array.from(root.children);
-  if (blocks.length === 0)
-    return "";
+  if (blocks.length === 0) {
+    let s = "";
+    for (let c = root.firstChild; c; c = c.nextSibling) {
+      if (c.nodeType === Node.TEXT_NODE)
+        s += c.data;
+      else if (c.nodeType === Node.ELEMENT_NODE)
+        s += serializeInlineDom(c);
+    }
+    return s;
+  }
   const parts = [];
   for (const el of blocks) {
     if (el.tagName === "P" || el.tagName === "DIV") {
@@ -5072,6 +5080,8 @@ function serializeRootToMarkdown(root) {
         lines.push(`${idx + 1}. ${serializeInlineDom(li)}`);
       });
       parts.push(lines.join("\n"));
+    } else {
+      parts.push(serializeInlineDom(el));
     }
   }
   return parts.join("\n\n");
@@ -5318,7 +5328,17 @@ function mountRichMarkdownField(parent, initialMarkdown, options) {
   if (options == null ? void 0 : options.placeholder)
     el.setAttribute("data-placeholder", options.placeholder);
   setMarkdownIntoRoot(el, stripMdSent(initialMarkdown));
-  const getMarkdown = () => stripMdSent(serializeRootToMarkdown(el));
+  const getMarkdown = () => {
+    var _a2, _b;
+    let md = stripMdSent(serializeRootToMarkdown(el));
+    if (!md.trim()) {
+      const raw = ((_b = (_a2 = el.innerText) != null ? _a2 : el.textContent) != null ? _b : "").replace(/\u00a0/g, " ");
+      const fallback = stripMdSent(raw).split(ZWSP).join("").replace(/^\s+/, "").replace(/(?:\r?\n)+$/g, "");
+      if (fallback.trim())
+        return fallback;
+    }
+    return md;
+  };
   const setMarkdown = (md) => {
     setMarkdownIntoRoot(el, stripMdSent(md));
   };

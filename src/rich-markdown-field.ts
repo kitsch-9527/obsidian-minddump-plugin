@@ -59,7 +59,16 @@ function serializeParagraphLikeBlock(el: HTMLElement): string {
 
 function serializeRootToMarkdown(root: HTMLElement): string {
     const blocks = Array.from(root.children) as HTMLElement[];
-    if (blocks.length === 0) return "";
+    if (blocks.length === 0) {
+        // Some browsers leave typed text as direct child nodes (no <p> wrapper), which
+        // `children` omits for TEXT_NODE — without this, getMarkdown() is "" while the UI shows text.
+        let s = "";
+        for (let c = root.firstChild; c; c = c.nextSibling) {
+            if (c.nodeType === Node.TEXT_NODE) s += (c as Text).data;
+            else if (c.nodeType === Node.ELEMENT_NODE) s += serializeInlineDom(c as HTMLElement);
+        }
+        return s;
+    }
     const parts: string[] = [];
     for (const el of blocks) {
         if (el.tagName === "P" || el.tagName === "DIV") {
@@ -76,6 +85,8 @@ function serializeRootToMarkdown(root: HTMLElement): string {
                 lines.push(`${idx + 1}. ${serializeInlineDom(li)}`);
             });
             parts.push(lines.join("\n"));
+        } else {
+            parts.push(serializeInlineDom(el));
         }
     }
     return parts.join("\n\n");
@@ -320,7 +331,19 @@ export function mountRichMarkdownField(
     if (options?.placeholder) el.setAttribute("data-placeholder", options.placeholder);
     setMarkdownIntoRoot(el, stripMdSent(initialMarkdown));
 
-    const getMarkdown = () => stripMdSent(serializeRootToMarkdown(el));
+    const getMarkdown = () => {
+        let md = stripMdSent(serializeRootToMarkdown(el));
+        if (!md.trim()) {
+            const raw = (el.innerText ?? el.textContent ?? "").replace(/\u00a0/g, " ");
+            const fallback = stripMdSent(raw)
+                .split(ZWSP)
+                .join("")
+                .replace(/^\s+/, "")
+                .replace(/(?:\r?\n)+$/g, "");
+            if (fallback.trim()) return fallback;
+        }
+        return md;
+    };
 
     const setMarkdown = (md: string) => {
         setMarkdownIntoRoot(el, stripMdSent(md));
