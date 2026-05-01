@@ -134,6 +134,13 @@ export interface Translations {
     rightRailAllTags: string;
     rightRailRecycleBin: string;
     recycleBinEmpty: string;
+    /** Sticky banner when viewing recycle bin (replaces quick input). */
+    recycleBinRetentionBanner: string;
+    recycleBinEmptyAll: string;
+    recycleBinEmptyAllConfirm: string;
+    recycleBinAllPurged: string;
+    /** Shown after automatic purge of items past retention */
+    recycleBinAutoPurged: string;
     /** Right rail tag strip: sort menu label */
     rightRailTagSort: string;
     rightRailTagSortNameAsc: string;
@@ -273,6 +280,11 @@ export const translations: Record<Language, Translations> = {
         rightRailAllTags: "全部标签",
         rightRailRecycleBin: "回收站",
         recycleBinEmpty: "回收站为空",
+        recycleBinRetentionBanner: "在回收站中超过 30 天的笔记将会自动删除",
+        recycleBinEmptyAll: "清空回收站",
+        recycleBinEmptyAllConfirm: "确定清空回收站？其中的所有随手记将被永久删除，无法恢复。",
+        recycleBinAllPurged: "已永久删除 {count} 条",
+        recycleBinAutoPurged: "已自动永久删除回收站中超过 30 天的 {count} 条随手记",
         rightRailTagSort: "排序",
         rightRailTagSortNameAsc: "名称 A → Z",
         rightRailTagSortNameDesc: "名称 Z → A",
@@ -409,6 +421,11 @@ export const translations: Record<Language, Translations> = {
         rightRailAllTags: "All tags",
         rightRailRecycleBin: "Recycle bin",
         recycleBinEmpty: "Recycle bin is empty",
+        recycleBinRetentionBanner: "Notes in the recycle bin for more than 30 days will be automatically deleted.",
+        recycleBinEmptyAll: "Empty recycle bin",
+        recycleBinEmptyAllConfirm: "Empty the recycle bin? All jots in it will be permanently deleted. This cannot be undone.",
+        recycleBinAllPurged: "Permanently deleted {count} jot(s).",
+        recycleBinAutoPurged: "Permanently removed {count} recycle bin jot(s) older than 30 days.",
         rightRailTagSort: "Sort",
         rightRailTagSortNameAsc: "Name A → Z",
         rightRailTagSortNameDesc: "Name Z → A",

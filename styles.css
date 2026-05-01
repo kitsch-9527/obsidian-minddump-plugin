@@ -1172,6 +1172,94 @@
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
 }
 
+/* 回收站模式：替代主视图快速输入区的提示条（白底条 + 右侧描边按钮） */
+.jots-recycle-bin-banner {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.theme-dark .jots-recycle-bin-banner {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.jots-recycle-bin-banner__main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+
+.jots-recycle-bin-banner__icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.jots-recycle-bin-banner__icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.jots-recycle-bin-banner__text {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--text-normal);
+}
+
+/* 覆盖 Obsidian 对原生 button 的背景，保证主题色实心填充 */
+.jots-view button.jots-recycle-bin-banner__empty {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 5px 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    border: 1px solid var(--interactive-accent) !important;
+    background: var(--interactive-accent) !important;
+    background-color: var(--interactive-accent) !important;
+    background-image: none !important;
+    box-shadow: none;
+    font: inherit;
+    color: var(--text-on-accent, #ffffff);
+    cursor: pointer;
+}
+
+.jots-view button.jots-recycle-bin-banner__empty svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+}
+
+.jots-view button.jots-recycle-bin-banner__empty:hover {
+    background: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    background-color: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    background-image: none !important;
+    border-color: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    color: var(--text-on-accent, #ffffff);
+}
+
+.jots-view button.jots-recycle-bin-banner__empty:active {
+    background-color: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    filter: brightness(0.92);
+}
+
 .jots-quick-textarea-container {
     border-radius: 8px;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;

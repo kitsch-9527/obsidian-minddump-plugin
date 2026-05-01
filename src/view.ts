@@ -158,6 +158,20 @@ export class JotView extends ItemView {
             }, 50);
         }
     }
+
+    /** Tear down capture quick-input listeners before DOM is cleared (see `render`). */
+    private disposeQuickCaptureInput() {
+        if (this.wikilinkCleanup) {
+            try {
+                this.wikilinkCleanup();
+            } catch {
+                /* ignore */
+            }
+            this.wikilinkCleanup = null;
+        }
+        this.inputCard = null;
+        this.currentTextarea = null;
+    }
     
     private updateSearchAndFilter() {
         if (this.searchInput) {
@@ -846,8 +860,9 @@ export class JotView extends ItemView {
     }
     
     render() {
+        this.disposeQuickCaptureInput();
         this.contentEl.empty();
-        
+
         if (this.isSidebar) {
             this.renderSidebarLayout();
         } else {
@@ -875,8 +890,12 @@ export class JotView extends ItemView {
         rightPanel.style.overflow = "auto";
         rightPanel.style.padding = "10px";
         
-        this.renderFullInput(leftPanel);
-        
+        if (this.viewingRecycleBin) {
+            this.renderRecycleBinBanner(leftPanel);
+        } else {
+            this.renderFullInput(leftPanel);
+        }
+
         const listContainer = leftPanel.createDiv();
         listContainer.style.marginTop = "20px";
         this.renderJotList(listContainer);
@@ -950,6 +969,41 @@ export class JotView extends ItemView {
         this.inputCard = api.root;
         this.currentTextarea = api.textarea;
         this.wikilinkCleanup = api.wikilinkCleanup;
+    }
+
+    /** Replaces the main quick-input card while viewing the recycle bin. */
+    private renderRecycleBinBanner(container: HTMLElement) {
+        const banner = container.createDiv({ cls: "jots-recycle-bin-banner" });
+        const main = banner.createDiv({ cls: "jots-recycle-bin-banner__main" });
+        const iconEl = main.createSpan({ cls: "jots-recycle-bin-banner__icon" });
+        setIcon(iconEl, "info");
+        main.createSpan({
+            cls: "jots-recycle-bin-banner__text",
+            text: t("recycleBinRetentionBanner", this.lang),
+        });
+        const emptyBtn = banner.createEl("button", {
+            type: "button",
+            cls: "jots-recycle-bin-banner__empty",
+            attr: {
+                "aria-label": t("recycleBinEmptyAll", this.lang),
+                title: t("recycleBinEmptyAll", this.lang),
+            },
+        });
+        setIcon(emptyBtn, "trash");
+        emptyBtn.addEventListener("click", async () => {
+            const deleted = this.jots.filter((j) => j.deleted);
+            if (deleted.length === 0) {
+                new Notice(t("recycleBinEmpty", this.lang));
+                return;
+            }
+            if (!confirm(t("recycleBinEmptyAllConfirm", this.lang))) return;
+            try {
+                const n = await this.plugin.purgeAllDeletedJots();
+                new Notice(t("recycleBinAllPurged", this.lang, { count: String(n) }));
+            } catch {
+                /* purgeJot / purgeAll already surfaced Notice */
+            }
+        });
     }
 
     /** Right panel: all tags (collapsible) + recycle bin — main layout only */

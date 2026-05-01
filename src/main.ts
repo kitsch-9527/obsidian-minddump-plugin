@@ -15,6 +15,9 @@ import {
     removeJotBlockById
 } from './utils';
 
+/** Soft-deleted jots older than this (by `updatedAt` when moved to trash) are permanently removed. */
+const RECYCLE_BIN_RETENTION_DAYS = 30;
+
 export default class JotPlugin extends Plugin {
     settings: JotSettings;
     private isLoaded: boolean = false;
@@ -76,11 +79,18 @@ export default class JotPlugin extends Plugin {
 
         this.isLoaded = true;
 
+        this.registerInterval(
+            window.setInterval(() => {
+                void this.purgeExpiredRecycleBinJots();
+            }, 24 * 60 * 60 * 1000)
+        );
+
         this.app.workspace.onLayoutReady(async () => {
             if (this.settings.autoOpenView) {
                 await this.activateView();
             }
             await this.loadJotsData();
+            await this.purgeExpiredRecycleBinJots({ skipInitialLoad: true });
         });
     }
 
@@ -292,7 +302,7 @@ export default class JotPlugin extends Plugin {
     }
 
     /** Permanently remove a jot block (e.g. from recycle bin). */
-    async purgeJot(jot: Jot): Promise<void> {
+    async purgeJot(jot: Jot, options?: { skipReload?: boolean }): Promise<void> {
         if (!jot.filePath) {
             const msg = t("jotUpdateNoFile", this.lang);
             new Notice(msg);
@@ -316,10 +326,56 @@ export default class JotPlugin extends Plugin {
             new Notice(msg);
             throw new Error(msg);
         }
-        this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
-            if (leaf.view instanceof JotView) leaf.view.refresh();
+        if (!options?.skipReload) {
+            this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
+                if (leaf.view instanceof JotView) leaf.view.refresh();
+            });
+            await this.loadJotsData();
+        }
+    }
+
+    /**
+     * Permanently removes recycle-bin jots whose last update time is older than
+     * {@link RECYCLE_BIN_RETENTION_DAYS} days (`updatedAt` is set when an item is moved to trash).
+     */
+    async purgeExpiredRecycleBinJots(options?: { skipInitialLoad?: boolean }): Promise<number> {
+        if (!options?.skipInitialLoad) {
+            await this.loadJotsData();
+        }
+        const threshold = moment().subtract(RECYCLE_BIN_RETENTION_DAYS, "days");
+        const expired = this.jots.filter((j) => {
+            if (!j.deleted) return false;
+            const m = moment(j.updatedAt || j.createdAt, "YYYY-MM-DD HH:mm:ss", true);
+            if (!m.isValid()) return false;
+            return m.isBefore(threshold);
         });
-        await this.loadJotsData();
+        if (expired.length === 0) return 0;
+        let purged = 0;
+        for (const jot of expired) {
+            try {
+                await this.purgeJot(jot, { skipReload: true });
+                purged++;
+            } catch (e) {
+                console.error("purgeExpiredRecycleBinJots:", e);
+            }
+        }
+        if (purged > 0) {
+            this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
+                if (leaf.view instanceof JotView) leaf.view.refresh();
+            });
+            await this.loadJotsData();
+            new Notice(t("recycleBinAutoPurged", this.lang, { count: String(purged) }));
+        }
+        return purged;
+    }
+
+    /** Permanently remove every jot currently in the recycle bin. */
+    async purgeAllDeletedJots(): Promise<number> {
+        const victims = this.jots.filter((j) => j.deleted);
+        for (const jot of victims) {
+            await this.purgeJot(jot);
+        }
+        return victims.length;
     }
 
     async saveToMultiFile(dateStr: string, newEntry: string, tags: string[]) {
