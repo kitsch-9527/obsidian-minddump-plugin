@@ -492,7 +492,8 @@
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.06);
     transition: transform 0.15s ease, filter 0.15s ease;
-    background-color: #e8e8e8;
+    /* 与 GitHub 贡献图空档相近的浅灰底，叠色更轻 */
+    background-color: #ebedf0;
     color: #a3a3a3;
 }
 .theme-dark .jots-heat-cell {
@@ -510,16 +511,16 @@
     border-radius: inherit;
 }
 .jots-heat-cell.jots-heat-l1::before {
-    opacity: 0.22;
+    opacity: 0.12;
 }
 .jots-heat-cell.jots-heat-l2::before {
-    opacity: 0.42;
+    opacity: 0.26;
 }
 .jots-heat-cell.jots-heat-l3::before {
-    opacity: 0.68;
+    opacity: 0.42;
 }
 .jots-heat-cell.jots-heat-l4::before {
-    opacity: 1;
+    opacity: 0.58;
 }
 .jots-heat-daynum {
     position: relative;
@@ -626,12 +627,12 @@
     min-height: 0;
     border-radius: 26%;
     box-sizing: border-box;
-    background-color: #e8e8e8;
+    background-color: #ebedf0;
     border: 1px solid transparent;
     transition: filter 0.12s ease, transform 0.12s ease;
 }
 .theme-dark .jots-contrib-cell {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.06);
 }
 .jots-contrib-cell::before {
     content: "";
@@ -679,16 +680,16 @@
     pointer-events: none;
 }
 .jots-contrib-l1::before {
-    opacity: 0.22;
+    opacity: 0.12;
 }
 .jots-contrib-l2::before {
-    opacity: 0.42;
+    opacity: 0.26;
 }
 .jots-contrib-l3::before {
-    opacity: 0.68;
+    opacity: 0.42;
 }
 .jots-contrib-l4::before {
-    opacity: 1;
+    opacity: 0.58;
 }
 .jots-contrib-cell.jots-contrib-l1:hover,
 .jots-contrib-cell.jots-contrib-l2:hover,
@@ -697,12 +698,20 @@
     filter: brightness(1.04);
     transform: scale(1.06);
 }
-.jots-contrib-cell--today.jots-contrib-l1,
-.jots-contrib-cell--today.jots-contrib-l2,
-.jots-contrib-cell--today.jots-contrib-l3,
-.jots-contrib-cell--today.jots-contrib-l4 {
-    border-color: var(--interactive-accent);
-    box-shadow: 0 0 0 1px var(--interactive-accent);
+/* 当天：半透明描边 + 模糊光晕（overflow 放开以免裁切阴影） */
+.jots-contrib-cell--today {
+    z-index: 1;
+    overflow: visible;
+    border-color: color-mix(in srgb, var(--interactive-accent) 26%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--interactive-accent) 16%, transparent),
+        0 0 10px 1px color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+}
+.theme-dark .jots-contrib-cell--today {
+    border-color: color-mix(in srgb, var(--interactive-accent) 34%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--interactive-accent) 22%, transparent),
+        0 0 12px 2px color-mix(in srgb, var(--interactive-accent) 16%, transparent);
 }
 .jots-contrib-months {
     display: grid;
