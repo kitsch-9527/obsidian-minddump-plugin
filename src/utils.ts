@@ -439,18 +439,45 @@ export async function handleAttachment(
     }
 }
 
+/** Plain text + caret for `[[` wikilink autocomplete (textarea or rich markdown field). */
+export type WikilinkTextField = {
+    getValue(): string;
+    getCaret(): number;
+    replaceRange(start: number, end: number, text: string): void;
+    focus(): void;
+    getBoundingRect(): DOMRect;
+};
+
+export function textareaAsWikilinkField(textarea: HTMLTextAreaElement): WikilinkTextField {
+    return {
+        getValue: () => textarea.value,
+        getCaret: () => textarea.selectionStart,
+        replaceRange(start: number, end: number, text: string) {
+            const v = textarea.value;
+            textarea.value = v.slice(0, start) + text + v.slice(end);
+            const c = start + text.length;
+            textarea.selectionStart = c;
+            textarea.selectionEnd = c;
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        },
+        focus: () => textarea.focus(),
+        getBoundingRect: () => textarea.getBoundingClientRect(),
+    };
+}
+
 /**
  * 设置 wikilink 自动完成
+ * @param inputTarget element that receives `input` / `keydown` / `blur` (e.g. textarea or contenteditable)
  */
 export function setupWikilinkAutocomplete(
     app: App,
-    textarea: HTMLTextAreaElement,
+    field: WikilinkTextField,
+    inputTarget: HTMLElement,
     container: HTMLElement,
-    onSuggestionSelect: (file: TFile, textarea: HTMLTextAreaElement, bracketStart: number) => void
+    onSuggestionSelect: (file: TFile, bracketStart: number) => void
 ): () => void {
     let suggestionContainer: HTMLElement | null = null;
     let suggestionTimeout: NodeJS.Timeout;
-
     const hideSuggestions = () => {
         if (suggestionContainer) {
             suggestionContainer.remove();
@@ -477,9 +504,9 @@ export function setupWikilinkAutocomplete(
         });
     };
 
-    textarea.addEventListener("input", () => {
-        const cursorPos = textarea.selectionStart;
-        const textBeforeCursor = textarea.value.substring(0, cursorPos);
+    const onInput = () => {
+        const cursorPos = field.getCaret();
+        const textBeforeCursor = field.getValue().substring(0, cursorPos);
 
         const lastDoubleBracket = textBeforeCursor.lastIndexOf("[[");
         if (lastDoubleBracket !== -1) {
@@ -489,6 +516,7 @@ export function setupWikilinkAutocomplete(
 
                 clearTimeout(suggestionTimeout);
                 suggestionTimeout = setTimeout(() => {
+                    const replaceEndAtSuggest = field.getCaret();
                     const files = app.vault.getMarkdownFiles();
                     const searchLower = searchTerm.toLowerCase();
                     const matches = files
@@ -518,11 +546,10 @@ export function setupWikilinkAutocomplete(
                         document.body.appendChild(suggestionContainer);
                     }
 
-                    // 计算建议列表位置
-                    const textareaRect = textarea.getBoundingClientRect();
-                    suggestionContainer.style.left = `${textareaRect.left}px`;
-                    suggestionContainer.style.top = `${textareaRect.bottom + 4}px`;
-                    suggestionContainer.style.width = `${textareaRect.width}px`;
+                    const rect = field.getBoundingClientRect();
+                    suggestionContainer.style.left = `${rect.left}px`;
+                    suggestionContainer.style.top = `${rect.bottom + 4}px`;
+                    suggestionContainer.style.width = `${rect.width}px`;
 
                     suggestionContainer.empty();
 
@@ -542,9 +569,14 @@ export function setupWikilinkAutocomplete(
                         }
 
                         item.addEventListener("click", () => {
-                            onSuggestionSelect(file, textarea, lastDoubleBracket);
+                            field.replaceRange(
+                                lastDoubleBracket,
+                                replaceEndAtSuggest,
+                                `[[${file.basename}]]`
+                            );
                             hideSuggestions();
-                            textarea.focus();
+                            field.focus();
+                            onSuggestionSelect(file, lastDoubleBracket);
                         });
 
                         item.addEventListener("mouseenter", () => {
@@ -557,9 +589,11 @@ export function setupWikilinkAutocomplete(
         }
 
         hideSuggestions();
-    });
+    };
 
-    textarea.addEventListener("keydown", (e) => {
+    inputTarget.addEventListener("input", onInput);
+
+    const onKeydown = (e: KeyboardEvent) => {
         if (!suggestionContainer) return;
 
         const items = suggestionContainer.querySelectorAll(".jots-suggestion-item");
@@ -586,13 +620,22 @@ export function setupWikilinkAutocomplete(
         } else if (e.key === "Escape") {
             hideSuggestions();
         }
-    });
+    };
 
-    textarea.addEventListener("blur", () => {
+    inputTarget.addEventListener("keydown", onKeydown);
+
+    const onBlur = () => {
         setTimeout(() => hideSuggestions(), 200);
-    });
+    };
 
-    return cleanup;
+    inputTarget.addEventListener("blur", onBlur);
+
+    return () => {
+        inputTarget.removeEventListener("input", onInput);
+        inputTarget.removeEventListener("keydown", onKeydown);
+        inputTarget.removeEventListener("blur", onBlur);
+        cleanup();
+    };
 }
 
 /**

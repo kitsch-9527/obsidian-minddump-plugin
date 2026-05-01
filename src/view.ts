@@ -12,6 +12,7 @@ import {
     normalizeJotTags
 } from './utils';
 import { mountQuickComposeCard } from './quick-compose-card';
+import type { RichMarkdownFieldApi } from './rich-markdown-field';
 
 const CARD_LONG_PRESS_MS = 480;
 const CARD_TAP_MOVE_PX = 14;
@@ -23,6 +24,7 @@ type SearchTimePreset = "none" | "onThisDay" | "thisMonth" | "lastMonth" | "last
 type TagMatchMode = "include" | "exclude" | "noTags";
 type ContentTypeFilter = "image" | "link" | "audio";
 type RightRailTagSort = "nameAsc" | "nameDesc" | "countDesc" | "countAsc";
+type JotListSort = "createdDesc" | "createdAsc" | "updatedDesc" | "updatedAsc";
 
 export const VIEW_TYPE_JOTS = "jot-view";
 
@@ -33,7 +35,7 @@ export class JotView extends ItemView {
     selectedTags: Set<string> = new Set();
     isSidebar: boolean = false;
     private suggestionContainer: HTMLElement | null = null;
-    private currentTextarea: HTMLTextAreaElement | null = null;
+    private quickComposeContent: RichMarkdownFieldApi | null = null;
     private inputCard: HTMLElement | null = null;
     private searchInput: HTMLInputElement | null = null;
     private searchContainer: HTMLElement | null = null;
@@ -57,9 +59,12 @@ export class JotView extends ItemView {
     private searchContentSectionCollapsed = false;
     private viewingRecycleBin = false;
     private rightRailTagsCollapsed = false;
+    /** Main layout: entire right column (search, calendar, tags rail) collapsed to a slim strip */
+    private rightFunctionalPanelCollapsed = false;
     /** Right rail tag list: substring filter (sidebar / main layout) */
     private rightRailTagListQuery = "";
     private rightRailTagSort: RightRailTagSort = "nameAsc";
+    private jotListSort: JotListSort = "createdDesc";
 
     get lang(): Language {
         return this.plugin.lang;
@@ -106,7 +111,7 @@ export class JotView extends ItemView {
 
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', (leaf) => {
-                if (leaf === this.leaf && this.currentTextarea) {
+                if (leaf === this.leaf && this.quickComposeContent) {
                     this.focusTextarea();
                 }
             })
@@ -150,11 +155,9 @@ export class JotView extends ItemView {
     }
     
     private focusTextarea() {
-        if (this.currentTextarea) {
+        if (this.quickComposeContent) {
             setTimeout(() => {
-                this.currentTextarea?.focus();
-                const length = this.currentTextarea.value.length;
-                this.currentTextarea.setSelectionRange(length, length);
+                this.quickComposeContent?.focusEnd();
             }, 50);
         }
     }
@@ -170,7 +173,7 @@ export class JotView extends ItemView {
             this.wikilinkCleanup = null;
         }
         this.inputCard = null;
-        this.currentTextarea = null;
+        this.quickComposeContent = null;
     }
     
     private updateSearchAndFilter() {
@@ -862,6 +865,7 @@ export class JotView extends ItemView {
     render() {
         this.disposeQuickCaptureInput();
         this.contentEl.empty();
+        this.contentEl.toggleClass("jots-view--main-layout", !this.isSidebar);
 
         if (this.isSidebar) {
             this.renderSidebarLayout();
@@ -882,28 +886,56 @@ export class JotView extends ItemView {
         const leftPanel = container.createDiv();
         leftPanel.style.flex = "4";
         leftPanel.style.overflow = "auto";
-        leftPanel.style.padding = "10px";
+        leftPanel.style.padding = "0 10px 10px";
         
-        const rightPanel = container.createDiv();
-        rightPanel.style.flex = "1";
-        rightPanel.style.minWidth = "0";
-        rightPanel.style.overflow = "auto";
-        rightPanel.style.padding = "10px";
-        
+        const rightShell = container.createDiv({ cls: "jots-right-shell" });
+        if (this.rightFunctionalPanelCollapsed) {
+            rightShell.addClass("is-collapsed");
+        }
+        rightShell.style.flex = this.rightFunctionalPanelCollapsed ? "0" : "1";
+        rightShell.style.minWidth = "0";
+
+        const rightPanelInner = rightShell.createDiv({ cls: "jots-right-panel-inner" });
+
+        /** Search + quick input (or recycle banner) stick together while the list scrolls. */
+        const leftStickyStack = leftPanel.createDiv({ cls: "jots-left-sticky-stack" });
+
+        const searchRow = leftStickyStack.createDiv({ cls: "jots-main-search-row" });
+        const searchRowMain = searchRow.createDiv({ cls: "jots-main-search-row__main" });
+        this.renderSearch(searchRowMain);
+        const rightPanelToggleBtn = searchRow.createEl("button", {
+            type: "button",
+            cls: "jots-right-shell-toggle-btn jots-main-search-row__toggle",
+            attr: this.rightFunctionalPanelCollapsed
+                ? {
+                      "aria-label": t("rightPanelExpand", this.lang),
+                      title: t("rightPanelExpand", this.lang),
+                  }
+                : {
+                      "aria-label": t("rightPanelCollapse", this.lang),
+                      title: t("rightPanelCollapse", this.lang),
+                  },
+        });
+        setIcon(rightPanelToggleBtn, this.rightFunctionalPanelCollapsed ? "chevrons-left" : "chevrons-right");
+        rightPanelToggleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.rightFunctionalPanelCollapsed = !this.rightFunctionalPanelCollapsed;
+            this.render();
+        });
         if (this.viewingRecycleBin) {
-            this.renderRecycleBinBanner(leftPanel);
+            this.renderRecycleBinBanner(leftStickyStack);
         } else {
-            this.renderFullInput(leftPanel);
+            this.renderFullInput(leftStickyStack);
         }
 
         const listContainer = leftPanel.createDiv();
         listContainer.style.marginTop = "20px";
         this.renderJotList(listContainer);
-        
-        this.renderSearch(rightPanel);
-        const calendarRoot = rightPanel.createDiv({ cls: "jots-calendar" });
+
+        const calendarRoot = rightPanelInner.createDiv({ cls: "jots-calendar" });
         this.renderCalendar(calendarRoot);
-        this.renderRightRail(rightPanel);
+        this.renderRightRail(rightPanelInner);
     }
     
     renderSidebarLayout() {
@@ -967,7 +999,7 @@ export class JotView extends ItemView {
         });
 
         this.inputCard = api.root;
-        this.currentTextarea = api.textarea;
+        this.quickComposeContent = api.contentField;
         this.wikilinkCleanup = api.wikilinkCleanup;
     }
 
@@ -1382,6 +1414,20 @@ export class JotView extends ItemView {
         return false;
     }
 
+    private jotListSortCompare(a: Jot, b: Jot): number {
+        const parseTs = (s: string) => moment(s, "YYYY-MM-DD HH:mm:ss").valueOf();
+        switch (this.jotListSort) {
+            case "createdDesc":
+                return parseTs(b.createdAt) - parseTs(a.createdAt);
+            case "createdAsc":
+                return parseTs(a.createdAt) - parseTs(b.createdAt);
+            case "updatedDesc":
+                return parseTs(b.updatedAt) - parseTs(a.updatedAt);
+            case "updatedAsc":
+                return parseTs(a.updatedAt) - parseTs(b.updatedAt);
+        }
+    }
+
     renderSearch(container: HTMLElement) {
         this.renderSearchFilterBar(container, false);
     }
@@ -1394,6 +1440,39 @@ export class JotView extends ItemView {
         const stack = container.createDiv({ cls: `jots-search-stack${compact ? " jots-search-stack--compact" : ""}` });
 
         const pillWrap = stack.createDiv({ cls: "jots-search-pill-wrap" });
+
+        const sortBtn = pillWrap.createEl("button", {
+            type: "button",
+            cls: "jots-search-sort-btn",
+            attr: {
+                "aria-label": t("jotListSortButton", this.lang),
+                title: t("jotListSortButton", this.lang),
+            },
+        });
+        setIcon(sortBtn, "arrow-up-down");
+        sortBtn.addEventListener("mousedown", (e) => e.preventDefault());
+        sortBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const menu = new Menu();
+            const sortOptions: { id: JotListSort; labelKey: keyof Translations }[] = [
+                { id: "createdDesc", labelKey: "jotListSortCreatedDesc" },
+                { id: "createdAsc", labelKey: "jotListSortCreatedAsc" },
+                { id: "updatedDesc", labelKey: "jotListSortUpdatedDesc" },
+                { id: "updatedAsc", labelKey: "jotListSortUpdatedAsc" },
+            ];
+            for (const { id, labelKey } of sortOptions) {
+                menu.addItem((item) => {
+                    item.setTitle(t(labelKey, this.lang));
+                    item.setChecked(this.jotListSort === id);
+                    item.onClick(() => {
+                        this.jotListSort = id;
+                        this.updateSearchAndFilter();
+                    });
+                });
+            }
+            menu.showAtMouseEvent(e as unknown as MouseEvent);
+        });
+
         this.searchContainer = pillWrap.createDiv({ cls: "jots-search-pill" });
         this.searchContainer.style.position = "relative";
 
@@ -1630,7 +1709,7 @@ export class JotView extends ItemView {
         this.jotListCleanups = [];
         this.closeCardMenu();
 
-        let filteredJots = this.filterJots();
+        let filteredJots = [...this.filterJots()].sort((a, b) => this.jotListSortCompare(a, b));
 
         if (filteredJots.length === 0) {
             const empty = container.createDiv();

@@ -11,6 +11,10 @@ export interface Translations {
     jotView: string;
     quickRecord: string;
     contentPlaceholder: string;
+    /** Rich editor toolbar */
+    toolbarBold: string;
+    toolbarUnorderedList: string;
+    toolbarOrderedList: string;
     placeholderWithLink: string;
     tagsPlaceholder: string;
     tagsInputPlaceholder: string;
@@ -147,7 +151,16 @@ export interface Translations {
     rightRailTagSortNameDesc: string;
     rightRailTagSortCountDesc: string;
     rightRailTagSortCountAsc: string;
+    /** Search row: sort jot list (icon button) */
+    jotListSortButton: string;
+    jotListSortCreatedDesc: string;
+    jotListSortCreatedAsc: string;
+    jotListSortUpdatedDesc: string;
+    jotListSortUpdatedAsc: string;
     rightRailTagFilterPlaceholder: string;
+    /** Main layout: collapse the right column (search, calendar, tags) */
+    rightPanelCollapse: string;
+    rightPanelExpand: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -161,6 +174,9 @@ export const translations: Record<Language, Translations> = {
         jotView: "随手记",
         quickRecord: "快速记录",
         contentPlaceholder: "现在的想法是...",
+        toolbarBold: "加粗",
+        toolbarUnorderedList: "无序列表",
+        toolbarOrderedList: "有序列表（自动编号）",
         placeholderWithLink: "现在的想法是...\n输入 [[ 可快速插入笔记链接",
         tagsPlaceholder: "标签",
         tagsInputPlaceholder: "按回车添加标签，使用 / 进行嵌套",
@@ -290,7 +306,14 @@ export const translations: Record<Language, Translations> = {
         rightRailTagSortNameDesc: "名称 Z → A",
         rightRailTagSortCountDesc: "使用次数（多 → 少）",
         rightRailTagSortCountAsc: "使用次数（少 → 多）",
+        jotListSortButton: "列表排序",
+        jotListSortCreatedDesc: "创建时间（新 → 旧）",
+        jotListSortCreatedAsc: "创建时间（旧 → 新）",
+        jotListSortUpdatedDesc: "更新时间（新 → 旧）",
+        jotListSortUpdatedAsc: "更新时间（旧 → 新）",
         rightRailTagFilterPlaceholder: "筛选标签…",
+        rightPanelCollapse: "收起侧栏",
+        rightPanelExpand: "展开侧栏",
     },
     en: {
         pluginName: "Jot",
@@ -302,6 +325,9 @@ export const translations: Record<Language, Translations> = {
         jotView: "Jot",
         quickRecord: "Quick Record",
         contentPlaceholder: "What's on your mind...",
+        toolbarBold: "Bold",
+        toolbarUnorderedList: "Bullet list",
+        toolbarOrderedList: "Numbered list (auto-renumber)",
         placeholderWithLink: "What's on your mind...\nType [[ to quickly insert note links",
         tagsPlaceholder: "Tags",
         tagsInputPlaceholder: "Press Enter to add tag, use / for nesting",
@@ -431,7 +457,14 @@ export const translations: Record<Language, Translations> = {
         rightRailTagSortNameDesc: "Name Z → A",
         rightRailTagSortCountDesc: "Usage count (high → low)",
         rightRailTagSortCountAsc: "Usage count (low → high)",
+        jotListSortButton: "Sort list",
+        jotListSortCreatedDesc: "Created (newest first)",
+        jotListSortCreatedAsc: "Created (oldest first)",
+        jotListSortUpdatedDesc: "Updated (newest first)",
+        jotListSortUpdatedAsc: "Updated (oldest first)",
         rightRailTagFilterPlaceholder: "Filter tags…",
+        rightPanelCollapse: "Collapse side panel",
+        rightPanelExpand: "Expand side panel",
     }
 };
 

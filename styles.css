@@ -9,6 +9,11 @@
     overflow-y: auto;
 }
 
+/* 主布局：搜索行贴视图顶部 */
+.jots-view.jots-view--main-layout {
+    padding-top: 0;
+}
+
 /* 日历样式 */
 .jots-calendar-section {
     background: var(--background-primary-alt);
@@ -21,10 +26,58 @@
     width: 100%;
 }
 
-/* 搜索筛选：药丸输入 + 白底面板（位于日历上方） */
+/* 主布局左栏：搜索行 + 快速输入（或回收站条）整体吸顶；不设整段阴影，避免与「仅卡片有阴影」的原样式不一致 */
+.jots-left-sticky-stack {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--background-primary);
+}
+
+/* 主布局：搜索与右栏折叠/展开同一按钮（同行） */
+.jots-main-search-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.jots-main-search-row__main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.jots-main-search-row__toggle {
+    flex-shrink: 0;
+}
+
+/* 与全局药丸一致：不横向拉满整栏（与侧栏/居中样式同宽上限） */
+.jots-main-search-row .jots-search-pill-wrap {
+    max-width: min(100%, 360px);
+    margin-left: 0;
+    margin-right: 0;
+    justify-content: flex-start;
+}
+
+.jots-main-search-row .jots-search-pill-wrap .jots-search-pill {
+    max-width: min(100%, 320px);
+}
+
+/* 筛选展开时整行叠在下方 sticky 顶栏（搜索 + 快速输入）之上 */
+.jots-main-search-row:has(.jots-search-stack:focus-within) {
+    position: relative;
+    z-index: 50;
+}
+
+/* 搜索筛选：药丸输入 + 白底面板（主布局下位于左栏快速记录上方） */
 .jots-search-stack {
     margin-bottom: 14px;
     position: relative;
+}
+
+/* 侧栏：展开筛选时叠在下方日历/列表之上 */
+.jots-search-stack:focus-within {
+    z-index: 45;
 }
 
 /* 仅在与搜索区有焦点关联时显示筛选面板（点击药丸或 Tab 进入） */
@@ -38,8 +91,54 @@
 
 .jots-search-pill-wrap {
     display: flex;
+    flex-direction: row;
+    align-items: center;
     justify-content: center;
+    gap: 8px;
     margin-bottom: 10px;
+    max-width: min(100%, 360px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.jots-search-pill-wrap .jots-search-pill {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    max-width: min(100%, 320px);
+}
+
+.jots-search-sort-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 9999px;
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.jots-search-sort-btn:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.jots-search-stack:focus-within .jots-search-sort-btn {
+    border-color: var(--interactive-accent);
+    color: var(--interactive-accent);
+}
+
+.jots-search-sort-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 .jots-search-pill {
@@ -109,6 +208,16 @@
 }
 
 .jots-search-panel {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+    margin-top: 4px;
+    width: min(360px, 100%);
+    max-height: min(70vh, 560px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    z-index: 2;
     background: var(--background-primary);
     border-radius: 12px;
     padding: 12px 14px 14px;
@@ -251,9 +360,23 @@
     text-align: center;
 }
 
+.jots-search-stack--compact .jots-search-pill-wrap {
+    max-width: 100%;
+}
+
 .jots-search-stack--compact .jots-search-pill {
     min-height: 32px;
-    width: 100%;
+    max-width: none;
+}
+
+.jots-search-stack--compact .jots-search-sort-btn {
+    width: 32px;
+    height: 32px;
+}
+
+.jots-search-stack--compact .jots-search-sort-btn svg {
+    width: 14px;
+    height: 14px;
 }
 
 .jots-search-stack--compact .jots-search-pill-input {
@@ -710,51 +833,76 @@
     margin-bottom: 8px;
 }
 
-/* Markdown 渲染内容样式 */
-.jots-card-content markdown-rendered {
+/* Markdown 渲染内容样式
+ * Obsidian 可能使用 <markdown-rendered> 或 div.markdown-rendered；仅用元素选择器会匹配不到，列表会落到 app 的 list-style:none 等重置上。 */
+.jots-view .jots-card-content :is(markdown-rendered, .markdown-rendered) {
     font-size: 15px;
     line-height: 1.6;
 }
 
-.jots-card-content markdown-rendered p {
+.jots-view .jots-card-content :is(markdown-rendered, .markdown-rendered) p {
     margin: 0 0 4px 0;
 }
 
-.jots-card-content markdown-rendered ul,
-.jots-card-content markdown-rendered ol {
+.jots-view .jots-card-content ul,
+.jots-view .jots-card-content ol {
     margin: 4px 0;
-    padding-left: 20px;
+    padding-left: 1.35em;
+    padding-inline-start: 1.35em;
+    list-style-position: outside;
 }
 
-.jots-card-content markdown-rendered li {
+.jots-view .jots-card-content ul:not(.contains-task-list) {
+    list-style-type: disc;
+}
+
+.jots-view .jots-card-content ul.contains-task-list {
+    list-style-type: none;
+}
+
+.jots-view .jots-card-content ol {
+    list-style-type: decimal;
+}
+
+.jots-view .jots-card-content li {
     margin: 2px 0;
 }
 
-.jots-card-content markdown-rendered blockquote {
+.jots-view .jots-card-content li::marker {
+    color: var(--text-normal);
+}
+
+.jots-view .jots-card-content strong,
+.jots-view .jots-card-content b {
+    font-weight: 700;
+    color: var(--text-normal);
+}
+
+.jots-view .jots-card-content :is(markdown-rendered, .markdown-rendered) blockquote {
     margin: 4px 0;
     padding-left: 12px;
     border-left: 3px solid var(--interactive-accent);
     color: var(--text-muted);
 }
 
-.jots-card-content markdown-rendered a {
+.jots-view .jots-card-content :is(markdown-rendered, .markdown-rendered) a {
     color: var(--link-color);
     text-decoration: none;
 }
 
-.jots-card-content markdown-rendered a:hover {
+.jots-view .jots-card-content :is(markdown-rendered, .markdown-rendered) a:hover {
     text-decoration: underline;
 }
 
-.jots-card-content markdown-rendered .task-list-item {
+.jots-view .jots-card-content .task-list-item {
     list-style-type: none;
 }
 
-.jots-card-content markdown-rendered .task-list-item-checkbox {
+.jots-view .jots-card-content .task-list-item-checkbox {
     margin-right: 6px;
 }
 
-.jots-card-content markdown-rendered img {
+.jots-view .jots-card-content :is(markdown-rendered, .markdown-rendered) img {
     max-width: 100%;
     border-radius: 4px;
     margin: 4px 0;
@@ -1160,11 +1308,8 @@
     box-shadow: none;
 }
 
-/* 主视图快速输入（非内联编辑）：始终在左栏滚动区内吸顶 */
+/* 主视图快速输入（非内联编辑）：吸顶由 .jots-left-sticky-stack 承担；阴影仍只落在卡片上（与改 sticky 前一致） */
 .jots-quick-compose-card:not(.jots-quick-compose-card--inline-edit) {
-    position: sticky;
-    top: 0;
-    z-index: 10;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -1174,9 +1319,6 @@
 
 /* 回收站模式：替代主视图快速输入区的提示条（白底条 + 右侧描边按钮） */
 .jots-recycle-bin-banner {
-    position: sticky;
-    top: 0;
-    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1309,6 +1451,51 @@
     outline-offset: 0 !important;
     border: none !important;
     box-shadow: none !important;
+}
+
+/* contenteditable 正文：列表与加粗所见即所得 */
+.jots-rich-md.jots-quick-textarea p,
+.jots-rich-md.jots-quick-textarea div,
+.jots-capture-rich-md p,
+.jots-capture-rich-md div {
+    margin: 0 0 0.35em;
+}
+.jots-rich-md.jots-quick-textarea p:last-child,
+.jots-rich-md.jots-quick-textarea div:last-child,
+.jots-capture-rich-md p:last-child,
+.jots-capture-rich-md div:last-child {
+    margin-bottom: 0;
+}
+/* 覆盖 app 对 ul/ol 的 list-style:none，编辑时与卡片正文一致显示圆点 / 数字 */
+.jots-rich-md.jots-quick-textarea ul,
+.jots-rich-md.jots-quick-textarea ol,
+.jots-capture-rich-md ul,
+.jots-capture-rich-md ol {
+    margin: 0.35em 0;
+    padding-left: 1.35em;
+    padding-inline-start: 1.35em;
+    list-style-position: outside;
+}
+.jots-rich-md.jots-quick-textarea ul,
+.jots-capture-rich-md ul {
+    list-style-type: disc;
+}
+.jots-rich-md.jots-quick-textarea ol,
+.jots-capture-rich-md ol {
+    list-style-type: decimal;
+}
+.jots-rich-md.jots-quick-textarea li,
+.jots-capture-rich-md li {
+    margin: 0.12em 0;
+    display: list-item;
+}
+.jots-rich-md.jots-quick-textarea li::marker,
+.jots-capture-rich-md li::marker {
+    color: var(--text-normal);
+}
+.jots-rich-md.jots-quick-textarea strong,
+.jots-capture-rich-md strong {
+    font-weight: 700;
 }
 
 /* 正文里 ![[...]] 无法在 textarea 内渲染，用缩略图条展示 vault 图片 */
@@ -1575,7 +1762,17 @@
     line-height: 1;
 }
 
-.jots-view .jots-quick-tool-btn .jots-toolbar-image-icon {
+.jots-quick-compose-card .jots-quick-tool-btn .jots-toolbar-image-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.jots-view .jots-quick-tool-btn .jots-toolbar-unordered-list-icon,
+.jots-view .jots-quick-tool-btn .jots-toolbar-ordered-list-icon,
+.jots-quick-compose-card .jots-quick-tool-btn .jots-toolbar-unordered-list-icon,
+.jots-quick-compose-card .jots-quick-tool-btn .jots-toolbar-ordered-list-icon {
     width: 16px;
     height: 16px;
     flex-shrink: 0;
@@ -1752,6 +1949,56 @@
 /* 确保搜索框输入框有右侧内边距，为清空按钮留出空间 */
 .jots-search-section input {
     padding-right: 32px !important;
+}
+
+/* Main layout: right column shell (search + calendar + rail) with collapse */
+.jots-right-shell {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 0;
+    box-sizing: border-box;
+}
+
+.jots-right-panel-inner {
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-sizing: border-box;
+}
+
+.jots-right-panel-inner > .jots-calendar {
+    margin-top: 0;
+}
+
+.jots-right-shell-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.jots-right-shell-toggle-btn:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+/* 右栏折叠时整块隐藏；展开/折叠仅由左侧搜索行按钮控制 */
+.jots-right-shell.is-collapsed {
+    display: none !important;
 }
 
 /* Right rail: all tags (collapsible) + recycle bin */
