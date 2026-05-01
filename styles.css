@@ -359,10 +359,15 @@
     position: relative;
     box-sizing: border-box;
     overflow: hidden;
-    border: 1px solid var(--background-modifier-border);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     transition: transform 0.15s ease, filter 0.15s ease;
-    background-color: var(--background-modifier-border);
-    color: var(--text-muted);
+    background-color: #e8e8e8;
+    color: #a3a3a3;
+}
+.theme-dark .jots-heat-cell {
+    border-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-faint);
 }
 .jots-heat-cell::before {
     content: "";
@@ -490,9 +495,12 @@
     min-height: 0;
     border-radius: 26%;
     box-sizing: border-box;
-    background-color: var(--background-modifier-border);
+    background-color: #e8e8e8;
     border: 1px solid transparent;
     transition: filter 0.12s ease, transform 0.12s ease;
+}
+.theme-dark .jots-contrib-cell {
+    background-color: rgba(255, 255, 255, 0.08);
 }
 .jots-contrib-cell::before {
     content: "";
@@ -514,12 +522,15 @@
     line-height: 1;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.03em;
-    color: var(--text-muted);
+    color: #a3a3a3;
     pointer-events: none;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.theme-dark .jots-contrib-cell-date {
+    color: var(--text-faint);
 }
 .jots-contrib-l1 .jots-contrib-cell-date,
 .jots-contrib-l2 .jots-contrib-cell-date,
