@@ -117,22 +117,30 @@
     height: 36px;
     padding: 0;
     margin: 0;
-    border: 1px solid var(--background-modifier-border);
+    border: none !important;
     border-radius: 9999px;
-    background-color: var(--background-secondary);
+    background: transparent !important;
     color: var(--text-muted);
     cursor: pointer;
     box-sizing: border-box;
-    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    box-shadow: none !important;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: color 0.15s ease;
 }
 
-.jots-search-sort-btn:hover {
+.jots-search-sort-btn:hover,
+.jots-search-sort-btn:focus,
+.jots-search-sort-btn:focus-visible,
+.jots-search-sort-btn:active {
     color: var(--text-normal);
-    background-color: var(--background-modifier-hover);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .jots-search-stack:focus-within .jots-search-sort-btn {
-    border-color: var(--interactive-accent);
     color: var(--interactive-accent);
 }
 
@@ -1983,17 +1991,27 @@
     height: 28px;
     padding: 0;
     margin: 0;
-    border: none;
+    border: none !important;
     border-radius: 6px;
-    background: transparent;
+    background: transparent !important;
     color: var(--text-muted);
     cursor: pointer;
-    box-shadow: none;
+    box-sizing: border-box;
+    box-shadow: none !important;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: color 0.15s ease;
 }
 
-.jots-right-shell-toggle-btn:hover {
+.jots-right-shell-toggle-btn:hover,
+.jots-right-shell-toggle-btn:focus,
+.jots-right-shell-toggle-btn:focus-visible,
+.jots-right-shell-toggle-btn:active {
     color: var(--text-normal);
-    background-color: var(--background-modifier-hover);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* 右栏折叠时整块隐藏；展开/折叠仅由左侧搜索行按钮控制 */
@@ -2058,13 +2076,18 @@
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 500;
-    color: var(--text-normal);
+    color: var(--text-muted);
     cursor: pointer;
     white-space: nowrap;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transition: color 0.15s ease;
 }
 
 .jots-right-rail-tags-sort:hover {
-    color: var(--text-accent);
+    color: var(--text-normal);
+    background: transparent;
 }
 
 .jots-right-rail-tags-search-btn {
@@ -2075,16 +2098,20 @@
     cursor: pointer;
     color: var(--text-muted);
     padding: 2px;
+    border: none;
     border-radius: 4px;
+    background: transparent !important;
+    box-shadow: none !important;
+    transition: color 0.15s ease;
 }
 
-.jots-right-rail-tags-search-btn:hover {
+.jots-right-rail-tags-search-btn:hover,
+.jots-right-rail-tags-search-btn:focus,
+.jots-right-rail-tags-search-btn:active {
     color: var(--text-normal);
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-.theme-dark .jots-right-rail-tags-search-btn:hover {
-    background-color: var(--background-modifier-hover);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .jots-right-rail-tags-search-btn svg {
