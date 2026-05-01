@@ -107,7 +107,6 @@ export class JotView extends ItemView {
         }, 200);
 
         await this.refresh();
-        this.checkIfSidebar();
 
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', (leaf) => {
@@ -122,9 +121,9 @@ export class JotView extends ItemView {
         const wasSidebar = this.isSidebar;
         this.checkIfSidebar();
 
-        // 只有在布局模式改变时才重新渲染
-        if (wasSidebar !== this.isSidebar && this.debouncedRender) {
-            this.debouncedRender();
+        /* Re-render immediately when crossing the breakpoint; debouncedRender would leave wrong layout visible ~200ms. */
+        if (wasSidebar !== this.isSidebar) {
+            this.render();
         }
     }
 
@@ -827,6 +826,8 @@ export class JotView extends ItemView {
 
     checkIfSidebar() {
         const width = this.contentEl.clientWidth;
+        /* Avoid treating unlaid-out panes (width 0) as sidebar; prevents a flash of compact heatmap then main layout. */
+        if (width <= 0) return;
         this.isSidebar = width < 450;
     }
 
@@ -863,6 +864,7 @@ export class JotView extends ItemView {
     }
     
     render() {
+        this.checkIfSidebar();
         this.disposeQuickCaptureInput();
         this.contentEl.empty();
         this.contentEl.toggleClass("jots-view--main-layout", !this.isSidebar);

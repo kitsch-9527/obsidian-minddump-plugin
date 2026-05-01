@@ -6477,7 +6477,6 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
       this.render();
     }, 200);
     await this.refresh();
-    this.checkIfSidebar();
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", (leaf) => {
         if (leaf === this.leaf && this.quickComposeContent) {
@@ -6489,8 +6488,8 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
   onResize() {
     const wasSidebar = this.isSidebar;
     this.checkIfSidebar();
-    if (wasSidebar !== this.isSidebar && this.debouncedRender) {
-      this.debouncedRender();
+    if (wasSidebar !== this.isSidebar) {
+      this.render();
     }
   }
   async onClose() {
@@ -7118,6 +7117,8 @@ ${prefix} ${jot.source.trim()}`;
   }
   checkIfSidebar() {
     const width = this.contentEl.clientWidth;
+    if (width <= 0)
+      return;
     this.isSidebar = width < 450;
   }
   async refresh() {
@@ -7146,6 +7147,7 @@ ${prefix} ${jot.source.trim()}`;
     this.jots = allJots;
   }
   render() {
+    this.checkIfSidebar();
     this.disposeQuickCaptureInput();
     this.contentEl.empty();
     this.contentEl.toggleClass("jots-view--main-layout", !this.isSidebar);
