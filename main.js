@@ -3977,11 +3977,11 @@ var init_i18n = __esm({
       zh: {
         pluginName: "\u968F\u624B\u8BB0",
         pluginDescription: "\u968F\u624B\u8BB0\u5F55\u60F3\u6CD5\u548C\u7B14\u8BB0",
-        openJotView: "\u6253\u5F00\u968F\u624B\u8BB0\u89C6\u56FE",
+        openMindDumpView: "\u6253\u5F00\u968F\u624B\u8BB0\u89C6\u56FE",
         quickCapture: "\u5FEB\u901F\u8BB0\u5F55",
-        saveAsJot: "\u4FDD\u5B58\u4E3A\u968F\u624B\u8BB0",
-        savedAsJot: "\u5DF2\u4FDD\u5B58\u4E3A\u968F\u624B\u8BB0\uFF01",
-        jotView: "\u968F\u624B\u8BB0",
+        saveAsMindDump: "\u4FDD\u5B58\u4E3A\u968F\u624B\u8BB0",
+        savedAsMindDump: "\u5DF2\u4FDD\u5B58\u4E3A\u968F\u624B\u8BB0\uFF01",
+        mindDumpView: "\u968F\u624B\u8BB0",
         quickRecord: "\u5FEB\u901F\u8BB0\u5F55",
         contentPlaceholder: "\u73B0\u5728\u7684\u60F3\u6CD5\u662F...",
         toolbarBold: "\u52A0\u7C97",
@@ -3999,9 +3999,9 @@ var init_i18n = __esm({
         cancel: "\u53D6\u6D88",
         contentRequired: "\u5185\u5BB9\u4E0D\u80FD\u4E3A\u7A7A",
         saved: "\u5DF2\u4FDD\u5B58\uFF01",
-        jotUpdateNotFound: "\u5728\u6587\u4EF6\u4E2D\u627E\u4E0D\u5230\u8BE5\u6761\u968F\u624B\u8BB0\u3002",
-        jotUpdateNoFile: "\u8BE5\u8BB0\u5F55\u6CA1\u6709\u5173\u8054\u7684\u6587\u4EF6\u3002",
-        jotUpdateFileMissing: "\u6E90\u6587\u4EF6\u4E0D\u5B58\u5728\u3002",
+        mindDumpUpdateNotFound: "\u5728\u6587\u4EF6\u4E2D\u627E\u4E0D\u5230\u8BE5\u6761\u968F\u624B\u8BB0\u3002",
+        mindDumpUpdateNoFile: "\u8BE5\u8BB0\u5F55\u6CA1\u6709\u5173\u8054\u7684\u6587\u4EF6\u3002",
+        mindDumpUpdateFileMissing: "\u6E90\u6587\u4EF6\u4E0D\u5B58\u5728\u3002",
         saveFailed: "\u4FDD\u5B58\u5931\u8D25: {error}",
         attachmentSaved: "\u9644\u4EF6\u5DF2\u4FDD\u5B58: {filename}",
         calendar: "\u65E5\u5386",
@@ -4036,16 +4036,16 @@ var init_i18n = __esm({
         noRecords: "\u6682\u65E0\u8BB0\u5F55\uFF0C\u5F00\u59CB\u8BB0\u5F55\u4F60\u7684\u60F3\u6CD5\u5427\uFF01",
         settings: "\u8BBE\u7F6E",
         saveFolder: "\u4FDD\u5B58\u6587\u4EF6\u5939",
-        saveFolderDesc: "\u4F4D\u4E8E vault \u6839\u76EE\u5F55\uFF0C\u4F8B\u5982\uFF1AJots",
+        saveFolderDesc: "\u4F4D\u4E8E vault \u6839\u76EE\u5F55\uFF0C\u4F8B\u5982\uFF1AMindDump",
         attachmentsFolder: "\u9644\u4EF6\u5B58\u653E\u76EE\u5F55",
-        attachmentsFolderDesc: "\u9644\u4EF6\u5B58\u653E\u4F4D\u7F6E\uFF0C\u4F8B\u5982\uFF1AJots/attachments\u3002\u9644\u4EF6\u547D\u540D\u683C\u5F0F\uFF1Ajot-YYYYMMDD-\u5E8F\u6570",
-        attachmentsNaming: "\u9644\u4EF6\u547D\u540D\u683C\u5F0F\uFF1Ajot-YYYYMMDD-\u5E8F\u6570",
+        attachmentsFolderDesc: "\u9644\u4EF6\u5B58\u653E\u4F4D\u7F6E\uFF0C\u4F8B\u5982\uFF1AMindDump/attachments\u3002\u9644\u4EF6\u547D\u540D\u683C\u5F0F\uFF1Aminddump-YYYYMMDD-\u5E8F\u6570",
+        attachmentsNaming: "\u9644\u4EF6\u547D\u540D\u683C\u5F0F\uFF1Aminddump-YYYYMMDD-\u5E8F\u6570",
         logMode: "\u8BB0\u5F55\u6A21\u5F0F",
         logModeDesc: "\u9009\u62E9\u8BB0\u5F55\u4FDD\u5B58\u65B9\u5F0F",
         logModeMulti: "\u6BCF\u5929\u4E00\u4E2A\u6587\u4EF6",
         logModeSingle: "\u5355\u4E2A\u6587\u4EF6",
         fileFormat: "\u6587\u4EF6\u540D\u683C\u5F0F",
-        fileFormatDesc: "\u6587\u4EF6\u540D\u547D\u540D\u683C\u5F0F\uFF0C\u4F8B\u5982\uFF1Ajot-YYYYMMDD \u4F1A\u751F\u6210 jot-20260326.md",
+        fileFormatDesc: "\u6587\u4EF6\u540D\u547D\u540D\u683C\u5F0F\uFF0C\u4F8B\u5982\uFF1Aminddump-YYYYMMDD \u4F1A\u751F\u6210 minddump-20260326.md",
         useFixedTag: "\u4F7F\u7528\u56FA\u5B9A\u6807\u7B7E",
         useFixedTagDesc: "\u4E3A\u6BCF\u6761\u8BB0\u5F55\u81EA\u52A8\u6DFB\u52A0\u56FA\u5B9A\u6807\u7B7E",
         fixedTag: "\u56FA\u5B9A\u6807\u7B7E\u503C",
@@ -4067,7 +4067,7 @@ var init_i18n = __esm({
         loadingSettings: "\u52A0\u8F7D\u8BBE\u7F6E:",
         creatingAttachmentsFolder: "\u521B\u5EFA\u9644\u4EF6\u76EE\u5F55:",
         attachmentsFolderExists: "\u9644\u4EF6\u76EE\u5F55\u5DF2\u5B58\u5728\u6216\u521B\u5EFA\u5931\u8D25:",
-        creatingJotView: "\u521B\u5EFA JotView \u5B9E\u4F8B",
+        creatingMindDumpView: "\u521B\u5EFA MindDumpView \u5B9E\u4F8B",
         activatingView: "\u6FC0\u6D3B\u89C6\u56FE",
         pluginNotLoaded: "\u63D2\u4EF6\u672A\u5B8C\u5168\u52A0\u8F7D\uFF0C\u5EF6\u8FDF\u6FC0\u6D3B",
         existingViewFound: "\u627E\u5230\u73B0\u6709\u89C6\u56FE",
@@ -4077,7 +4077,7 @@ var init_i18n = __esm({
         recordsCount: "{count}\u6761\u8BB0\u5F55",
         autoOpenView: "\u6253\u5F00 vault \u65F6\u81EA\u52A8\u6253\u5F00\u968F\u624B\u8BB0\u89C6\u56FE",
         autoOpenViewDesc: "\u542F\u52A8 Obsidian \u65F6\u81EA\u52A8\u6253\u5F00\u968F\u624B\u8BB0\u89C6\u56FE",
-        jotUpdatedAt: "\u66F4\u65B0",
+        mindDumpUpdatedAt: "\u66F4\u65B0",
         pasteImageUploadFailed: "\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF1A{error}",
         cardMenuShare: "\u5206\u4EAB",
         cardMenuEdit: "\u7F16\u8F91",
@@ -4116,23 +4116,23 @@ var init_i18n = __esm({
         rightRailTagSortNameDesc: "\u540D\u79F0 Z \u2192 A",
         rightRailTagSortCountDesc: "\u4F7F\u7528\u6B21\u6570\uFF08\u591A \u2192 \u5C11\uFF09",
         rightRailTagSortCountAsc: "\u4F7F\u7528\u6B21\u6570\uFF08\u5C11 \u2192 \u591A\uFF09",
-        jotListSortButton: "\u5217\u8868\u6392\u5E8F",
-        jotListSortCreatedDesc: "\u521B\u5EFA\u65F6\u95F4\uFF08\u65B0 \u2192 \u65E7\uFF09",
-        jotListSortCreatedAsc: "\u521B\u5EFA\u65F6\u95F4\uFF08\u65E7 \u2192 \u65B0\uFF09",
-        jotListSortUpdatedDesc: "\u66F4\u65B0\u65F6\u95F4\uFF08\u65B0 \u2192 \u65E7\uFF09",
-        jotListSortUpdatedAsc: "\u66F4\u65B0\u65F6\u95F4\uFF08\u65E7 \u2192 \u65B0\uFF09",
+        mindDumpListSortButton: "\u5217\u8868\u6392\u5E8F",
+        mindDumpListSortCreatedDesc: "\u521B\u5EFA\u65F6\u95F4\uFF08\u65B0 \u2192 \u65E7\uFF09",
+        mindDumpListSortCreatedAsc: "\u521B\u5EFA\u65F6\u95F4\uFF08\u65E7 \u2192 \u65B0\uFF09",
+        mindDumpListSortUpdatedDesc: "\u66F4\u65B0\u65F6\u95F4\uFF08\u65B0 \u2192 \u65E7\uFF09",
+        mindDumpListSortUpdatedAsc: "\u66F4\u65B0\u65F6\u95F4\uFF08\u65E7 \u2192 \u65B0\uFF09",
         rightRailTagFilterPlaceholder: "\u7B5B\u9009\u6807\u7B7E\u2026",
         rightPanelCollapse: "\u6536\u8D77\u4FA7\u680F",
         rightPanelExpand: "\u5C55\u5F00\u4FA7\u680F"
       },
       en: {
-        pluginName: "Jot",
+        pluginName: "MindDump",
         pluginDescription: "Quick note-taking plugin",
-        openJotView: "Open Jot View",
+        openMindDumpView: "Open MindDump View",
         quickCapture: "Quick Capture",
-        saveAsJot: "Save as Jot",
-        savedAsJot: "Saved as Jot!",
-        jotView: "Jot",
+        saveAsMindDump: "Save as MindDump",
+        savedAsMindDump: "Saved as MindDump!",
+        mindDumpView: "MindDump",
         quickRecord: "Quick Record",
         contentPlaceholder: "What's on your mind...",
         toolbarBold: "Bold",
@@ -4150,9 +4150,9 @@ var init_i18n = __esm({
         cancel: "Cancel",
         contentRequired: "Content cannot be empty",
         saved: "Saved!",
-        jotUpdateNotFound: "Could not find that jot in the file.",
-        jotUpdateNoFile: "This jot has no source file.",
-        jotUpdateFileMissing: "Source file not found.",
+        mindDumpUpdateNotFound: "Could not find that mind dump in the file.",
+        mindDumpUpdateNoFile: "This mind dump has no source file.",
+        mindDumpUpdateFileMissing: "Source file not found.",
         saveFailed: "Save failed: {error}",
         attachmentSaved: "Attachment saved: {filename}",
         calendar: "Calendar",
@@ -4187,16 +4187,16 @@ var init_i18n = __esm({
         noRecords: "No records yet. Start capturing your thoughts!",
         settings: "Settings",
         saveFolder: "Save Folder",
-        saveFolderDesc: "Located in vault root, e.g., Jots",
+        saveFolderDesc: "Located in vault root, e.g., MindDump",
         attachmentsFolder: "Attachments Folder",
-        attachmentsFolderDesc: "Attachment storage location, e.g., Jots/attachments. Naming format: jot-YYYYMMDD-number",
-        attachmentsNaming: "Naming format: jot-YYYYMMDD-number",
+        attachmentsFolderDesc: "Attachment storage location, e.g., MindDump/attachments. Naming format: minddump-YYYYMMDD-number",
+        attachmentsNaming: "Naming format: minddump-YYYYMMDD-number",
         logMode: "Log Mode",
         logModeDesc: "Choose how to save records",
         logModeMulti: "One file per day",
         logModeSingle: "Single file",
         fileFormat: "File Format",
-        fileFormatDesc: "File naming format, e.g., jot-YYYYMMDD generates jot-20260326.md",
+        fileFormatDesc: "File naming format, e.g., minddump-YYYYMMDD generates minddump-20260326.md",
         useFixedTag: "Use Fixed Tag",
         useFixedTagDesc: "Automatically add a fixed tag to each record",
         fixedTag: "Fixed Tag Value",
@@ -4213,12 +4213,12 @@ var init_i18n = __esm({
         newRecordAtTop: "\u2022 New records are automatically added to the top",
         imageEmbed: "\u2022 Images embedded with ![[path]]",
         fileLink: "\u2022 Other files linked with [[path]]",
-        loadingPlugin: "Loading Jot plugin",
-        unloadingPlugin: "Unloading Jot plugin",
+        loadingPlugin: "Loading MindDump plugin",
+        unloadingPlugin: "Unloading MindDump plugin",
         loadingSettings: "Loading settings:",
         creatingAttachmentsFolder: "Creating attachments folder:",
         attachmentsFolderExists: "Attachments folder exists or creation failed:",
-        creatingJotView: "Creating JotView instance",
+        creatingMindDumpView: "Creating MindDumpView instance",
         activatingView: "Activating view",
         pluginNotLoaded: "Plugin not fully loaded, delaying activation",
         existingViewFound: "Found existing view",
@@ -4226,9 +4226,9 @@ var init_i18n = __esm({
         weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
         selectedFiles: "\u2705 Selected {count} file(s)",
         recordsCount: "{count} record(s)",
-        autoOpenView: "Auto-open Jot View on vault open",
-        autoOpenViewDesc: "Automatically open Jot View when Obsidian starts",
-        jotUpdatedAt: "Updated",
+        autoOpenView: "Auto-open MindDump View on vault open",
+        autoOpenViewDesc: "Automatically open MindDump View when Obsidian starts",
+        mindDumpUpdatedAt: "Updated",
         pasteImageUploadFailed: "Image upload failed: {error}",
         cardMenuShare: "Share",
         cardMenuEdit: "Edit",
@@ -4246,12 +4246,12 @@ var init_i18n = __esm({
         cardMenuLinkCopied: "Link copied",
         cardMenuShareCopied: "Copied to clipboard",
         cardMenuDeleted: "Moved to recycle bin",
-        cardMenuDeleteConfirm: "Delete this jot? It will go to the recycle bin; you can remove it permanently there.",
+        cardMenuDeleteConfirm: "Delete this mind dump? It will go to the recycle bin; you can remove it permanently there.",
         cardMenuComingSoon: "Coming soon",
         cardMenuAiBadge: "AI",
         cardMenuRestore: "Restore",
         cardMenuPurge: "Delete permanently",
-        cardMenuPurgeConfirm: "Permanently delete this jot? This cannot be undone.",
+        cardMenuPurgeConfirm: "Permanently delete this mind dump? This cannot be undone.",
         cardMenuRestored: "Restored",
         cardMenuPurged: "Permanently deleted",
         rightRailAllTags: "All tags",
@@ -4259,19 +4259,19 @@ var init_i18n = __esm({
         recycleBinEmpty: "Recycle bin is empty",
         recycleBinRetentionBanner: "Notes in the recycle bin for more than 30 days will be automatically deleted.",
         recycleBinEmptyAll: "Empty recycle bin",
-        recycleBinEmptyAllConfirm: "Empty the recycle bin? All jots in it will be permanently deleted. This cannot be undone.",
-        recycleBinAllPurged: "Permanently deleted {count} jot(s).",
-        recycleBinAutoPurged: "Permanently removed {count} recycle bin jot(s) older than 30 days.",
+        recycleBinEmptyAllConfirm: "Empty the recycle bin? All mind dumps in it will be permanently deleted. This cannot be undone.",
+        recycleBinAllPurged: "Permanently deleted {count} mind dump(s).",
+        recycleBinAutoPurged: "Permanently removed {count} recycle bin mind dump(s) older than 30 days.",
         rightRailTagSort: "Sort",
         rightRailTagSortNameAsc: "Name A \u2192 Z",
         rightRailTagSortNameDesc: "Name Z \u2192 A",
         rightRailTagSortCountDesc: "Usage count (high \u2192 low)",
         rightRailTagSortCountAsc: "Usage count (low \u2192 high)",
-        jotListSortButton: "Sort list",
-        jotListSortCreatedDesc: "Created (newest first)",
-        jotListSortCreatedAsc: "Created (oldest first)",
-        jotListSortUpdatedDesc: "Updated (newest first)",
-        jotListSortUpdatedAsc: "Updated (oldest first)",
+        mindDumpListSortButton: "Sort list",
+        mindDumpListSortCreatedDesc: "Created (newest first)",
+        mindDumpListSortCreatedAsc: "Created (oldest first)",
+        mindDumpListSortUpdatedDesc: "Updated (newest first)",
+        mindDumpListSortUpdatedAsc: "Updated (oldest first)",
         rightRailTagFilterPlaceholder: "Filter tags\u2026",
         rightPanelCollapse: "Collapse side panel",
         rightPanelExpand: "Expand side panel"
@@ -4292,7 +4292,7 @@ function debounce(func, wait) {
     timeout = setTimeout(later, wait);
   };
 }
-function normalizeJotTags(tags) {
+function normalizeMindDumpTags(tags) {
   const seen = /* @__PURE__ */ new Set();
   const out = [];
   for (const raw of tags) {
@@ -4304,22 +4304,22 @@ function normalizeJotTags(tags) {
   }
   return out;
 }
-function newJotId() {
+function newMindDumpId() {
   if (typeof globalThis.crypto !== "undefined" && typeof globalThis.crypto.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
   }
-  return `jot-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+  return `minddump-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
-function stableLegacyJotId(filePath, date, time) {
+function stableLegacyMindDumpId(filePath, date, time) {
   const s = `${filePath}\0${date}\0${time}`;
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
     h = Math.imul(h, 16777619);
   }
-  return `jot-legacy-${(h >>> 0).toString(16)}`;
+  return `minddump-legacy-${(h >>> 0).toString(16)}`;
 }
-function formatJotEntryBlock(fullDateTime, id, updatedAt, body, options) {
+function formatMindDumpEntryBlock(fullDateTime, id, updatedAt, body, options) {
   const del = (options == null ? void 0 : options.deleted) === true ? "#### deleted: true\n" : "";
   return `### ${fullDateTime}
 #### id: ${id}
@@ -4331,14 +4331,14 @@ ${body}
 
 `;
 }
-function composeJotMarkdownBody(content, tags, source, attachments, lang, useFixedTag, fixedTag) {
-  let allTags = normalizeJotTags(tags);
+function composeMindDumpMarkdownBody(content, tags, source, attachments, lang, useFixedTag, fixedTag) {
+  let allTags = normalizeMindDumpTags(tags);
   if (useFixedTag && fixedTag) {
     const fixedTagClean = fixedTag.replace(/^#+/, "").trim();
     if (!allTags.includes(fixedTagClean))
       allTags.push(fixedTagClean);
   }
-  allTags = normalizeJotTags(allTags);
+  allTags = normalizeMindDumpTags(allTags);
   const tagLine = allTags.length > 0 ? allTags.map((x) => `#${x}`).join(" ") : "";
   let finalContent = content;
   const attachmentLines = attachments && attachments.length > 0 ? attachments.map((att) => att.type === "image" ? `![[${att.path}]]` : `[[${att.path}]]`).join("\n") : "";
@@ -4358,7 +4358,7 @@ ${sourcePrefix} ${source}`;
 ${attachmentLines}`;
   return { body: finalContent, allTags };
 }
-function replaceJotBlockById(content, filePath, targetId, newBlock) {
+function replaceMindDumpBlockById(content, filePath, targetId, newBlock) {
   const lines = content.split("\n");
   let i = 0;
   while (i < lines.length) {
@@ -4387,7 +4387,7 @@ function replaceJotBlockById(content, filePath, targetId, newBlock) {
         }
         break;
       }
-      const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
+      const id = metaId || stableLegacyMindDumpId(filePath, date || "", time || "");
       let k = j;
       while (k < lines.length && !lines[k].trim().startsWith("### ")) {
         k++;
@@ -4410,7 +4410,7 @@ function replaceJotBlockById(content, filePath, targetId, newBlock) {
   }
   return { content, found: false };
 }
-function removeJotBlockById(content, filePath, targetId) {
+function removeMindDumpBlockById(content, filePath, targetId) {
   const lines = content.split("\n");
   let i = 0;
   while (i < lines.length) {
@@ -4439,7 +4439,7 @@ function removeJotBlockById(content, filePath, targetId) {
         }
         break;
       }
-      const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
+      const id = metaId || stableLegacyMindDumpId(filePath, date || "", time || "");
       let k = j;
       while (k < lines.length && !lines[k].trim().startsWith("### ")) {
         k++;
@@ -4499,9 +4499,9 @@ function parseFileContent(content, filePath, lang) {
         }
         break;
       }
-      const id = idMeta || stableLegacyJotId(filePath, date || "", time || "");
+      const id = idMeta || stableLegacyMindDumpId(filePath, date || "", time || "");
       const updatedAt = updatedAtMeta || createdAt;
-      let jotContent = "";
+      let entryContent = "";
       let tags = [];
       let source = "";
       let attachments = [];
@@ -4513,10 +4513,10 @@ function parseFileContent(content, filePath, lang) {
           j++;
           continue;
         }
-        if (trimmedLine.match(/^#[\w\u4e00-\u9fff\/\-_]+(\s+#[\w\u4e00-\u9fff\/\-_]+)*$/)) {
-          const tagMatches = trimmedLine.match(/#[\w\u4e00-\u9fff\/\-_]+/g);
+        if (trimmedLine.match(/^#[\w一-鿿\/\-_]+(\s+#[\w一-鿿\/\-_]+)*$/)) {
+          const tagMatches = trimmedLine.match(/#[\w一-鿿\/\-_]+/g);
           if (tagMatches) {
-            tags = normalizeJotTags(tagMatches);
+            tags = normalizeMindDumpTags(tagMatches);
           }
         } else {
           const matchedPrefix = sourcePrefixes.find((p) => trimmedLine.startsWith(p));
@@ -4531,27 +4531,27 @@ function parseFileContent(content, filePath, lang) {
                 attachmentTypes.push(trimmedLine.startsWith("![[") ? "image" : "file");
               }
             } else {
-              if (jotContent) {
-                jotContent += "\n" + currentLine;
+              if (entryContent) {
+                entryContent += "\n" + currentLine;
               } else {
-                jotContent = currentLine;
+                entryContent = currentLine;
               }
             }
           }
         }
         j++;
       }
-      if (jotContent.trim() || tags.length > 0 || source || attachments.length > 0 || deletedMeta) {
+      if (entryContent.trim() || tags.length > 0 || source || attachments.length > 0 || deletedMeta) {
         entries.push({
           id,
           createdAt,
           updatedAt,
           date: date || "",
           time: time || "",
-          content: jotContent.trim(),
+          content: entryContent.trim(),
           tags,
           source,
-          fullText: jotContent.trim(),
+          fullText: entryContent.trim(),
           attachments,
           attachmentTypes,
           filePath,
@@ -4609,12 +4609,12 @@ async function handleAttachment(app, file, settings, lang, callback, options) {
   let existingFiles = [];
   if (folder && folder instanceof import_obsidian.TFolder) {
     existingFiles = folder.children.filter(
-      (f) => f instanceof import_obsidian.TFile && f.name.startsWith(`jot-${dateStrNoDash}`)
+      (f) => f instanceof import_obsidian.TFile && f.name.startsWith(`minddump-${dateStrNoDash}`)
     );
   }
   let maxNumber = 0;
   for (const f of existingFiles) {
-    const match = f.name.match(/jot-(\d{8})-(\d+)\./);
+    const match = f.name.match(/minddump-(\d{8})-(\d+)\./);
     if (match) {
       const num = parseInt(match[2], 10);
       if (num > maxNumber)
@@ -4630,7 +4630,7 @@ async function handleAttachment(app, file, settings, lang, callback, options) {
     maxNumber++;
     serialNumber = String(maxNumber).padStart(3, "0");
     const ext = file.name.split(".").pop() || "bin";
-    filename = `jot-${dateStrNoDash}-${serialNumber}.${ext}`;
+    filename = `minddump-${dateStrNoDash}-${serialNumber}.${ext}`;
     filePath = `${attachmentsFolder}/${filename}`;
     attempts++;
   } while (app.vault.getAbstractFileByPath(filePath) && attempts < maxAttempts);
@@ -4667,10 +4667,10 @@ function setupWikilinkAutocomplete(app, field, inputTarget, container, onSuggest
     items.forEach((item, i) => {
       if (item && item.classList) {
         if (i === index) {
-          item.classList.add("jots-suggestion-item-active");
+          item.classList.add("minddump-suggestion-item-active");
           item.style.backgroundColor = "var(--background-modifier-hover)";
         } else {
-          item.classList.remove("jots-suggestion-item-active");
+          item.classList.remove("minddump-suggestion-item-active");
           item.style.backgroundColor = "";
         }
       }
@@ -4696,7 +4696,7 @@ function setupWikilinkAutocomplete(app, field, inputTarget, container, onSuggest
           }
           if (!suggestionContainer) {
             suggestionContainer = document.createElement("div");
-            suggestionContainer.classList.add("jots-suggestions");
+            suggestionContainer.classList.add("minddump-suggestions");
             suggestionContainer.style.position = "fixed";
             suggestionContainer.style.backgroundColor = "var(--background-primary)";
             suggestionContainer.style.border = "1px solid var(--background-modifier-border)";
@@ -4718,7 +4718,7 @@ function setupWikilinkAutocomplete(app, field, inputTarget, container, onSuggest
           suggestionContainer.empty();
           matches.forEach((file, index) => {
             const item = suggestionContainer.createDiv();
-            item.classList.add("jots-suggestion-item");
+            item.classList.add("minddump-suggestion-item");
             item.textContent = file.basename;
             item.style.padding = "6px 12px";
             item.style.cursor = "pointer";
@@ -4726,7 +4726,7 @@ function setupWikilinkAutocomplete(app, field, inputTarget, container, onSuggest
             item.style.borderBottom = "1px solid var(--background-modifier-border)";
             item.style.color = "var(--text-normal)";
             if (index === 0) {
-              item.classList.add("jots-suggestion-item-active");
+              item.classList.add("minddump-suggestion-item-active");
               item.style.backgroundColor = "var(--background-modifier-hover)";
             }
             item.addEventListener("click", () => {
@@ -4753,8 +4753,8 @@ function setupWikilinkAutocomplete(app, field, inputTarget, container, onSuggest
   const onKeydown = (e) => {
     if (!suggestionContainer)
       return;
-    const items = suggestionContainer.querySelectorAll(".jots-suggestion-item");
-    const activeItem = suggestionContainer.querySelector(".jots-suggestion-item-active");
+    const items = suggestionContainer.querySelectorAll(".minddump-suggestion-item");
+    const activeItem = suggestionContainer.querySelector(".minddump-suggestion-item-active");
     let activeIndex = -1;
     items.forEach((item, index) => {
       if (item === activeItem)
@@ -4801,10 +4801,10 @@ function setupTagAutocomplete(getExistingTags, tagInput, container, tagListConta
   const setActiveTagSuggestion = (items, index) => {
     items.forEach((item, i) => {
       if (i === index) {
-        item.classList.add("jots-tag-suggestion-item-active");
+        item.classList.add("minddump-tag-suggestion-item-active");
         item.style.backgroundColor = "var(--background-modifier-hover)";
       } else {
-        item.classList.remove("jots-tag-suggestion-item-active");
+        item.classList.remove("minddump-tag-suggestion-item-active");
         item.style.backgroundColor = "";
       }
     });
@@ -4819,7 +4819,7 @@ function setupTagAutocomplete(getExistingTags, tagInput, container, tagListConta
     }
     if (!tagSuggestionContainer) {
       tagSuggestionContainer = container.createDiv();
-      tagSuggestionContainer.classList.add("jots-tag-suggestions");
+      tagSuggestionContainer.classList.add("minddump-tag-suggestions");
       tagSuggestionContainer.style.position = "absolute";
       tagSuggestionContainer.style.top = "100%";
       tagSuggestionContainer.style.left = "0";
@@ -4835,7 +4835,7 @@ function setupTagAutocomplete(getExistingTags, tagInput, container, tagListConta
     tagSuggestionContainer.empty();
     matches.forEach((tag, index) => {
       const item = tagSuggestionContainer.createDiv();
-      item.classList.add("jots-tag-suggestion-item");
+      item.classList.add("minddump-tag-suggestion-item");
       item.textContent = `#${tag}`;
       item.style.padding = "6px 12px";
       item.style.cursor = "pointer";
@@ -4843,7 +4843,7 @@ function setupTagAutocomplete(getExistingTags, tagInput, container, tagListConta
       item.style.borderBottom = "1px solid var(--background-modifier-border)";
       item.style.color = "var(--text-normal)";
       if (index === 0) {
-        item.classList.add("jots-tag-suggestion-item-active");
+        item.classList.add("minddump-tag-suggestion-item-active");
         item.style.backgroundColor = "var(--background-modifier-hover)";
       }
       item.addEventListener("click", () => {
@@ -4877,7 +4877,7 @@ function setupTagAutocomplete(getExistingTags, tagInput, container, tagListConta
       e.preventDefault();
       const value = tagInput.value.trim();
       if (tagSuggestionContainer) {
-        const activeItem2 = tagSuggestionContainer.querySelector(".jots-tag-suggestion-item-active");
+        const activeItem2 = tagSuggestionContainer.querySelector(".minddump-tag-suggestion-item-active");
         if (activeItem2) {
           const tag = ((_a = activeItem2.textContent) == null ? void 0 : _a.replace("#", "")) || "";
           onAddTag(tag);
@@ -4892,7 +4892,7 @@ function setupTagAutocomplete(getExistingTags, tagInput, container, tagListConta
     }
     if (e.key === "Tab" && tagSuggestionContainer) {
       e.preventDefault();
-      const activeItem2 = tagSuggestionContainer.querySelector(".jots-tag-suggestion-item-active");
+      const activeItem2 = tagSuggestionContainer.querySelector(".minddump-tag-suggestion-item-active");
       if (activeItem2) {
         const tag = ((_b = activeItem2.textContent) == null ? void 0 : _b.replace("#", "")) || "";
         onAddTag(tag);
@@ -4906,8 +4906,8 @@ function setupTagAutocomplete(getExistingTags, tagInput, container, tagListConta
     }
     if (!tagSuggestionContainer)
       return;
-    const items = tagSuggestionContainer.querySelectorAll(".jots-tag-suggestion-item");
-    const activeItem = tagSuggestionContainer.querySelector(".jots-tag-suggestion-item-active");
+    const items = tagSuggestionContainer.querySelectorAll(".minddump-tag-suggestion-item");
+    const activeItem = tagSuggestionContainer.querySelector(".minddump-tag-suggestion-item-active");
     let activeIndex = -1;
     items.forEach((item, index) => {
       if (item === activeItem)
@@ -5317,7 +5317,7 @@ function mountRichMarkdownField(parent, initialMarkdown, options) {
   var _a;
   const doc = parent.ownerDocument;
   const el = parent.createEl("div", {
-    cls: `jots-rich-md ${(_a = options == null ? void 0 : options.className) != null ? _a : ""}`.trim(),
+    cls: `minddump-rich-md ${(_a = options == null ? void 0 : options.className) != null ? _a : ""}`.trim(),
     attr: {
       contenteditable: "true",
       role: "textbox",
@@ -5447,7 +5447,7 @@ ${ZWSP}`;
 // src/quick-compose-card.ts
 function createPaperPlaneSendIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "jots-quick-send-icon");
+  svg.setAttribute("class", "minddump-quick-send-icon");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("fill", "none");
   svg.setAttribute("aria-hidden", "true");
@@ -5486,12 +5486,12 @@ function mountQuickComposeCard(options) {
   const { parent, deps } = options;
   const { app, lang, pluginSettings, getExistingTags } = deps;
   const isEdit = options.mode === "edit";
-  const inputCard = parent.createDiv({ cls: "jots-quick-compose-card" });
+  const inputCard = parent.createDiv({ cls: "minddump-quick-compose-card" });
   if (isEdit)
-    inputCard.addClass("jots-quick-compose-card--inline-edit");
-  const textareaContainer = inputCard.createDiv({ cls: "jots-quick-textarea-container" });
+    inputCard.addClass("minddump-quick-compose-card--inline-edit");
+  const textareaContainer = inputCard.createDiv({ cls: "minddump-quick-textarea-container" });
   const contentField = mountRichMarkdownField(textareaContainer, "", {
-    className: "jots-quick-textarea",
+    className: "minddump-quick-textarea",
     placeholder: isEdit ? t("placeholderWithLink", lang) : t("contentPlaceholder", lang)
   });
   let syncQuickTextareaHeight = () => {
@@ -5505,7 +5505,7 @@ function mountQuickComposeCard(options) {
   let syncCompactDraftLockFromContent = () => {
   };
   if (!isEdit) {
-    inputCard.addClass("jots-quick-compose-card--textarea-compact");
+    inputCard.addClass("minddump-quick-compose-card--textarea-compact");
     let compactUserHasDrafted = false;
     let compactScrollCleanup = null;
     let compactLastScrollTop = 0;
@@ -5533,12 +5533,12 @@ function mountQuickComposeCard(options) {
           compactLastScrollTop = sp.scrollTop;
           return;
         }
-        if (!inputCard.classList.contains("jots-quick-compose-card--textarea-expanded"))
+        if (!inputCard.classList.contains("minddump-quick-compose-card--textarea-expanded"))
           return;
         const st = sp.scrollTop;
         if (st > compactLastScrollTop + 6) {
-          inputCard.addClass("jots-quick-compose-card--textarea-compact");
-          inputCard.removeClass("jots-quick-compose-card--textarea-expanded");
+          inputCard.addClass("minddump-quick-compose-card--textarea-compact");
+          inputCard.removeClass("minddump-quick-compose-card--textarea-expanded");
           compactScrollCleanup == null ? void 0 : compactScrollCleanup();
           compactScrollCleanup = null;
         }
@@ -5551,10 +5551,10 @@ function mountQuickComposeCard(options) {
       };
     };
     expandCompactTextarea = () => {
-      if (inputCard.classList.contains("jots-quick-compose-card--textarea-expanded"))
+      if (inputCard.classList.contains("minddump-quick-compose-card--textarea-expanded"))
         return;
-      inputCard.removeClass("jots-quick-compose-card--textarea-compact");
-      inputCard.addClass("jots-quick-compose-card--textarea-expanded");
+      inputCard.removeClass("minddump-quick-compose-card--textarea-compact");
+      inputCard.addClass("minddump-quick-compose-card--textarea-expanded");
       bindCompactScrollCollapse();
       syncQuickTextareaHeight();
     };
@@ -5562,8 +5562,8 @@ function mountQuickComposeCard(options) {
       compactUserHasDrafted = false;
       compactScrollCleanup == null ? void 0 : compactScrollCleanup();
       compactScrollCleanup = null;
-      inputCard.addClass("jots-quick-compose-card--textarea-compact");
-      inputCard.removeClass("jots-quick-compose-card--textarea-expanded");
+      inputCard.addClass("minddump-quick-compose-card--textarea-compact");
+      inputCard.removeClass("minddump-quick-compose-card--textarea-expanded");
       syncQuickTextareaHeight();
     };
     markCompactDrafted = () => {
@@ -5583,7 +5583,7 @@ function mountQuickComposeCard(options) {
     });
   }
   syncQuickTextareaHeight = () => {
-    if (!isEdit && inputCard.classList.contains("jots-quick-compose-card--textarea-compact")) {
+    if (!isEdit && inputCard.classList.contains("minddump-quick-compose-card--textarea-compact")) {
       contentField.el.style.removeProperty("height");
       contentField.el.style.removeProperty("overflow-y");
       return;
@@ -5605,7 +5605,7 @@ function mountQuickComposeCard(options) {
       markCompactDrafted();
     }
   );
-  const embedPreviewRow = inputCard.createDiv({ cls: "jots-quick-embed-preview" });
+  const embedPreviewRow = inputCard.createDiv({ cls: "minddump-quick-embed-preview" });
   const isVaultImagePath = (p) => /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i.test(p);
   let removeImageEverywhere;
   const refreshEmbedPreviews = () => {
@@ -5623,12 +5623,12 @@ function mountQuickComposeCard(options) {
       const af = app.vault.getAbstractFileByPath(vaultPath);
       if (!(af instanceof import_obsidian2.TFile) || !isVaultImagePath(af.path))
         continue;
-      const thumb = embedPreviewRow.createDiv({ cls: "jots-quick-embed-thumb jots-quick-embed-thumb--removable" });
-      const img = thumb.createEl("img", { cls: "jots-quick-embed-img" });
+      const thumb = embedPreviewRow.createDiv({ cls: "minddump-quick-embed-thumb minddump-quick-embed-thumb--removable" });
+      const img = thumb.createEl("img", { cls: "minddump-quick-embed-img" });
       img.src = app.vault.getResourcePath(af);
       img.alt = af.name;
       const rm = thumb.createEl("button", {
-        cls: "jots-quick-embed-remove",
+        cls: "minddump-quick-embed-remove",
         type: "button",
         attr: { "aria-label": t("removeEditorImage", lang) }
       });
@@ -5640,11 +5640,11 @@ function mountQuickComposeCard(options) {
       });
     }
   };
-  const tagSection = inputCard.createDiv({ cls: "jots-quick-meta-section" });
-  const tagInputContainer = tagSection.createDiv({ cls: "jots-quick-meta-input-container" });
-  const tagInput = tagInputContainer.createEl("input", { cls: "jots-tag-input jots-quick-meta-input" });
+  const tagSection = inputCard.createDiv({ cls: "minddump-quick-meta-section" });
+  const tagInputContainer = tagSection.createDiv({ cls: "minddump-quick-meta-input-container" });
+  const tagInput = tagInputContainer.createEl("input", { cls: "minddump-tag-input minddump-quick-meta-input" });
   tagInput.placeholder = t("tagsInputPlaceholder", lang);
-  const tagListContainer = tagSection.createDiv({ cls: "jots-quick-tag-list" });
+  const tagListContainer = tagSection.createDiv({ cls: "minddump-quick-tag-list" });
   const sessionTags = isEdit ? [...options.initial.tags] : [];
   let replacingTag = null;
   let tagBlurFinalizeGen = 0;
@@ -5756,8 +5756,8 @@ function mountQuickComposeCard(options) {
       tagSection.style.display = "none";
     }, 200);
   });
-  const sourceSection = inputCard.createDiv({ cls: "jots-quick-source-section" });
-  const sourceInput = sourceSection.createEl("input", { cls: "jots-quick-meta-input" });
+  const sourceSection = inputCard.createDiv({ cls: "minddump-quick-source-section" });
+  const sourceInput = sourceSection.createEl("input", { cls: "minddump-quick-meta-input" });
   sourceInput.placeholder = t("sourcePlaceholder", lang);
   tagSection.style.display = isEdit ? "block" : "none";
   sourceSection.style.display = "none";
@@ -5766,7 +5766,7 @@ function mountQuickComposeCard(options) {
     sourceInput.value = options.initial.source;
   }
   syncQuickTextareaHeight();
-  const attachmentTray = inputCard.createDiv({ cls: "jots-quick-attachment-tray" });
+  const attachmentTray = inputCard.createDiv({ cls: "minddump-quick-attachment-tray" });
   let selectedAttachments = isEdit ? [...(_a = options.initial.attachments) != null ? _a : []] : [];
   let syncQuickSendReady = () => {
   };
@@ -5795,15 +5795,15 @@ function mountQuickComposeCard(options) {
       const imgFile = attachment.type === "image" ? app.vault.getAbstractFileByPath(pathNorm) : null;
       const isImageTile = attachment.type === "image" && imgFile instanceof import_obsidian2.TFile && isVaultImagePath(imgFile.path);
       const item = attachmentTray.createDiv({
-        cls: isImageTile ? "jots-quick-attachment-item jots-quick-attachment-item--image-tile" : "jots-quick-attachment-item"
+        cls: isImageTile ? "minddump-quick-attachment-item minddump-quick-attachment-item--image-tile" : "minddump-quick-attachment-item"
       });
       if (isImageTile) {
-        const thumb = item.createDiv({ cls: "jots-quick-embed-thumb jots-quick-embed-thumb--removable" });
-        const img = thumb.createEl("img", { cls: "jots-quick-embed-img" });
+        const thumb = item.createDiv({ cls: "minddump-quick-embed-thumb minddump-quick-embed-thumb--removable" });
+        const img = thumb.createEl("img", { cls: "minddump-quick-embed-img" });
         img.src = app.vault.getResourcePath(imgFile);
         img.alt = imgFile.name;
         const overlayRm = thumb.createEl("button", {
-          cls: "jots-quick-embed-remove",
+          cls: "minddump-quick-embed-remove",
           type: "button",
           attr: { "aria-label": t("removeEditorImage", lang) }
         });
@@ -5813,16 +5813,16 @@ function mountQuickComposeCard(options) {
           e.stopPropagation();
           removeImageEverywhere(pathNorm);
         });
-        const cap = item.createDiv({ cls: "jots-quick-attachment-item-caption" });
+        const cap = item.createDiv({ cls: "minddump-quick-attachment-item-caption" });
         cap.textContent = attachment.path.split("/").pop() || attachment.path;
         cap.title = attachment.path;
       } else if (attachment.type === "image") {
-        const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
+        const icon = item.createSpan({ cls: "minddump-quick-attachment-icon" });
         icon.textContent = "\u{1F5BC}\uFE0F";
-        const label = item.createSpan({ cls: "jots-quick-attachment-label" });
+        const label = item.createSpan({ cls: "minddump-quick-attachment-label" });
         label.textContent = attachment.path.split("/").pop() || attachment.path;
         label.title = attachment.path;
-        const removeBtn = item.createEl("button", { cls: "jots-quick-attachment-remove" });
+        const removeBtn = item.createEl("button", { cls: "minddump-quick-attachment-remove" });
         removeBtn.type = "button";
         removeBtn.textContent = "\xD7";
         removeBtn.setAttribute("aria-label", t("removeEditorImage", lang));
@@ -5839,12 +5839,12 @@ function mountQuickComposeCard(options) {
           syncQuickTextareaHeight();
         });
       } else {
-        const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
+        const icon = item.createSpan({ cls: "minddump-quick-attachment-icon" });
         icon.textContent = "\u{1F4CE}";
-        const label = item.createSpan({ cls: "jots-quick-attachment-label" });
+        const label = item.createSpan({ cls: "minddump-quick-attachment-label" });
         label.textContent = attachment.path.split("/").pop() || attachment.path;
         label.title = attachment.path;
-        const removeBtn = item.createEl("button", { cls: "jots-quick-attachment-remove" });
+        const removeBtn = item.createEl("button", { cls: "minddump-quick-attachment-remove" });
         removeBtn.type = "button";
         removeBtn.textContent = "\xD7";
         removeBtn.addEventListener("click", (e) => {
@@ -5937,12 +5937,12 @@ function mountQuickComposeCard(options) {
       syncQuickTextareaHeight();
     }
   });
-  const toolbarRow = inputCard.createDiv({ cls: "jots-quick-toolbar-row" });
-  const toolGroup = toolbarRow.createDiv({ cls: "jots-quick-tools jots-tool-menu" });
+  const toolbarRow = inputCard.createDiv({ cls: "minddump-quick-toolbar-row" });
+  const toolGroup = toolbarRow.createDiv({ cls: "minddump-quick-tools minddump-tool-menu" });
   const createToolBtn = (label, tooltip, onClick) => {
-    const btn = toolGroup.createEl("button", { cls: "jots-quick-tool-btn jots-tool-btn--text" });
+    const btn = toolGroup.createEl("button", { cls: "minddump-quick-tool-btn minddump-tool-btn--text" });
     btn.type = "button";
-    const inner = btn.createSpan({ cls: "jots-tool-btn-inner" });
+    const inner = btn.createSpan({ cls: "minddump-tool-btn-inner" });
     if (typeof label === "string") {
       inner.textContent = label;
     } else {
@@ -5960,7 +5960,7 @@ function mountQuickComposeCard(options) {
   };
   const createToolbarImageIcon = () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "jots-toolbar-image-icon");
+    svg.setAttribute("class", "minddump-toolbar-image-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("width", "16");
     svg.setAttribute("height", "16");
@@ -5977,7 +5977,7 @@ function mountQuickComposeCard(options) {
   };
   const createToolbarUnorderedListIcon = () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "jots-toolbar-unordered-list-icon");
+    svg.setAttribute("class", "minddump-toolbar-unordered-list-icon");
     svg.setAttribute("viewBox", "0 0 1024 1024");
     svg.setAttribute("width", "16");
     svg.setAttribute("height", "16");
@@ -6000,7 +6000,7 @@ function mountQuickComposeCard(options) {
   };
   const createToolbarOrderedListIcon = () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "jots-toolbar-ordered-list-icon");
+    svg.setAttribute("class", "minddump-toolbar-ordered-list-icon");
     svg.setAttribute("viewBox", "0 0 1024 1024");
     svg.setAttribute("width", "16");
     svg.setAttribute("height", "16");
@@ -6015,7 +6015,7 @@ function mountQuickComposeCard(options) {
     return svg;
   };
   const addToolDivider = () => {
-    toolGroup.createSpan({ cls: "jots-vertical-line" });
+    toolGroup.createSpan({ cls: "minddump-vertical-line" });
   };
   const toggleSection = (section, focusInput) => {
     const isHidden = section.style.display === "none" || window.getComputedStyle(section).display === "none";
@@ -6049,10 +6049,10 @@ function mountQuickComposeCard(options) {
   });
   addToolDivider();
   createToolBtn("@", t("sourcePlaceholder", lang), () => toggleSection(sourceSection, sourceInput));
-  const sendGroup = toolbarRow.createDiv({ cls: "jots-quick-toolbar-send-group" });
+  const sendGroup = toolbarRow.createDiv({ cls: "minddump-quick-toolbar-send-group" });
   if (isEdit) {
     const cancelBtn = sendGroup.createEl("button", {
-      cls: "jots-quick-edit-cancel-btn",
+      cls: "minddump-quick-edit-cancel-btn",
       type: "button"
     });
     cancelBtn.textContent = t("cancel", lang);
@@ -6063,7 +6063,7 @@ function mountQuickComposeCard(options) {
       options.onCancel();
     });
   }
-  const saveBtn = sendGroup.createEl("button", { cls: "jots-quick-send-btn mod-cta" });
+  const saveBtn = sendGroup.createEl("button", { cls: "minddump-quick-send-btn mod-cta" });
   saveBtn.type = "button";
   saveBtn.appendChild(createPaperPlaneSendIcon());
   saveBtn.title = t("save", lang);
@@ -6155,11 +6155,11 @@ var init_capture_modal = __esm({
         return this.plugin.lang;
       }
       async onOpen() {
-        this.modalEl.addClass("jots-capture-modal");
+        this.modalEl.addClass("minddump-capture-modal");
         const { contentEl } = this;
         contentEl.empty();
-        if (!this.plugin.jots || this.plugin.jots.length === 0) {
-          await this.plugin.refreshJots();
+        if (!this.plugin.mindDumps || this.plugin.mindDumps.length === 0) {
+          await this.plugin.refreshMindDumps();
         }
         const container = contentEl.createDiv();
         container.style.padding = "20px";
@@ -6171,7 +6171,7 @@ var init_capture_modal = __esm({
         textareaContainer.style.position = "relative";
         textareaContainer.style.marginBottom = "16px";
         this.contentField = mountRichMarkdownField(textareaContainer, "", {
-          className: "jots-capture-rich-md",
+          className: "minddump-capture-rich-md",
           placeholder: t("contentPlaceholder", this.lang)
         });
         const cf = this.contentField;
@@ -6296,15 +6296,15 @@ var init_capture_modal = __esm({
             await this.handleAttachment(file, attachmentArea);
           }
         });
-        const buttonContainer = container.createDiv({ cls: "jots-quick-toolbar-send-group" });
+        const buttonContainer = container.createDiv({ cls: "minddump-quick-toolbar-send-group" });
         const cancelBtn = buttonContainer.createEl("button", {
-          cls: "jots-quick-edit-cancel-btn",
+          cls: "minddump-quick-edit-cancel-btn",
           type: "button"
         });
         cancelBtn.textContent = t("cancel", this.lang);
         cancelBtn.addEventListener("click", () => this.close());
         const saveBtn = buttonContainer.createEl("button", {
-          cls: "jots-quick-send-btn mod-cta",
+          cls: "minddump-quick-send-btn mod-cta",
           type: "button"
         });
         saveBtn.appendChild(createPaperPlaneSendIcon());
@@ -6335,10 +6335,10 @@ var init_capture_modal = __esm({
       }
       getExistingTags() {
         const tags = /* @__PURE__ */ new Set();
-        for (const jot of this.plugin.jots) {
-          if (jot.deleted)
+        for (const mindDump of this.plugin.mindDumps) {
+          if (mindDump.deleted)
             continue;
-          jot.tags.forEach((tag) => tags.add(tag));
+          mindDump.tags.forEach((tag) => tags.add(tag));
         }
         return Array.from(tags);
       }
@@ -6390,7 +6390,7 @@ var init_capture_modal = __esm({
         const tags = [...this.currentTags];
         const source = this.sourceInput.value.trim();
         try {
-          await this.plugin.saveJot(content, tags, source, this.selectedAttachments);
+          await this.plugin.saveMindDump(content, tags, source, this.selectedAttachments);
           this.close();
         } catch (error) {
           console.error("Save failed:", error);
@@ -6398,7 +6398,7 @@ var init_capture_modal = __esm({
         }
       }
       onClose() {
-        this.modalEl.removeClass("jots-capture-modal");
+        this.modalEl.removeClass("minddump-capture-modal");
         this.captureSaveBtn = null;
         if (this.wikilinkCleanup) {
           try {
@@ -6416,7 +6416,7 @@ var init_capture_modal = __esm({
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
-  default: () => JotPlugin
+  default: () => MindDumpPlugin
 });
 module.exports = __toCommonJS(main_exports);
 var import_obsidian6 = require("obsidian");
@@ -6432,11 +6432,11 @@ var CARD_LONG_PRESS_MS = 480;
 var CARD_TAP_MOVE_PX = 14;
 var VAULT_IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i;
 var AUDIO_EXT_RE = /\.(mp3|m4a|wav|ogg|aac|flac|webm)(\]|$|\s|\?)/i;
-var VIEW_TYPE_JOTS = "jot-view";
-var _JotView = class _JotView extends import_obsidian4.ItemView {
+var VIEW_TYPE_MINDDUMP = "minddump-view";
+var _MindDumpView = class _MindDumpView extends import_obsidian4.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
-    this.jots = [];
+    this.mindDumps = [];
     this.searchQuery = "";
     this.selectedTags = /* @__PURE__ */ new Set();
     this.isSidebar = false;
@@ -6449,13 +6449,15 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
     this.tagSuggestionContainer = null;
     this.debouncedRender = null;
     this.wikilinkCleanup = null;
-    /** Inline jot edit */
-    this.editingJotId = null;
-    this.jotListCleanups = [];
+    /** Inline mindDump edit */
+    this.editingMindDumpId = null;
+    this.mindDumpListCleanups = [];
     /** Tears down floating card ⋮ menu (outside list DOM). */
     this.cardMenuUnmount = null;
     /** Fullscreen image preview overlay. */
     this.imageLightboxUnmount = null;
+    /** Pull-to-refresh cleanup */
+    this.ptrCleanup = null;
     this.searchTimePreset = "none";
     this.tagMatchMode = "include";
     this.contentTypeFilters = /* @__PURE__ */ new Set();
@@ -6468,7 +6470,7 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
     /** Right rail tag list: substring filter (sidebar / main layout) */
     this.rightRailTagListQuery = "";
     this.rightRailTagSort = "nameAsc";
-    this.jotListSort = "createdDesc";
+    this.mindDumpListSort = "createdDesc";
     this.plugin = plugin;
     this.debouncedSearch = debounce((query) => {
       this.searchQuery = query;
@@ -6480,16 +6482,16 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
     return this.plugin.lang;
   }
   getViewType() {
-    return VIEW_TYPE_JOTS;
+    return VIEW_TYPE_MINDDUMP;
   }
   getDisplayText() {
-    return t("jotView", this.lang);
+    return t("mindDumpView", this.lang);
   }
   getIcon() {
-    return "jot-bolt";
+    return "minddump-bolt";
   }
   async onOpen() {
-    this.contentEl.addClass("jots-view");
+    this.contentEl.addClass("minddump-view");
     if (this.leaf.tabHeaderInnerIconEl) {
       this.leaf.tabHeaderInnerIconEl.empty();
     }
@@ -6531,6 +6533,7 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
     this.renderedComponents = [];
     this.closeCardMenu();
     this.closeImageLightbox();
+    this.destroyPtr();
   }
   focusTextarea() {
     if (this.quickComposeContent) {
@@ -6557,9 +6560,9 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
       this.searchInput.value = this.searchQuery;
     }
     this.updateClearButton();
-    const listSection = this.contentEl.querySelector(".jots-list-section");
+    const listSection = this.contentEl.querySelector(".minddump-list-section");
     if (listSection) {
-      this.renderJotList(listSection);
+      this.renderMindDumpList(listSection);
     }
   }
   updateClearButton() {
@@ -6625,7 +6628,7 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
     }
     return { date, updated, activity, keywords };
   }
-  attachCardTapAndLongPress(card, jot) {
+  attachCardTapAndLongPress(card, mindDump) {
     let timer = null;
     let longPressFired = false;
     let startX = 0;
@@ -6652,7 +6655,7 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
       timer = setTimeout(() => {
         timer = null;
         longPressFired = true;
-        void this.openJot(jot);
+        void this.openMindDump(mindDump);
       }, CARD_LONG_PRESS_MS);
     };
     const onPointerMove = (e) => {
@@ -6689,7 +6692,7 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
     card.addEventListener("pointermove", onPointerMove);
     card.addEventListener("pointerup", onPointerUp);
     card.addEventListener("pointercancel", onPointerCancel);
-    this.jotListCleanups.push(() => {
+    this.mindDumpListCleanups.push(() => {
       clearTimer();
       card.removeEventListener("pointerdown", onPointerDown);
       card.removeEventListener("pointermove", onPointerMove);
@@ -6715,11 +6718,11 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
     const win = (_a = doc.defaultView) != null ? _a : window;
     const ws = this.app.workspace.containerEl;
     const mount = ws && ws.ownerDocument === doc ? ws : doc.body;
-    const root = mount.createDiv({ cls: "jots-image-lightbox" });
+    const root = mount.createDiv({ cls: "minddump-image-lightbox" });
     root.tabIndex = -1;
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "true");
-    const imgEl = root.createEl("img", { cls: "jots-image-lightbox-img", attr: { src, alt: "" } });
+    const imgEl = root.createEl("img", { cls: "minddump-image-lightbox-img", attr: { src, alt: "" } });
     imgEl.draggable = false;
     imgEl.style.setProperty("max-width", "96vw", "important");
     imgEl.style.setProperty("max-height", "96vh", "important");
@@ -6765,33 +6768,33 @@ var _JotView = class _JotView extends import_obsidian4.ItemView {
       this.cardMenuUnmount = null;
     }
   }
-  jotWordCount(jot) {
-    const stripped = jot.content.replace(/!\[\[[^\]]+\]\]/g, "").replace(/\[\[[^\]]+\]\]/g, "x").replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "").replace(/[#>*_\-\[\]()]/g, "").trim();
+  mindDumpWordCount(mindDump) {
+    const stripped = mindDump.content.replace(/!\[\[[^\]]+\]\]/g, "").replace(/\[\[[^\]]+\]\]/g, "x").replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "").replace(/[#>*_\-\[\]()]/g, "").trim();
     return stripped.length > 0 ? [...stripped].length : 0;
   }
-  buildObsidianFileUri(jot) {
-    if (!jot.filePath)
+  buildObsidianFileUri(mindDump) {
+    if (!mindDump.filePath)
       return null;
     const vault = this.app.vault.getName();
-    return `obsidian://open?vault=${encodeURIComponent(vault)}&file=${encodeURIComponent((0, import_obsidian4.normalizePath)(jot.filePath))}`;
+    return `obsidian://open?vault=${encodeURIComponent(vault)}&file=${encodeURIComponent((0, import_obsidian4.normalizePath)(mindDump.filePath))}`;
   }
-  jotMarkdownClipboardText(jot) {
+  mindDumpMarkdownClipboardText(mindDump) {
     var _a;
-    let md = jot.content;
-    const tagLine = normalizeJotTags(jot.tags).map((x) => `#${x}`).join(" ");
+    let md = mindDump.content;
+    const tagLine = normalizeMindDumpTags(mindDump.tags).map((x) => `#${x}`).join(" ");
     if (tagLine)
       md += `
 
 ${tagLine}`;
-    if ((_a = jot.source) == null ? void 0 : _a.trim()) {
+    if ((_a = mindDump.source) == null ? void 0 : _a.trim()) {
       const prefix = this.lang === "zh" ? "\u6765\u6E90:" : "Source:";
       md += `
 
-${prefix} ${jot.source.trim()}`;
+${prefix} ${mindDump.source.trim()}`;
     }
     return md;
   }
-  /** Same window/document as the jot view (pop-out safe). */
+  /** Same window/document as the mindDump view (pop-out safe). */
   getCardMenuMount() {
     const doc = this.contentEl.doc;
     const win = this.contentEl.win;
@@ -6832,20 +6835,20 @@ ${prefix} ${jot.source.trim()}`;
     menu.style.left = `${left}px`;
     menu.style.top = `${top}px`;
   }
-  openDeletedCardMenu(anchor, jot) {
+  openDeletedCardMenu(anchor, mindDump) {
     var _a;
     this.closeCardMenu();
     const lang = this.lang;
     const { mountEl, doc, win } = this.getCardMenuMount();
-    const menu = mountEl.createDiv({ cls: "jots-card-menu-popover" });
-    menu.dataset.anchorId = jot.id;
+    const menu = mountEl.createDiv({ cls: "minddump-card-menu-popover" });
+    menu.dataset.anchorId = mindDump.id;
     this.applyCardMenuShellStyles(menu, win);
-    const addDivider = () => menu.createDiv({ cls: "jots-card-menu-divider" });
+    const addDivider = () => menu.createDiv({ cls: "minddump-card-menu-divider" });
     const addIconRow = (iconId, label, onActivate) => {
-      const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--action" });
-      const iconWrap = row.createSpan({ cls: "jots-card-menu-row-icon" });
+      const row = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--action" });
+      const iconWrap = row.createSpan({ cls: "minddump-card-menu-row-icon" });
       (0, import_obsidian4.setIcon)(iconWrap, iconId);
-      row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+      row.createSpan({ cls: "minddump-card-menu-row-label", text: label });
       row.addEventListener("pointerdown", (e) => e.stopPropagation());
       row.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -6856,16 +6859,16 @@ ${prefix} ${jot.source.trim()}`;
       this.closeCardMenu();
       try {
         if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-          await navigator.share({ text: jot.content });
+          await navigator.share({ text: mindDump.content });
         } else {
-          await navigator.clipboard.writeText(jot.content);
+          await navigator.clipboard.writeText(mindDump.content);
           new import_obsidian4.Notice(t("cardMenuShareCopied", lang));
         }
       } catch (err) {
         if ((err == null ? void 0 : err.name) === "AbortError")
           return;
         try {
-          await navigator.clipboard.writeText(jot.content);
+          await navigator.clipboard.writeText(mindDump.content);
           new import_obsidian4.Notice(t("cardMenuShareCopied", lang));
         } catch (e) {
         }
@@ -6874,13 +6877,13 @@ ${prefix} ${jot.source.trim()}`;
     addIconRow("undo-2", t("cardMenuRestore", lang), async () => {
       this.closeCardMenu();
       try {
-        await this.plugin.updateJot({ ...jot, deleted: false });
+        await this.plugin.updateMindDump({ ...mindDump, deleted: false });
         new import_obsidian4.Notice(t("cardMenuRestored", lang));
       } catch (e) {
       }
     });
     addDivider();
-    const purRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--danger" });
+    const purRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--danger" });
     purRow.textContent = t("cardMenuPurge", lang);
     purRow.addEventListener("pointerdown", (e) => e.stopPropagation());
     purRow.addEventListener("click", async (e) => {
@@ -6889,21 +6892,21 @@ ${prefix} ${jot.source.trim()}`;
       if (!confirm(t("cardMenuPurgeConfirm", lang)))
         return;
       try {
-        await this.plugin.purgeJot(jot);
+        await this.plugin.purgeMindDump(mindDump);
         new import_obsidian4.Notice(t("cardMenuPurged", lang));
       } catch (e2) {
       }
     });
     addDivider();
-    const footer = menu.createDiv({ cls: "jots-card-menu-footer" });
-    const wc = this.jotWordCount(jot);
+    const footer = menu.createDiv({ cls: "minddump-card-menu-footer" });
+    const wc = this.mindDumpWordCount(mindDump);
     footer.createDiv({
-      cls: "jots-card-menu-footer-line",
+      cls: "minddump-card-menu-footer-line",
       text: t("cardMenuWordCount", lang, { count: String(wc) })
     });
-    const timeDisplay = (0, import_moment2.default)(jot.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid() ? (0, import_moment2.default)(jot.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm") : jot.updatedAt.includes(" ") ? (_a = jot.updatedAt.split(/\s+/).pop()) != null ? _a : jot.updatedAt : jot.updatedAt;
+    const timeDisplay = (0, import_moment2.default)(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid() ? (0, import_moment2.default)(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm") : mindDump.updatedAt.includes(" ") ? (_a = mindDump.updatedAt.split(/\s+/).pop()) != null ? _a : mindDump.updatedAt : mindDump.updatedAt;
     footer.createDiv({
-      cls: "jots-card-menu-footer-line",
+      cls: "minddump-card-menu-footer-line",
       text: t("cardMenuEditedAtFooter", lang, { time: timeDisplay })
     });
     const onDocPointer = (ev) => {
@@ -6937,24 +6940,24 @@ ${prefix} ${jot.source.trim()}`;
       }, 0);
     });
   }
-  openCardMenu(anchor, jot) {
+  openCardMenu(anchor, mindDump) {
     var _a;
-    if (jot.deleted) {
-      this.openDeletedCardMenu(anchor, jot);
+    if (mindDump.deleted) {
+      this.openDeletedCardMenu(anchor, mindDump);
       return;
     }
     this.closeCardMenu();
     const lang = this.lang;
     const { mountEl, doc, win } = this.getCardMenuMount();
-    const menu = mountEl.createDiv({ cls: "jots-card-menu-popover" });
-    menu.dataset.anchorId = jot.id;
+    const menu = mountEl.createDiv({ cls: "minddump-card-menu-popover" });
+    menu.dataset.anchorId = mindDump.id;
     this.applyCardMenuShellStyles(menu, win);
-    const addDivider = () => menu.createDiv({ cls: "jots-card-menu-divider" });
+    const addDivider = () => menu.createDiv({ cls: "minddump-card-menu-divider" });
     const addIconRow = (iconId, label, onActivate) => {
-      const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--action" });
-      const iconWrap = row.createSpan({ cls: "jots-card-menu-row-icon" });
+      const row = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--action" });
+      const iconWrap = row.createSpan({ cls: "minddump-card-menu-row-icon" });
       (0, import_obsidian4.setIcon)(iconWrap, iconId);
-      row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+      row.createSpan({ cls: "minddump-card-menu-row-label", text: label });
       row.addEventListener("pointerdown", (e) => e.stopPropagation());
       row.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -6962,8 +6965,8 @@ ${prefix} ${jot.source.trim()}`;
       });
     };
     const addStubRow = (label) => {
-      const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub" });
-      row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+      const row = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--stub" });
+      row.createSpan({ cls: "minddump-card-menu-row-label", text: label });
       row.addEventListener("pointerdown", (e) => e.stopPropagation());
       row.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -6974,16 +6977,16 @@ ${prefix} ${jot.source.trim()}`;
       this.closeCardMenu();
       try {
         if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-          await navigator.share({ text: jot.content });
+          await navigator.share({ text: mindDump.content });
         } else {
-          await navigator.clipboard.writeText(jot.content);
+          await navigator.clipboard.writeText(mindDump.content);
           new import_obsidian4.Notice(t("cardMenuShareCopied", lang));
         }
       } catch (err) {
         if ((err == null ? void 0 : err.name) === "AbortError")
           return;
         try {
-          await navigator.clipboard.writeText(jot.content);
+          await navigator.clipboard.writeText(mindDump.content);
           new import_obsidian4.Notice(t("cardMenuShareCopied", lang));
         } catch (e) {
         }
@@ -6991,28 +6994,28 @@ ${prefix} ${jot.source.trim()}`;
     });
     addIconRow("pencil", t("cardMenuEdit", lang), () => {
       this.closeCardMenu();
-      this.enterEditMode(jot);
+      this.enterEditMode(mindDump);
     });
     addDivider();
     addStubRow(t("cardMenuPinTop", lang));
     addStubRow(t("cardMenuFloatingWindow", lang));
-    const relatedRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub jots-card-menu-row--spread" });
-    relatedRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuRelatedNotes", lang) });
-    relatedRow.createSpan({ cls: "jots-card-menu-ai-badge", text: t("cardMenuAiBadge", lang) });
+    const relatedRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--stub minddump-card-menu-row--spread" });
+    relatedRow.createSpan({ cls: "minddump-card-menu-row-label", text: t("cardMenuRelatedNotes", lang) });
+    relatedRow.createSpan({ cls: "minddump-card-menu-ai-badge", text: t("cardMenuAiBadge", lang) });
     relatedRow.addEventListener("pointerdown", (e) => e.stopPropagation());
     relatedRow.addEventListener("click", (e) => {
       e.stopPropagation();
       new import_obsidian4.Notice(t("cardMenuComingSoon", lang));
     });
-    const copyLinkRow = menu.createDiv({ cls: "jots-card-menu-row" });
-    copyLinkRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuCopyLink", lang) });
+    const copyLinkRow = menu.createDiv({ cls: "minddump-card-menu-row" });
+    copyLinkRow.createSpan({ cls: "minddump-card-menu-row-label", text: t("cardMenuCopyLink", lang) });
     copyLinkRow.addEventListener("pointerdown", (e) => e.stopPropagation());
     copyLinkRow.addEventListener("click", async (e) => {
       e.stopPropagation();
       this.closeCardMenu();
-      const uri = this.buildObsidianFileUri(jot);
+      const uri = this.buildObsidianFileUri(mindDump);
       if (!uri) {
-        new import_obsidian4.Notice(t("jotUpdateNoFile", lang));
+        new import_obsidian4.Notice(t("mindDumpUpdateNoFile", lang));
         return;
       }
       try {
@@ -7022,27 +7025,27 @@ ${prefix} ${jot.source.trim()}`;
       }
     });
     addStubRow(t("cardMenuAnnotate", lang));
-    const moreRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--spread jots-card-menu-row--more" });
-    moreRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuMore", lang) });
-    const chev = moreRow.createSpan({ cls: "jots-card-menu-row-chevron" });
+    const moreRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--spread minddump-card-menu-row--more" });
+    moreRow.createSpan({ cls: "minddump-card-menu-row-label", text: t("cardMenuMore", lang) });
+    const chev = moreRow.createSpan({ cls: "minddump-card-menu-row-chevron" });
     (0, import_obsidian4.setIcon)(chev, "chevron-right");
-    const sub = menu.createDiv({ cls: "jots-card-menu-sub" });
-    const subOpenNote = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+    const sub = menu.createDiv({ cls: "minddump-card-menu-sub" });
+    const subOpenNote = sub.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--sub" });
     subOpenNote.textContent = t("cardMenuMoreOpenNote", lang);
     subOpenNote.addEventListener("pointerdown", (e) => e.stopPropagation());
     subOpenNote.addEventListener("click", (e) => {
       e.stopPropagation();
       this.closeCardMenu();
-      void this.openJot(jot);
+      void this.openMindDump(mindDump);
     });
-    const subCopyMd = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+    const subCopyMd = sub.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--sub" });
     subCopyMd.textContent = t("cardMenuMoreCopyMarkdown", lang);
     subCopyMd.addEventListener("pointerdown", (e) => e.stopPropagation());
     subCopyMd.addEventListener("click", async (e) => {
       e.stopPropagation();
       this.closeCardMenu();
       try {
-        await navigator.clipboard.writeText(this.jotMarkdownClipboardText(jot));
+        await navigator.clipboard.writeText(this.mindDumpMarkdownClipboardText(mindDump));
         new import_obsidian4.Notice(t("cardMenuShareCopied", lang));
       } catch (e2) {
       }
@@ -7055,7 +7058,7 @@ ${prefix} ${jot.source.trim()}`;
       this.positionCardMenu(menu, anchor);
     });
     addDivider();
-    const delRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--danger" });
+    const delRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--danger" });
     delRow.textContent = t("cardMenuDelete", lang);
     delRow.addEventListener("pointerdown", (e) => e.stopPropagation());
     delRow.addEventListener("click", async (e) => {
@@ -7064,21 +7067,21 @@ ${prefix} ${jot.source.trim()}`;
       if (!confirm(t("cardMenuDeleteConfirm", lang)))
         return;
       try {
-        await this.plugin.deleteJot(jot);
+        await this.plugin.deleteMindDump(mindDump);
         new import_obsidian4.Notice(t("cardMenuDeleted", lang));
       } catch (e2) {
       }
     });
     addDivider();
-    const footer = menu.createDiv({ cls: "jots-card-menu-footer" });
-    const wc = this.jotWordCount(jot);
+    const footer = menu.createDiv({ cls: "minddump-card-menu-footer" });
+    const wc = this.mindDumpWordCount(mindDump);
     footer.createDiv({
-      cls: "jots-card-menu-footer-line",
+      cls: "minddump-card-menu-footer-line",
       text: t("cardMenuWordCount", lang, { count: String(wc) })
     });
-    const timeDisplay = (0, import_moment2.default)(jot.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid() ? (0, import_moment2.default)(jot.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm") : jot.updatedAt.includes(" ") ? (_a = jot.updatedAt.split(/\s+/).pop()) != null ? _a : jot.updatedAt : jot.updatedAt;
+    const timeDisplay = (0, import_moment2.default)(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid() ? (0, import_moment2.default)(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm") : mindDump.updatedAt.includes(" ") ? (_a = mindDump.updatedAt.split(/\s+/).pop()) != null ? _a : mindDump.updatedAt : mindDump.updatedAt;
     footer.createDiv({
-      cls: "jots-card-menu-footer-line",
+      cls: "minddump-card-menu-footer-line",
       text: t("cardMenuEditedAtFooter", lang, { time: timeDisplay })
     });
     const onDocPointer = (ev) => {
@@ -7112,26 +7115,26 @@ ${prefix} ${jot.source.trim()}`;
       }, 0);
     });
   }
-  enterEditMode(jot) {
-    this.editingJotId = jot.id;
-    const listSection = this.contentEl.querySelector(".jots-list-section");
+  enterEditMode(mindDump) {
+    this.editingMindDumpId = mindDump.id;
+    const listSection = this.contentEl.querySelector(".minddump-list-section");
     if (listSection) {
-      this.renderJotList(listSection);
+      this.renderMindDumpList(listSection);
     }
   }
   exitEditMode() {
-    this.editingJotId = null;
-    const listSection = this.contentEl.querySelector(".jots-list-section");
+    this.editingMindDumpId = null;
+    const listSection = this.contentEl.querySelector(".minddump-list-section");
     if (listSection) {
-      this.renderJotList(listSection);
+      this.renderMindDumpList(listSection);
     }
   }
   getExistingTags() {
     const tags = /* @__PURE__ */ new Set();
-    for (const jot of this.jots) {
-      if (jot.deleted)
+    for (const mindDump of this.mindDumps) {
+      if (mindDump.deleted)
         continue;
-      jot.tags.forEach((tag) => tags.add(tag));
+      mindDump.tags.forEach((tag) => tags.add(tag));
     }
     return Array.from(tags);
   }
@@ -7142,35 +7145,36 @@ ${prefix} ${jot.source.trim()}`;
     this.isSidebar = width < 450;
   }
   async refresh() {
-    await this.loadJots();
+    await this.loadMindDumps();
     this.render();
   }
-  async loadJots() {
+  async loadMindDumps() {
     const folder = this.plugin.settings.saveFolder;
     const folderObj = this.app.vault.getAbstractFileByPath(folder);
     if (!folderObj || !(folderObj instanceof import_obsidian4.TFolder)) {
-      this.jots = [];
+      this.mindDumps = [];
       return;
     }
     const files = folderObj.children.filter((f) => f instanceof import_obsidian4.TFile && f.name.endsWith(".md"));
-    const allJots = [];
+    const allMindDumps = [];
     for (const file of files) {
       const content = await this.app.vault.read(file);
       const entries = parseFileContent(content, file.path, this.lang);
-      allJots.push(...entries);
+      allMindDumps.push(...entries);
     }
-    allJots.sort((a, b) => {
+    allMindDumps.sort((a, b) => {
       const dateA = (0, import_moment2.default)(a.date + " " + a.time, "YYYY-MM-DD HH:mm:ss");
       const dateB = (0, import_moment2.default)(b.date + " " + b.time, "YYYY-MM-DD HH:mm:ss");
       return dateB.valueOf() - dateA.valueOf();
     });
-    this.jots = allJots;
+    this.mindDumps = allMindDumps;
   }
   render() {
+    this.destroyPtr();
     this.checkIfSidebar();
     this.disposeQuickCaptureInput();
     this.contentEl.empty();
-    this.contentEl.toggleClass("jots-view--main-layout", !this.isSidebar);
+    this.contentEl.toggleClass("minddump-view--main-layout", !this.isSidebar);
     if (this.isSidebar) {
       this.renderSidebarLayout();
     } else {
@@ -7186,22 +7190,43 @@ ${prefix} ${jot.source.trim()}`;
     container.style.overflow = "hidden";
     const leftPanel = container.createDiv();
     leftPanel.style.flex = "4";
-    leftPanel.style.overflow = "auto";
+    leftPanel.style.display = "flex";
+    leftPanel.style.flexDirection = "column";
+    leftPanel.style.overflow = "hidden";
+    leftPanel.style.position = "relative";
     leftPanel.style.padding = "0 10px 10px";
-    const rightShell = container.createDiv({ cls: "jots-right-shell" });
+    const ptrIndicator = leftPanel.createDiv({ cls: "minddump-ptr-indicator" });
+    ptrIndicator.style.position = "absolute";
+    ptrIndicator.style.top = "0";
+    ptrIndicator.style.left = "0";
+    ptrIndicator.style.right = "0";
+    ptrIndicator.style.zIndex = "2";
+    ptrIndicator.style.display = "flex";
+    ptrIndicator.style.alignItems = "center";
+    ptrIndicator.style.justifyContent = "center";
+    ptrIndicator.style.pointerEvents = "none";
+    ptrIndicator.style.transform = "translateY(-100%)";
+    const ptrIcon = ptrIndicator.createSpan({ cls: "minddump-ptr-icon" });
+    ptrIcon.style.transition = "transform 0.2s ease";
+    (0, import_obsidian4.setIcon)(ptrIcon, "arrow-down");
+    const ptrScroll = leftPanel.createDiv({ cls: "minddump-ptr-content" });
+    ptrScroll.style.flex = "1";
+    ptrScroll.style.overflow = "auto";
+    ptrScroll.style.willChange = "transform";
+    const rightShell = container.createDiv({ cls: "minddump-right-shell" });
     if (this.rightFunctionalPanelCollapsed) {
       rightShell.addClass("is-collapsed");
     }
     rightShell.style.flex = this.rightFunctionalPanelCollapsed ? "0" : "1";
     rightShell.style.minWidth = "0";
-    const rightPanelInner = rightShell.createDiv({ cls: "jots-right-panel-inner" });
-    const leftStickyStack = leftPanel.createDiv({ cls: "jots-left-sticky-stack" });
-    const searchRow = leftStickyStack.createDiv({ cls: "jots-main-search-row" });
-    const searchRowMain = searchRow.createDiv({ cls: "jots-main-search-row__main" });
+    const rightPanelInner = rightShell.createDiv({ cls: "minddump-right-panel-inner" });
+    const leftStickyStack = ptrScroll.createDiv({ cls: "minddump-left-sticky-stack" });
+    const searchRow = leftStickyStack.createDiv({ cls: "minddump-main-search-row" });
+    const searchRowMain = searchRow.createDiv({ cls: "minddump-main-search-row__main" });
     this.renderSearch(searchRowMain);
     const rightPanelToggleBtn = searchRow.createEl("button", {
       type: "button",
-      cls: "jots-right-shell-toggle-btn jots-main-search-row__toggle",
+      cls: "minddump-right-shell-toggle-btn minddump-main-search-row__toggle",
       attr: this.rightFunctionalPanelCollapsed ? {
         "aria-label": t("rightPanelExpand", this.lang),
         title: t("rightPanelExpand", this.lang)
@@ -7222,23 +7247,44 @@ ${prefix} ${jot.source.trim()}`;
     } else {
       this.renderFullInput(leftStickyStack);
     }
-    const listContainer = leftPanel.createDiv();
+    const listContainer = ptrScroll.createDiv();
     listContainer.style.marginTop = "20px";
-    this.renderJotList(listContainer);
-    const calendarRoot = rightPanelInner.createDiv({ cls: "jots-calendar" });
+    this.renderMindDumpList(listContainer);
+    const calendarRoot = rightPanelInner.createDiv({ cls: "minddump-calendar" });
     this.renderCalendar(calendarRoot);
     this.renderRightRail(rightPanelInner);
+    this.setupPtr(ptrScroll, ptrIndicator);
   }
   renderSidebarLayout() {
     const container = this.contentEl.createDiv();
     container.style.display = "flex";
     container.style.flexDirection = "column";
-    container.style.gap = "12px";
     container.style.height = "100%";
-    container.style.overflow = "auto";
+    container.style.overflow = "hidden";
+    container.style.position = "relative";
     container.style.padding = "8px";
-    const addBtn = container.createEl("button", {
-      cls: "jots-quick-capture-entry-btn",
+    const ptrIndicator = container.createDiv({ cls: "minddump-ptr-indicator" });
+    ptrIndicator.style.position = "absolute";
+    ptrIndicator.style.top = "0";
+    ptrIndicator.style.left = "0";
+    ptrIndicator.style.right = "0";
+    ptrIndicator.style.zIndex = "2";
+    ptrIndicator.style.display = "flex";
+    ptrIndicator.style.alignItems = "center";
+    ptrIndicator.style.justifyContent = "center";
+    ptrIndicator.style.pointerEvents = "none";
+    ptrIndicator.style.transform = "translateY(-100%)";
+    const ptrIcon = ptrIndicator.createSpan({ cls: "minddump-ptr-icon" });
+    ptrIcon.style.transition = "transform 0.2s ease";
+    (0, import_obsidian4.setIcon)(ptrIcon, "arrow-down");
+    const ptrScroll = container.createDiv({ cls: "minddump-ptr-content" });
+    ptrScroll.style.flex = "1";
+    ptrScroll.style.overflow = "auto";
+    ptrScroll.style.display = "flex";
+    ptrScroll.style.flexDirection = "column";
+    ptrScroll.style.gap = "12px";
+    const addBtn = ptrScroll.createEl("button", {
+      cls: "minddump-quick-capture-entry-btn",
       type: "button"
     });
     addBtn.textContent = "+ " + t("quickCapture", this.lang);
@@ -7246,12 +7292,228 @@ ${prefix} ${jot.source.trim()}`;
       const { CaptureModal: CaptureModal2 } = (init_capture_modal(), __toCommonJS(capture_modal_exports));
       new CaptureModal2(this.app, this.plugin).open();
     });
-    this.renderSearchCompact(container);
-    const calendarRoot = container.createDiv({ cls: "jots-calendar" });
+    this.renderSearchCompact(ptrScroll);
+    const calendarRoot = ptrScroll.createDiv({ cls: "minddump-calendar" });
     this.renderCalendarCompact(calendarRoot);
-    const listContainer = container.createDiv();
+    const listContainer = ptrScroll.createDiv();
     listContainer.style.marginTop = "8px";
-    this.renderJotList(listContainer);
+    this.renderMindDumpList(listContainer);
+    this.setupPtr(ptrScroll, ptrIndicator);
+  }
+  /**
+   * Set up pull-to-refresh using GPU-composited transforms.
+   * ptrScroll translates down to reveal ptrIndicator above it.
+   * No layout-triggering properties (height/margin) are touched during the gesture.
+   */
+  setupPtr(ptrScroll, ptrIndicator) {
+    let startY = 0;
+    let pulling = false;
+    let pullDist = 0;
+    let refreshing = false;
+    const THRESHOLD = 60;
+    const DAMPING = 0.5;
+    const MAX_PULL = 100;
+    const INDICATOR_H = 44;
+    let wheelPull = 0;
+    let wheelReleaseTimer = null;
+    const iconEl = ptrIndicator.querySelector(".minddump-ptr-icon");
+    const SNAP_TRANSITION = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+    const applyPull = (dist) => {
+      ptrScroll.style.transform = `translateY(${dist}px)`;
+      const off = dist < INDICATOR_H ? -INDICATOR_H + dist : 0;
+      ptrIndicator.style.transform = `translateY(${off}px)`;
+    };
+    const snapBack = (instant = false) => {
+      pulling = false;
+      pullDist = 0;
+      wheelPull = 0;
+      if (instant) {
+        ptrScroll.style.transition = "none";
+        ptrIndicator.style.transition = "none";
+        ptrScroll.style.transform = "";
+        ptrIndicator.style.transform = "translateY(-100%)";
+      } else {
+        ptrScroll.style.transition = SNAP_TRANSITION;
+        ptrIndicator.style.transition = SNAP_TRANSITION;
+        ptrScroll.style.transform = "";
+        ptrIndicator.style.transform = "translateY(-100%)";
+      }
+      if (iconEl)
+        iconEl.style.transform = "";
+    };
+    const rebuildIndicatorIcon = () => {
+      ptrIndicator.empty();
+      const ni = ptrIndicator.createSpan({ cls: "minddump-ptr-icon" });
+      ni.style.transition = "transform 0.2s ease";
+      (0, import_obsidian4.setIcon)(ni, "arrow-down");
+    };
+    const triggerRefresh = async () => {
+      refreshing = true;
+      ptrScroll.style.transition = "none";
+      ptrIndicator.style.transition = "none";
+      applyPull(INDICATOR_H);
+      ptrIndicator.empty();
+      const spinner = ptrIndicator.createSpan({ cls: "minddump-ptr-spinner" });
+      (0, import_obsidian4.setIcon)(spinner, "loader-2");
+      try {
+        await this.loadMindDumps();
+        const listSection = this.contentEl.querySelector(".minddump-list-section");
+        if (listSection) {
+          this.renderMindDumpList(listSection);
+        }
+      } finally {
+        refreshing = false;
+        snapBack(false);
+        setTimeout(rebuildIndicatorIcon, 350);
+      }
+    };
+    const cancelPull = () => {
+      if (wheelReleaseTimer) {
+        clearTimeout(wheelReleaseTimer);
+        wheelReleaseTimer = null;
+      }
+      snapBack(true);
+    };
+    const onPointerDown = (e) => {
+      if (refreshing)
+        return;
+      if (ptrScroll.scrollTop > 0)
+        return;
+      if (e.pointerType === "mouse" && e.button !== 0)
+        return;
+      ptrScroll.style.transition = "none";
+      ptrIndicator.style.transition = "none";
+      startY = e.clientY;
+      pulling = true;
+      pullDist = 0;
+    };
+    const onPointerMove = (e) => {
+      if (!pulling || refreshing)
+        return;
+      const dy = e.clientY - startY;
+      if (dy <= 0 || ptrScroll.scrollTop > 0) {
+        snapBack(true);
+        return;
+      }
+      pullDist = dy * DAMPING;
+      if (pullDist > MAX_PULL)
+        pullDist = MAX_PULL;
+      applyPull(pullDist);
+      if (iconEl) {
+        iconEl.style.transform = pullDist >= THRESHOLD ? "rotate(180deg)" : "";
+      }
+    };
+    const onPointerUp = () => {
+      if (!pulling)
+        return;
+      const dist = pullDist;
+      pulling = false;
+      if (dist >= THRESHOLD && !refreshing) {
+        void triggerRefresh();
+      } else {
+        snapBack(false);
+      }
+      pullDist = 0;
+    };
+    const onPointerCancel = () => {
+      if (refreshing) {
+        refreshing = false;
+        snapBack(false);
+        setTimeout(rebuildIndicatorIcon, 350);
+      } else {
+        snapBack(true);
+      }
+    };
+    const scheduleWheelRelease = () => {
+      if (wheelReleaseTimer)
+        clearTimeout(wheelReleaseTimer);
+      wheelReleaseTimer = setTimeout(() => {
+        wheelReleaseTimer = null;
+        const dist = wheelPull;
+        wheelPull = 0;
+        if (dist >= THRESHOLD && !refreshing) {
+          void triggerRefresh();
+        } else {
+          snapBack(false);
+        }
+      }, 180);
+    };
+    const onWheel = (e) => {
+      if (refreshing)
+        return;
+      if (ptrScroll.scrollTop > 0) {
+        if (wheelPull > 0) {
+          wheelPull = 0;
+          if (wheelReleaseTimer) {
+            clearTimeout(wheelReleaseTimer);
+            wheelReleaseTimer = null;
+          }
+          snapBack(true);
+        }
+        return;
+      }
+      if (e.deltaY < 0) {
+        e.preventDefault();
+        ptrScroll.style.transition = "none";
+        ptrIndicator.style.transition = "none";
+        wheelPull += Math.abs(e.deltaY) * 0.3;
+        if (wheelPull > MAX_PULL)
+          wheelPull = MAX_PULL;
+        applyPull(wheelPull);
+        if (iconEl) {
+          iconEl.style.transform = wheelPull >= THRESHOLD ? "rotate(180deg)" : "";
+        }
+        scheduleWheelRelease();
+      } else if (e.deltaY > 0 && wheelPull > 0) {
+        wheelPull = Math.max(0, wheelPull - Math.abs(e.deltaY) * 0.3);
+        if (wheelPull <= 0) {
+          if (wheelReleaseTimer) {
+            clearTimeout(wheelReleaseTimer);
+            wheelReleaseTimer = null;
+          }
+          snapBack(true);
+        } else {
+          ptrScroll.style.transition = "none";
+          ptrIndicator.style.transition = "none";
+          applyPull(wheelPull);
+          scheduleWheelRelease();
+        }
+      }
+    };
+    const onScroll = () => {
+      if (ptrScroll.scrollTop > 0 && !refreshing) {
+        if (wheelPull > 0) {
+          wheelPull = 0;
+          if (wheelReleaseTimer) {
+            clearTimeout(wheelReleaseTimer);
+            wheelReleaseTimer = null;
+          }
+        }
+        snapBack(true);
+      }
+    };
+    ptrScroll.addEventListener("pointerdown", onPointerDown, { passive: true });
+    ptrScroll.addEventListener("pointermove", onPointerMove, { passive: true });
+    ptrScroll.addEventListener("pointerup", onPointerUp, { passive: true });
+    ptrScroll.addEventListener("pointercancel", onPointerCancel, { passive: true });
+    ptrScroll.addEventListener("wheel", onWheel, { passive: false });
+    ptrScroll.addEventListener("scroll", onScroll, { passive: true });
+    this.ptrCleanup = () => {
+      ptrScroll.removeEventListener("pointerdown", onPointerDown);
+      ptrScroll.removeEventListener("pointermove", onPointerMove);
+      ptrScroll.removeEventListener("pointerup", onPointerUp);
+      ptrScroll.removeEventListener("pointercancel", onPointerCancel);
+      ptrScroll.removeEventListener("wheel", onWheel);
+      ptrScroll.removeEventListener("scroll", onScroll);
+      if (wheelReleaseTimer)
+        clearTimeout(wheelReleaseTimer);
+    };
+  }
+  destroyPtr() {
+    if (this.ptrCleanup) {
+      this.ptrCleanup();
+      this.ptrCleanup = null;
+    }
   }
   renderFullInput(container) {
     if (this.wikilinkCleanup) {
@@ -7272,7 +7534,7 @@ ${prefix} ${jot.source.trim()}`;
       parent: container,
       deps,
       onSave: async (payload) => {
-        await this.plugin.saveJot(
+        await this.plugin.saveMindDump(
           payload.content,
           payload.tags,
           payload.source,
@@ -7287,17 +7549,17 @@ ${prefix} ${jot.source.trim()}`;
   }
   /** Replaces the main quick-input card while viewing the recycle bin. */
   renderRecycleBinBanner(container) {
-    const banner = container.createDiv({ cls: "jots-recycle-bin-banner" });
-    const main = banner.createDiv({ cls: "jots-recycle-bin-banner__main" });
-    const iconEl = main.createSpan({ cls: "jots-recycle-bin-banner__icon" });
+    const banner = container.createDiv({ cls: "minddump-recycle-bin-banner" });
+    const main = banner.createDiv({ cls: "minddump-recycle-bin-banner__main" });
+    const iconEl = main.createSpan({ cls: "minddump-recycle-bin-banner__icon" });
     (0, import_obsidian4.setIcon)(iconEl, "info");
     main.createSpan({
-      cls: "jots-recycle-bin-banner__text",
+      cls: "minddump-recycle-bin-banner__text",
       text: t("recycleBinRetentionBanner", this.lang)
     });
     const emptyBtn = banner.createEl("button", {
       type: "button",
-      cls: "jots-recycle-bin-banner__empty",
+      cls: "minddump-recycle-bin-banner__empty",
       attr: {
         "aria-label": t("recycleBinEmptyAll", this.lang),
         title: t("recycleBinEmptyAll", this.lang)
@@ -7305,7 +7567,7 @@ ${prefix} ${jot.source.trim()}`;
     });
     (0, import_obsidian4.setIcon)(emptyBtn, "trash");
     emptyBtn.addEventListener("click", async () => {
-      const deleted = this.jots.filter((j) => j.deleted);
+      const deleted = this.mindDumps.filter((j) => j.deleted);
       if (deleted.length === 0) {
         new import_obsidian4.Notice(t("recycleBinEmpty", this.lang));
         return;
@@ -7313,7 +7575,7 @@ ${prefix} ${jot.source.trim()}`;
       if (!confirm(t("recycleBinEmptyAllConfirm", this.lang)))
         return;
       try {
-        const n = await this.plugin.purgeAllDeletedJots();
+        const n = await this.plugin.purgeAllDeletedMindDumps();
         new import_obsidian4.Notice(t("recycleBinAllPurged", this.lang, { count: String(n) }));
       } catch (e) {
       }
@@ -7321,13 +7583,13 @@ ${prefix} ${jot.source.trim()}`;
   }
   /** Right panel: all tags (collapsible) + recycle bin — main layout only */
   renderRightRail(container) {
-    const rail = container.createDiv({ cls: "jots-right-rail" });
-    const tagsBlock = rail.createDiv({ cls: "jots-right-rail-tags" });
-    const tagsHead = tagsBlock.createDiv({ cls: "jots-right-rail-tags-head" });
-    const tagsHeadLeft = tagsHead.createDiv({ cls: "jots-right-rail-tags-head-left" });
-    const tagsChevron = tagsHeadLeft.createSpan({ cls: "jots-right-rail-tags-chevron" });
+    const rail = container.createDiv({ cls: "minddump-right-rail" });
+    const tagsBlock = rail.createDiv({ cls: "minddump-right-rail-tags" });
+    const tagsHead = tagsBlock.createDiv({ cls: "minddump-right-rail-tags-head" });
+    const tagsHeadLeft = tagsHead.createDiv({ cls: "minddump-right-rail-tags-head-left" });
+    const tagsChevron = tagsHeadLeft.createSpan({ cls: "minddump-right-rail-tags-chevron" });
     (0, import_obsidian4.setIcon)(tagsChevron, "chevron-down");
-    tagsHeadLeft.createSpan({ cls: "jots-right-rail-tags-title", text: t("rightRailAllTags", this.lang) });
+    tagsHeadLeft.createSpan({ cls: "minddump-right-rail-tags-title", text: t("rightRailAllTags", this.lang) });
     if (this.rightRailTagsCollapsed) {
       tagsChevron.addClass("is-collapsed");
       tagsBlock.addClass("is-collapsed");
@@ -7338,9 +7600,9 @@ ${prefix} ${jot.source.trim()}`;
       tagsBlock.toggleClass("is-collapsed", this.rightRailTagsCollapsed);
       tagsChevron.toggleClass("is-collapsed", this.rightRailTagsCollapsed);
     });
-    const tagsHeadActions = tagsHead.createDiv({ cls: "jots-right-rail-tags-head-actions" });
-    const sortLabel = tagsHeadActions.createSpan({ cls: "jots-right-rail-tags-sort", text: t("rightRailTagSort", this.lang) });
-    const searchBtn = tagsHeadActions.createSpan({ cls: "jots-right-rail-tags-search-btn" });
+    const tagsHeadActions = tagsHead.createDiv({ cls: "minddump-right-rail-tags-head-actions" });
+    const sortLabel = tagsHeadActions.createSpan({ cls: "minddump-right-rail-tags-sort", text: t("rightRailTagSort", this.lang) });
+    const searchBtn = tagsHeadActions.createSpan({ cls: "minddump-right-rail-tags-search-btn" });
     (0, import_obsidian4.setIcon)(searchBtn, "search");
     sortLabel.addEventListener("mousedown", (e) => e.preventDefault());
     sortLabel.addEventListener("click", (e) => {
@@ -7368,16 +7630,16 @@ ${prefix} ${jot.source.trim()}`;
     searchBtn.addEventListener("mousedown", (e) => e.preventDefault());
     searchBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const body = tagsBlock.querySelector(".jots-right-rail-tags-body");
-      const input = body == null ? void 0 : body.querySelector(".jots-right-rail-tags-filter-input");
+      const body = tagsBlock.querySelector(".minddump-right-rail-tags-body");
+      const input = body == null ? void 0 : body.querySelector(".minddump-right-rail-tags-filter-input");
       input == null ? void 0 : input.focus();
       input == null ? void 0 : input.select();
     });
-    const tagsBody = tagsBlock.createDiv({ cls: "jots-right-rail-tags-body" });
-    const filterWrap = tagsBody.createDiv({ cls: "jots-right-rail-tags-filter" });
+    const tagsBody = tagsBlock.createDiv({ cls: "minddump-right-rail-tags-body" });
+    const filterWrap = tagsBody.createDiv({ cls: "minddump-right-rail-tags-filter" });
     const filterInput = filterWrap.createEl("input", {
       type: "search",
-      cls: "jots-right-rail-tags-filter-input",
+      cls: "minddump-right-rail-tags-filter-input",
       attr: { placeholder: t("rightRailTagFilterPlaceholder", this.lang) }
     });
     filterInput.value = this.rightRailTagListQuery;
@@ -7387,11 +7649,11 @@ ${prefix} ${jot.source.trim()}`;
       if (this.debouncedRender)
         this.debouncedRender();
     });
-    const tagsList = tagsBody.createDiv({ cls: "jots-right-rail-tag-list" });
+    const tagsList = tagsBody.createDiv({ cls: "minddump-right-rail-tag-list" });
     for (const { tag } of this.getRightRailTagEntries()) {
-      const row = tagsList.createDiv({ cls: "jots-right-rail-row jots-right-rail-row--tag" });
-      row.createSpan({ cls: "jots-right-rail-row-hash", text: "#" });
-      row.createSpan({ cls: "jots-right-rail-row-label", text: tag });
+      const row = tagsList.createDiv({ cls: "minddump-right-rail-row minddump-right-rail-row--tag" });
+      row.createSpan({ cls: "minddump-right-rail-row-hash", text: "#" });
+      row.createSpan({ cls: "minddump-right-rail-row-label", text: tag });
       if (this.selectedTags.has(tag))
         row.addClass("is-selected");
       row.addEventListener("click", () => {
@@ -7403,12 +7665,12 @@ ${prefix} ${jot.source.trim()}`;
         this.render();
       });
     }
-    const binRow = rail.createDiv({ cls: "jots-right-rail-row jots-right-rail-row--bin" });
+    const binRow = rail.createDiv({ cls: "minddump-right-rail-row minddump-right-rail-row--bin" });
     if (this.viewingRecycleBin)
       binRow.addClass("is-active");
-    const binIcon = binRow.createSpan({ cls: "jots-right-rail-row-icon" });
+    const binIcon = binRow.createSpan({ cls: "minddump-right-rail-row-icon" });
     (0, import_obsidian4.setIcon)(binIcon, "trash-2");
-    binRow.createSpan({ cls: "jots-right-rail-row-label", text: t("rightRailRecycleBin", this.lang) });
+    binRow.createSpan({ cls: "minddump-right-rail-row-label", text: t("rightRailRecycleBin", this.lang) });
     binRow.addEventListener("click", () => {
       this.viewingRecycleBin = !this.viewingRecycleBin;
       if (this.viewingRecycleBin)
@@ -7416,8 +7678,8 @@ ${prefix} ${jot.source.trim()}`;
       this.render();
     });
   }
-  /** YYYY-MM-DD from jot timestamp fields */
-  jotDateKey(ts) {
+  /** YYYY-MM-DD from mindDump timestamp fields */
+  mindDumpDateKey(ts) {
     if (!(ts == null ? void 0 : ts.trim()))
       return null;
     const full = (0, import_moment2.default)(ts, "YYYY-MM-DD HH:mm:ss", true);
@@ -7449,40 +7711,40 @@ ${prefix} ${jot.source.trim()}`;
     const d = m.clone().locale("en").startOf("day");
     return d.subtract(d.day(), "days");
   }
-  /** Per-day create+update event counts and unique jots (all time, non-deleted) */
+  /** Per-day create+update event counts and unique mindDumps (all time, non-deleted) */
   buildHeatCellMap() {
     var _a;
     const raw = /* @__PURE__ */ new Map();
-    const bump = (dateKey, jot) => {
+    const bump = (dateKey, mindDump) => {
       let e = raw.get(dateKey);
       if (!e) {
         e = { activityScore: 0, byId: /* @__PURE__ */ new Map() };
         raw.set(dateKey, e);
       }
       e.activityScore++;
-      e.byId.set(jot.id, jot);
+      e.byId.set(mindDump.id, mindDump);
     };
-    for (const jot of this.jots) {
-      if (jot.deleted)
+    for (const mindDump of this.mindDumps) {
+      if (mindDump.deleted)
         continue;
-      const c = (_a = this.jotDateKey(jot.createdAt)) != null ? _a : /^\d{4}-\d{2}-\d{2}$/.test(jot.date) ? jot.date : null;
-      const u = this.jotDateKey(jot.updatedAt);
+      const c = (_a = this.mindDumpDateKey(mindDump.createdAt)) != null ? _a : /^\d{4}-\d{2}-\d{2}$/.test(mindDump.date) ? mindDump.date : null;
+      const u = this.mindDumpDateKey(mindDump.updatedAt);
       if (c)
-        bump(c, jot);
+        bump(c, mindDump);
       if (u)
-        bump(u, jot);
+        bump(u, mindDump);
     }
     const out = /* @__PURE__ */ new Map();
     for (const [k, v] of raw) {
-      out.set(k, { activityScore: v.activityScore, jots: Array.from(v.byId.values()) });
+      out.set(k, { activityScore: v.activityScore, mindDumps: Array.from(v.byId.values()) });
     }
     return out;
   }
   heatmapHeaderCounts(heat) {
-    const active = this.jots.filter((j) => !j.deleted);
+    const active = this.mindDumps.filter((j) => !j.deleted);
     const tagSet = /* @__PURE__ */ new Set();
-    for (const jot of active) {
-      for (const tag of jot.tags) {
+    for (const mindDump of active) {
+      for (const tag of mindDump.tags) {
         const s = tag == null ? void 0 : tag.trim();
         if (s)
           tagSet.add(s);
@@ -7497,36 +7759,36 @@ ${prefix} ${jot.source.trim()}`;
   }
   renderCalendar(container) {
     container.empty();
-    const section = container.createDiv({ cls: "jots-contrib-section" });
+    const section = container.createDiv({ cls: "minddump-contrib-section" });
     this.renderContributionHeatmap(section, false);
   }
   renderCalendarCompact(container) {
     container.empty();
-    const section = container.createDiv({ cls: "jots-contrib-section" });
+    const section = container.createDiv({ cls: "minddump-contrib-section" });
     this.renderContributionHeatmap(section, true);
   }
   renderContributionHeatmap(section, compact) {
     var _a, _b, _c, _d, _e;
     if (compact)
-      section.addClass("jots-contrib-section--compact");
-    section.style.setProperty("--contrib-weeks", String(_JotView.CONTRIB_WEEKS));
+      section.addClass("minddump-contrib-section--compact");
+    section.style.setProperty("--contrib-weeks", String(_MindDumpView.CONTRIB_WEEKS));
     const heatCells = this.buildHeatCellMap();
     const { notes, tags, activeDays } = this.heatmapHeaderCounts(heatCells);
     const tr = translations[this.lang];
-    const header = section.createDiv({ cls: "jots-contrib-stats" });
+    const header = section.createDiv({ cls: "minddump-contrib-stats" });
     const mkStat = (value, label) => {
-      const col = header.createDiv({ cls: "jots-contrib-stat" });
-      col.createDiv({ cls: "jots-contrib-stat-value", text: String(value) });
-      col.createDiv({ cls: "jots-contrib-stat-label", text: label });
+      const col = header.createDiv({ cls: "minddump-contrib-stat" });
+      col.createDiv({ cls: "minddump-contrib-stat-value", text: String(value) });
+      col.createDiv({ cls: "minddump-contrib-stat-label", text: label });
     };
     mkStat(notes, t("heatmapStatNotes", this.lang));
     mkStat(tags, t("heatmapStatTags", this.lang));
     mkStat(activeDays, t("heatmapStatActiveDays", this.lang));
     const today = (0, import_moment2.default)().locale("en").startOf("day");
     const gridEndSunday = this.startOfWeekSunday(today);
-    const gridStartSunday = gridEndSunday.clone().subtract(_JotView.CONTRIB_WEEKS - 1, "weeks");
+    const gridStartSunday = gridEndSunday.clone().subtract(_MindDumpView.CONTRIB_WEEKS - 1, "weeks");
     let maxScore = 0;
-    for (let w = 0; w < _JotView.CONTRIB_WEEKS; w++) {
+    for (let w = 0; w < _MindDumpView.CONTRIB_WEEKS; w++) {
       for (let r = 0; r < 7; r++) {
         const dayMoment = gridStartSunday.clone().add(w * 7 + r, "days");
         if (dayMoment.isAfter(today, "day"))
@@ -7537,11 +7799,11 @@ ${prefix} ${jot.source.trim()}`;
     }
     if (maxScore < 1)
       maxScore = 1;
-    const gridWrap = section.createDiv({ cls: "jots-contrib-grid-wrap" });
+    const gridWrap = section.createDiv({ cls: "minddump-contrib-grid-wrap" });
     const grid = gridWrap.createDiv({
-      cls: "jots-contrib-grid" + (compact ? " jots-contrib-grid--compact" : "")
+      cls: "minddump-contrib-grid" + (compact ? " minddump-contrib-grid--compact" : "")
     });
-    for (let w = 0; w < _JotView.CONTRIB_WEEKS; w++) {
+    for (let w = 0; w < _MindDumpView.CONTRIB_WEEKS; w++) {
       for (let r = 0; r < 7; r++) {
         const dayMoment = gridStartSunday.clone().add(w * 7 + r, "days");
         const dateStr = dayMoment.format("YYYY-MM-DD");
@@ -7551,13 +7813,13 @@ ${prefix} ${jot.source.trim()}`;
         const score = isFuture ? 0 : (_c = cell == null ? void 0 : cell.activityScore) != null ? _c : 0;
         const level = isFuture ? 0 : this.heatLevel(score, maxScore);
         const hasActivity = !isFuture && score > 0;
-        const noteCount = (_d = cell == null ? void 0 : cell.jots.length) != null ? _d : 0;
-        const dayDiv = grid.createDiv({ cls: "jots-contrib-cell" });
-        dayDiv.addClass(`jots-contrib-l${level}`);
+        const noteCount = (_d = cell == null ? void 0 : cell.mindDumps.length) != null ? _d : 0;
+        const dayDiv = grid.createDiv({ cls: "minddump-contrib-cell" });
+        dayDiv.addClass(`minddump-contrib-l${level}`);
         if (isFuture)
-          dayDiv.addClass("jots-contrib-cell--future");
+          dayDiv.addClass("minddump-contrib-cell--future");
         if (isToday)
-          dayDiv.addClass("jots-contrib-cell--today");
+          dayDiv.addClass("minddump-contrib-cell--today");
         const loc = this.lang === "zh" ? "zh-cn" : "en";
         const dateTitle = dayMoment.clone().locale(loc).format("LL");
         if (compact) {
@@ -7568,7 +7830,7 @@ ${prefix} ${jot.source.trim()}`;
         }
         if (!compact) {
           dayDiv.createSpan({
-            cls: "jots-contrib-cell-date",
+            cls: "minddump-contrib-cell-date",
             text: String(dayMoment.date()),
             attr: { "aria-hidden": "true" }
           });
@@ -7591,13 +7853,13 @@ ${prefix} ${jot.source.trim()}`;
     }
     const monthNames = tr.heatmapMonthShort;
     const monthsRow = section.createDiv({
-      cls: "jots-contrib-months" + (compact ? " jots-contrib-months--compact" : "")
+      cls: "minddump-contrib-months" + (compact ? " minddump-contrib-months--compact" : "")
     });
     let lastMonth = -1;
-    for (let w = 0; w < _JotView.CONTRIB_WEEKS; w++) {
+    for (let w = 0; w < _MindDumpView.CONTRIB_WEEKS; w++) {
       const weekStart = gridStartSunday.clone().add(w * 7, "days");
       const m = weekStart.clone().add(4, "days").month();
-      const cell = monthsRow.createDiv({ cls: "jots-contrib-month-cell" });
+      const cell = monthsRow.createDiv({ cls: "minddump-contrib-month-cell" });
       if (m !== lastMonth) {
         const label = compact && this.lang === "zh" ? `${m + 1}\u6708` : (_e = monthNames[m]) != null ? _e : String(m + 1);
         cell.setText(label);
@@ -7618,10 +7880,10 @@ ${prefix} ${jot.source.trim()}`;
     });
     this.searchQuery = kept.join(" ");
   }
-  jotMatchesTimePreset(jot) {
+  mindDumpMatchesTimePreset(mindDump) {
     if (this.searchTimePreset === "none" || this.searchTimePreset === "custom")
       return true;
-    const d = (0, import_moment2.default)(jot.date, "YYYY-MM-DD", true);
+    const d = (0, import_moment2.default)(mindDump.date, "YYYY-MM-DD", true);
     if (!d.isValid())
       return false;
     const today = (0, import_moment2.default)().startOf("day");
@@ -7646,61 +7908,61 @@ ${prefix} ${jot.source.trim()}`;
         return true;
     }
   }
-  jotHasImageContent(jot) {
+  mindDumpHasImageContent(mindDump) {
     var _a, _b;
-    if ((_a = jot.attachmentTypes) == null ? void 0 : _a.includes("image"))
+    if ((_a = mindDump.attachmentTypes) == null ? void 0 : _a.includes("image"))
       return true;
     const re = /!\[\[([^\]]+)\]\]/g;
     let m;
-    while ((m = re.exec(jot.content)) != null) {
+    while ((m = re.exec(mindDump.content)) != null) {
       if (VAULT_IMAGE_EXT.test(m[1].trim()))
         return true;
     }
-    for (const p of (_b = jot.attachments) != null ? _b : []) {
+    for (const p of (_b = mindDump.attachments) != null ? _b : []) {
       if (VAULT_IMAGE_EXT.test(p))
         return true;
     }
     return false;
   }
-  jotHasLinkContent(jot) {
-    if (/https?:\/\//i.test(jot.content))
+  mindDumpHasLinkContent(mindDump) {
+    if (/https?:\/\//i.test(mindDump.content))
       return true;
-    if (/\[\[[^\]]+\]\]/.test(jot.content))
+    if (/\[\[[^\]]+\]\]/.test(mindDump.content))
       return true;
     return false;
   }
-  jotHasAudioContent(jot) {
+  mindDumpHasAudioContent(mindDump) {
     var _a;
-    if (AUDIO_EXT_RE.test(jot.content) || AUDIO_EXT_RE.test(jot.fullText))
+    if (AUDIO_EXT_RE.test(mindDump.content) || AUDIO_EXT_RE.test(mindDump.fullText))
       return true;
-    for (const p of (_a = jot.attachments) != null ? _a : []) {
+    for (const p of (_a = mindDump.attachments) != null ? _a : []) {
       if (AUDIO_EXT_RE.test(p))
         return true;
     }
     const re = /!\[\[([^\]]+)\]\]/g;
     let m;
-    while ((m = re.exec(jot.content)) != null) {
+    while ((m = re.exec(mindDump.content)) != null) {
       if (AUDIO_EXT_RE.test(m[1]))
         return true;
     }
     return false;
   }
-  jotMatchesContentFilters(jot) {
+  mindDumpMatchesContentFilters(mindDump) {
     if (this.contentTypeFilters.size === 0)
       return true;
     for (const f of this.contentTypeFilters) {
-      if (f === "image" && this.jotHasImageContent(jot))
+      if (f === "image" && this.mindDumpHasImageContent(mindDump))
         return true;
-      if (f === "link" && this.jotHasLinkContent(jot))
+      if (f === "link" && this.mindDumpHasLinkContent(mindDump))
         return true;
-      if (f === "audio" && this.jotHasAudioContent(jot))
+      if (f === "audio" && this.mindDumpHasAudioContent(mindDump))
         return true;
     }
     return false;
   }
-  jotListSortCompare(a, b) {
+  mindDumpListSortCompare(a, b) {
     const parseTs = (s) => (0, import_moment2.default)(s, "YYYY-MM-DD HH:mm:ss").valueOf();
-    switch (this.jotListSort) {
+    switch (this.mindDumpListSort) {
       case "createdDesc":
         return parseTs(b.createdAt) - parseTs(a.createdAt);
       case "createdAsc":
@@ -7718,14 +7980,14 @@ ${prefix} ${jot.source.trim()}`;
     this.renderSearchFilterBar(container, true);
   }
   renderSearchFilterBar(container, compact) {
-    const stack = container.createDiv({ cls: `jots-search-stack${compact ? " jots-search-stack--compact" : ""}` });
-    const pillWrap = stack.createDiv({ cls: "jots-search-pill-wrap" });
+    const stack = container.createDiv({ cls: `minddump-search-stack${compact ? " minddump-search-stack--compact" : ""}` });
+    const pillWrap = stack.createDiv({ cls: "minddump-search-pill-wrap" });
     const sortBtn = pillWrap.createEl("button", {
       type: "button",
-      cls: "jots-search-sort-btn",
+      cls: "minddump-search-sort-btn",
       attr: {
-        "aria-label": t("jotListSortButton", this.lang),
-        title: t("jotListSortButton", this.lang)
+        "aria-label": t("mindDumpListSortButton", this.lang),
+        title: t("mindDumpListSortButton", this.lang)
       }
     });
     (0, import_obsidian4.setIcon)(sortBtn, "arrow-up-down");
@@ -7734,28 +7996,28 @@ ${prefix} ${jot.source.trim()}`;
       e.stopPropagation();
       const menu = new import_obsidian4.Menu();
       const sortOptions = [
-        { id: "createdDesc", labelKey: "jotListSortCreatedDesc" },
-        { id: "createdAsc", labelKey: "jotListSortCreatedAsc" },
-        { id: "updatedDesc", labelKey: "jotListSortUpdatedDesc" },
-        { id: "updatedAsc", labelKey: "jotListSortUpdatedAsc" }
+        { id: "createdDesc", labelKey: "mindDumpListSortCreatedDesc" },
+        { id: "createdAsc", labelKey: "mindDumpListSortCreatedAsc" },
+        { id: "updatedDesc", labelKey: "mindDumpListSortUpdatedDesc" },
+        { id: "updatedAsc", labelKey: "mindDumpListSortUpdatedAsc" }
       ];
       for (const { id, labelKey } of sortOptions) {
         menu.addItem((item) => {
           item.setTitle(t(labelKey, this.lang));
-          item.setChecked(this.jotListSort === id);
+          item.setChecked(this.mindDumpListSort === id);
           item.onClick(() => {
-            this.jotListSort = id;
+            this.mindDumpListSort = id;
             this.updateSearchAndFilter();
           });
         });
       }
       menu.showAtMouseEvent(e);
     });
-    this.searchContainer = pillWrap.createDiv({ cls: "jots-search-pill" });
+    this.searchContainer = pillWrap.createDiv({ cls: "minddump-search-pill" });
     this.searchContainer.style.position = "relative";
-    const iconEl = this.searchContainer.createSpan({ cls: "jots-search-pill-icon" });
+    const iconEl = this.searchContainer.createSpan({ cls: "minddump-search-pill-icon" });
     (0, import_obsidian4.setIcon)(iconEl, "search");
-    const searchInput = this.searchContainer.createEl("input", { cls: "jots-search-pill-input" });
+    const searchInput = this.searchContainer.createEl("input", { cls: "minddump-search-pill-input" });
     searchInput.type = "text";
     searchInput.placeholder = compact ? t("searchPillPlaceholder", this.lang) : t("searchPillPlaceholder", this.lang);
     searchInput.setAttribute("aria-label", t("searchPlaceholder", this.lang));
@@ -7784,8 +8046,8 @@ ${prefix} ${jot.source.trim()}`;
       this.debouncedSearch(query);
     });
     this.updateClearButton();
-    const panel = stack.createDiv({ cls: "jots-search-panel" });
-    const timeGrid = panel.createDiv({ cls: "jots-search-time-grid" });
+    const panel = stack.createDiv({ cls: "minddump-search-panel" });
+    const timeGrid = panel.createDiv({ cls: "minddump-search-time-grid" });
     const timePresets = [
       { key: "onThisDay", labelKey: "timePresetOnThisDay" },
       { key: "thisMonth", labelKey: "timePresetThisMonth" },
@@ -7796,7 +8058,7 @@ ${prefix} ${jot.source.trim()}`;
     ];
     const timeButtons = [];
     for (const { key, labelKey } of timePresets) {
-      const btn = timeGrid.createEl("button", { type: "button", cls: "jots-filter-chip" });
+      const btn = timeGrid.createEl("button", { type: "button", cls: "minddump-filter-chip" });
       btn.textContent = t(labelKey, this.lang);
       if (this.searchTimePreset === key)
         btn.addClass("is-active");
@@ -7813,10 +8075,10 @@ ${prefix} ${jot.source.trim()}`;
       });
       timeButtons.push({ el: btn, key });
     }
-    const tagsSection = panel.createDiv({ cls: "jots-search-section" });
-    const tagsHead = tagsSection.createDiv({ cls: "jots-search-section-head" });
-    tagsHead.createSpan({ cls: "jots-search-section-title", text: t("searchFilterTagsHeading", this.lang) });
-    const tagsChevron = tagsHead.createSpan({ cls: "jots-search-section-chevron" });
+    const tagsSection = panel.createDiv({ cls: "minddump-search-section" });
+    const tagsHead = tagsSection.createDiv({ cls: "minddump-search-section-head" });
+    tagsHead.createSpan({ cls: "minddump-search-section-title", text: t("searchFilterTagsHeading", this.lang) });
+    const tagsChevron = tagsHead.createSpan({ cls: "minddump-search-section-chevron" });
     (0, import_obsidian4.setIcon)(tagsChevron, "chevron-down");
     if (this.searchTagsSectionCollapsed) {
       tagsChevron.addClass("is-collapsed");
@@ -7828,9 +8090,9 @@ ${prefix} ${jot.source.trim()}`;
       tagsSection.toggleClass("is-collapsed", this.searchTagsSectionCollapsed);
       tagsChevron.toggleClass("is-collapsed", this.searchTagsSectionCollapsed);
     });
-    const tagsBody = tagsSection.createDiv({ cls: "jots-search-section-body" });
-    const tagModeRow = tagsBody.createDiv({ cls: "jots-search-chip-row" });
-    const tagFilter = tagsBody.createDiv({ cls: "jots-search-tag-chips" });
+    const tagsBody = tagsSection.createDiv({ cls: "minddump-search-section-body" });
+    const tagModeRow = tagsBody.createDiv({ cls: "minddump-search-chip-row" });
+    const tagFilter = tagsBody.createDiv({ cls: "minddump-search-tag-chips" });
     tagFilter.addEventListener("mousedown", (e) => e.preventDefault());
     tagFilter.toggleClass("is-hidden", this.tagMatchMode === "noTags");
     const tagModes = [
@@ -7840,7 +8102,7 @@ ${prefix} ${jot.source.trim()}`;
     ];
     const tagModeButtons = [];
     for (const { mode, labelKey } of tagModes) {
-      const btn = tagModeRow.createEl("button", { type: "button", cls: "jots-filter-chip" });
+      const btn = tagModeRow.createEl("button", { type: "button", cls: "minddump-filter-chip" });
       btn.textContent = t(labelKey, this.lang);
       if (this.tagMatchMode === mode)
         btn.addClass("is-active");
@@ -7849,15 +8111,15 @@ ${prefix} ${jot.source.trim()}`;
         this.tagMatchMode = mode;
         tagModeButtons.forEach(({ el, mode: m }) => el.toggleClass("is-active", this.tagMatchMode === m));
         tagFilter.toggleClass("is-hidden", this.tagMatchMode === "noTags");
-        const listSection = this.contentEl.querySelector(".jots-list-section");
+        const listSection = this.contentEl.querySelector(".minddump-list-section");
         if (listSection)
-          this.renderJotList(listSection);
+          this.renderMindDumpList(listSection);
       });
       tagModeButtons.push({ el: btn, mode });
     }
     const allTagsList = compact ? this.getAllTags().slice(0, 8) : this.getAllTags();
     allTagsList.forEach((tag) => {
-      const tagBtn = tagFilter.createSpan({ cls: "jots-search-tag-chip" });
+      const tagBtn = tagFilter.createSpan({ cls: "minddump-search-tag-chip" });
       tagBtn.textContent = `#${tag}`;
       if (this.selectedTags.has(tag))
         tagBtn.addClass("is-selected");
@@ -7868,22 +8130,22 @@ ${prefix} ${jot.source.trim()}`;
         else
           this.selectedTags.add(tag);
         tagBtn.toggleClass("is-selected", this.selectedTags.has(tag));
-        const listSection = this.contentEl.querySelector(".jots-list-section");
+        const listSection = this.contentEl.querySelector(".minddump-list-section");
         if (listSection)
-          this.renderJotList(listSection);
+          this.renderMindDumpList(listSection);
       });
     });
     if (compact) {
       const allTagsCount = this.getAllTags().length;
       if (allTagsCount > 8) {
-        const moreHint = tagsBody.createDiv({ cls: "jots-search-more-tags" });
+        const moreHint = tagsBody.createDiv({ cls: "minddump-search-more-tags" });
         moreHint.textContent = t("moreTags", this.lang, { count: String(allTagsCount - 8) });
       }
     }
-    const contentSection = panel.createDiv({ cls: "jots-search-section" });
-    const contentHead = contentSection.createDiv({ cls: "jots-search-section-head" });
-    contentHead.createSpan({ cls: "jots-search-section-title", text: t("searchFilterContentHeading", this.lang) });
-    const contentChevron = contentHead.createSpan({ cls: "jots-search-section-chevron" });
+    const contentSection = panel.createDiv({ cls: "minddump-search-section" });
+    const contentHead = contentSection.createDiv({ cls: "minddump-search-section-head" });
+    contentHead.createSpan({ cls: "minddump-search-section-title", text: t("searchFilterContentHeading", this.lang) });
+    const contentChevron = contentHead.createSpan({ cls: "minddump-search-section-chevron" });
     (0, import_obsidian4.setIcon)(contentChevron, "chevron-down");
     if (this.searchContentSectionCollapsed) {
       contentChevron.addClass("is-collapsed");
@@ -7895,15 +8157,15 @@ ${prefix} ${jot.source.trim()}`;
       contentSection.toggleClass("is-collapsed", this.searchContentSectionCollapsed);
       contentChevron.toggleClass("is-collapsed", this.searchContentSectionCollapsed);
     });
-    const contentBody = contentSection.createDiv({ cls: "jots-search-section-body" });
-    const contentRow = contentBody.createDiv({ cls: "jots-search-chip-row" });
+    const contentBody = contentSection.createDiv({ cls: "minddump-search-section-body" });
+    const contentRow = contentBody.createDiv({ cls: "minddump-search-chip-row" });
     const contentDefs = [
       { key: "image", labelKey: "contentTypeImage" },
       { key: "link", labelKey: "contentTypeLink" },
       { key: "audio", labelKey: "contentTypeAudio" }
     ];
     for (const { key, labelKey } of contentDefs) {
-      const btn = contentRow.createEl("button", { type: "button", cls: "jots-filter-chip" });
+      const btn = contentRow.createEl("button", { type: "button", cls: "minddump-filter-chip" });
       btn.textContent = t(labelKey, this.lang);
       if (this.contentTypeFilters.has(key))
         btn.addClass("is-active");
@@ -7914,9 +8176,9 @@ ${prefix} ${jot.source.trim()}`;
         else
           this.contentTypeFilters.add(key);
         btn.toggleClass("is-active", this.contentTypeFilters.has(key));
-        const listSection = this.contentEl.querySelector(".jots-list-section");
+        const listSection = this.contentEl.querySelector(".minddump-list-section");
         if (listSection)
-          this.renderJotList(listSection);
+          this.renderMindDumpList(listSection);
       });
     }
   }
@@ -7924,10 +8186,10 @@ ${prefix} ${jot.source.trim()}`;
   getRightRailTagEntries() {
     var _a;
     const counts = /* @__PURE__ */ new Map();
-    for (const jot of this.jots) {
-      if (jot.deleted)
+    for (const mindDump of this.mindDumps) {
+      if (mindDump.deleted)
         continue;
-      for (const tag of jot.tags) {
+      for (const tag of mindDump.tags) {
         counts.set(tag, ((_a = counts.get(tag)) != null ? _a : 0) + 1);
       }
     }
@@ -7957,16 +8219,16 @@ ${prefix} ${jot.source.trim()}`;
   }
   getAllTags() {
     const tags = /* @__PURE__ */ new Set();
-    for (const jot of this.jots) {
-      if (jot.deleted)
+    for (const mindDump of this.mindDumps) {
+      if (mindDump.deleted)
         continue;
-      jot.tags.forEach((tag) => tags.add(tag));
+      mindDump.tags.forEach((tag) => tags.add(tag));
     }
     return Array.from(tags).sort((a, b) => a.localeCompare(b, this.lang === "zh" ? "zh" : "en"));
   }
-  renderJotList(container) {
+  renderMindDumpList(container) {
     container.empty();
-    container.addClass("jots-list-section");
+    container.addClass("minddump-list-section");
     this.renderedComponents.forEach((comp) => {
       try {
         comp.unload();
@@ -7975,16 +8237,16 @@ ${prefix} ${jot.source.trim()}`;
       }
     });
     this.renderedComponents = [];
-    this.jotListCleanups.forEach((fn) => {
+    this.mindDumpListCleanups.forEach((fn) => {
       try {
         fn();
       } catch (e) {
       }
     });
-    this.jotListCleanups = [];
+    this.mindDumpListCleanups = [];
     this.closeCardMenu();
-    let filteredJots = [...this.filterJots()].sort((a, b) => this.jotListSortCompare(a, b));
-    if (filteredJots.length === 0) {
+    let filteredMindDumps = [...this.filterMindDumps()].sort((a, b) => this.mindDumpListSortCompare(a, b));
+    if (filteredMindDumps.length === 0) {
       const empty = container.createDiv();
       empty.textContent = this.viewingRecycleBin ? t("recycleBinEmpty", this.lang) : t("noRecords", this.lang);
       empty.style.textAlign = "center";
@@ -7995,13 +8257,13 @@ ${prefix} ${jot.source.trim()}`;
     }
     const searchKeywords = this.searchQuery.trim().length > 0 ? this.parseSearchFilters(this.searchQuery).keywords : [];
     const groupedByDate = /* @__PURE__ */ new Map();
-    filteredJots.forEach((jot) => {
-      if (!groupedByDate.has(jot.date)) {
-        groupedByDate.set(jot.date, []);
+    filteredMindDumps.forEach((mindDump) => {
+      if (!groupedByDate.has(mindDump.date)) {
+        groupedByDate.set(mindDump.date, []);
       }
-      groupedByDate.get(jot.date).push(jot);
+      groupedByDate.get(mindDump.date).push(mindDump);
     });
-    for (const [date, jots] of groupedByDate) {
+    for (const [date, mindDumps] of groupedByDate) {
       const dateGroup = container.createDiv();
       dateGroup.style.marginBottom = "16px";
       const dateHeader = dateGroup.createDiv();
@@ -8012,7 +8274,7 @@ ${prefix} ${jot.source.trim()}`;
       dateHeader.style.padding = "4px 0";
       dateHeader.style.borderBottom = "1px solid var(--background-modifier-border)";
       dateHeader.style.marginBottom = "8px";
-      jots.forEach((jot) => {
+      mindDumps.forEach((mindDump) => {
         var _a, _b;
         const card = dateGroup.createDiv();
         card.style.backgroundColor = "var(--background-secondary)";
@@ -8021,9 +8283,9 @@ ${prefix} ${jot.source.trim()}`;
         card.style.marginBottom = "8px";
         card.style.transition = "all 0.2s";
         card.style.border = "1px solid var(--background-modifier-border)";
-        if (jot.deleted)
-          card.addClass("jots-card--in-trash");
-        if (this.editingJotId === jot.id) {
+        if (mindDump.deleted)
+          card.addClass("minddump-card--in-trash");
+        if (this.editingMindDumpId === mindDump.id) {
           card.style.cursor = "default";
           card.style.borderColor = "var(--interactive-accent)";
           const metaRow2 = card.createDiv();
@@ -8034,16 +8296,16 @@ ${prefix} ${jot.source.trim()}`;
           metaRow2.style.marginBottom = "8px";
           metaRow2.style.fontSize = "10px";
           metaRow2.style.color = "var(--text-muted)";
-          metaRow2.createSpan({ text: jot.time });
+          metaRow2.createSpan({ text: mindDump.time });
           const updSpan = metaRow2.createSpan();
-          updSpan.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
+          updSpan.textContent = `${t("mindDumpUpdatedAt", this.lang)}: ${mindDump.updatedAt}`;
           updSpan.style.color = "var(--text-normal)";
           updSpan.style.fontWeight = "600";
-          const initialAttachments = ((_a = jot.attachments) != null ? _a : []).map((path, i) => {
+          const initialAttachments = ((_a = mindDump.attachments) != null ? _a : []).map((path, i) => {
             var _a2, _b2;
             return {
               path,
-              type: (_b2 = (_a2 = jot.attachmentTypes) == null ? void 0 : _a2[i]) != null ? _b2 : "file"
+              type: (_b2 = (_a2 = mindDump.attachmentTypes) == null ? void 0 : _a2[i]) != null ? _b2 : "file"
             };
           });
           const editApi = mountQuickComposeCard({
@@ -8056,41 +8318,41 @@ ${prefix} ${jot.source.trim()}`;
               getExistingTags: () => this.getExistingTags()
             },
             initial: {
-              content: jot.content,
-              tags: [...jot.tags],
-              source: jot.source,
+              content: mindDump.content,
+              tags: [...mindDump.tags],
+              source: mindDump.source,
               attachments: initialAttachments
             },
             onSave: async (payload) => {
-              const prevId = this.editingJotId;
-              this.editingJotId = null;
+              const prevId = this.editingMindDumpId;
+              this.editingMindDumpId = null;
               try {
-                await this.plugin.updateJot({
-                  ...jot,
+                await this.plugin.updateMindDump({
+                  ...mindDump,
                   content: payload.content.trim(),
-                  tags: normalizeJotTags(payload.tags),
+                  tags: normalizeMindDumpTags(payload.tags),
                   source: payload.source.trim(),
                   attachments: payload.attachments.map((a) => a.path),
                   attachmentTypes: payload.attachments.map((a) => a.type)
                 });
                 new import_obsidian4.Notice(t("saved", this.lang));
               } catch (e) {
-                this.editingJotId = prevId;
-                const listSection = this.contentEl.querySelector(".jots-list-section");
+                this.editingMindDumpId = prevId;
+                const listSection = this.contentEl.querySelector(".minddump-list-section");
                 if (listSection) {
-                  this.renderJotList(listSection);
+                  this.renderMindDumpList(listSection);
                 }
               }
             },
             onCancel: () => this.exitEditMode()
           });
           if (editApi.wikilinkCleanup) {
-            this.jotListCleanups.push(editApi.wikilinkCleanup);
+            this.mindDumpListCleanups.push(editApi.wikilinkCleanup);
           }
           editApi.focusTextarea();
           return;
         }
-        this.attachCardTapAndLongPress(card, jot);
+        this.attachCardTapAndLongPress(card, mindDump);
         card.addEventListener("mouseenter", () => {
           card.style.borderColor = "var(--interactive-accent)";
           card.style.transform = "translateY(-1px)";
@@ -8099,13 +8361,13 @@ ${prefix} ${jot.source.trim()}`;
           card.style.borderColor = "var(--background-modifier-border)";
           card.style.transform = "translateY(0)";
         });
-        const metaRow = card.createDiv({ cls: "jots-card-meta-row" });
-        const metaLeft = metaRow.createDiv({ cls: "jots-card-meta-left" });
-        metaLeft.createSpan({ cls: "jots-card-meta-time", text: jot.time });
-        const updLabel = metaLeft.createSpan({ cls: "jots-card-meta-upd" });
-        updLabel.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
+        const metaRow = card.createDiv({ cls: "minddump-card-meta-row" });
+        const metaLeft = metaRow.createDiv({ cls: "minddump-card-meta-left" });
+        metaLeft.createSpan({ cls: "minddump-card-meta-time", text: mindDump.time });
+        const updLabel = metaLeft.createSpan({ cls: "minddump-card-meta-upd" });
+        updLabel.textContent = `${t("mindDumpUpdatedAt", this.lang)}: ${mindDump.updatedAt}`;
         const menuTrigger = metaRow.createEl("button", {
-          cls: "jots-card-menu-trigger",
+          cls: "minddump-card-menu-trigger",
           type: "button",
           attr: { "aria-label": t("cardMenuMore", this.lang) }
         });
@@ -8115,22 +8377,22 @@ ${prefix} ${jot.source.trim()}`;
         menuTrigger.addEventListener("pointerup", stopCard);
         menuTrigger.addEventListener("click", (ev) => {
           stopCard(ev);
-          const openMenu = this.contentEl.doc.body.querySelector(".jots-card-menu-popover");
-          if ((openMenu == null ? void 0 : openMenu.dataset.anchorId) === jot.id) {
+          const openMenu = this.contentEl.doc.body.querySelector(".minddump-card-menu-popover");
+          if ((openMenu == null ? void 0 : openMenu.dataset.anchorId) === mindDump.id) {
             this.closeCardMenu();
             return;
           }
-          this.openCardMenu(menuTrigger, jot);
+          this.openCardMenu(menuTrigger, mindDump);
         });
         const contentContainer = card.createDiv();
         contentContainer.style.marginBottom = "6px";
         contentContainer.style.whiteSpace = "normal";
         contentContainer.style.wordBreak = "break-word";
         contentContainer.style.overflowWrap = "break-word";
-        contentContainer.addClass("jots-card-content");
+        contentContainer.addClass("minddump-card-content");
         const component = new import_obsidian4.Component();
         this.renderedComponents.push(component);
-        const sourcePath = jot.filePath || "";
+        const sourcePath = mindDump.filePath || "";
         const wireRenderedContent = () => {
           contentContainer.querySelectorAll("a.internal-link").forEach((link) => {
             const href = link.getAttribute("href");
@@ -8206,29 +8468,29 @@ ${prefix} ${jot.source.trim()}`;
           }
         };
         void Promise.resolve(import_obsidian4.MarkdownRenderer.renderMarkdown(
-          jot.content,
+          mindDump.content,
           contentContainer,
           sourcePath,
           component
         )).then(wireRenderedContent);
-        const attachmentImageRow = card.createDiv({ cls: "jots-card-attachment-images" });
-        (_b = jot.attachments) == null ? void 0 : _b.forEach((attachment, idx) => {
+        const attachmentImageRow = card.createDiv({ cls: "minddump-card-attachment-images" });
+        (_b = mindDump.attachments) == null ? void 0 : _b.forEach((attachment, idx) => {
           var _a2;
-          const attType = (_a2 = jot.attachmentTypes) == null ? void 0 : _a2[idx];
+          const attType = (_a2 = mindDump.attachmentTypes) == null ? void 0 : _a2[idx];
           const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
           if (attType === "file" || attType !== "image" && !pathLooksImage)
             return;
           const vaultPath = (0, import_obsidian4.normalizePath)(attachment);
           const af = this.app.vault.getAbstractFileByPath(vaultPath);
           if (af instanceof import_obsidian4.TFile && VAULT_IMAGE_EXT.test(af.path)) {
-            const thumb = attachmentImageRow.createDiv({ cls: "jots-card-attachment-thumb" });
-            const img = thumb.createEl("img", { cls: "jots-card-attachment-img" });
+            const thumb = attachmentImageRow.createDiv({ cls: "minddump-card-attachment-thumb" });
+            const img = thumb.createEl("img", { cls: "minddump-card-attachment-img" });
             img.src = this.app.vault.getResourcePath(af);
             img.alt = af.name;
             img.loading = "lazy";
             this.wireCardImageZoom(img);
           } else {
-            const miss = attachmentImageRow.createDiv({ cls: "jots-card-attachment-missing" });
+            const miss = attachmentImageRow.createDiv({ cls: "minddump-card-attachment-missing" });
             miss.textContent = `\u{1F5BC}\uFE0F ${attachment}`;
           }
         });
@@ -8240,7 +8502,7 @@ ${prefix} ${jot.source.trim()}`;
         tagsDiv.style.flexWrap = "wrap";
         tagsDiv.style.gap = "4px";
         tagsDiv.style.marginBottom = "4px";
-        jot.tags.forEach((tag) => {
+        mindDump.tags.forEach((tag) => {
           const tagSpan = tagsDiv.createSpan();
           tagSpan.textContent = `#${tag}`;
           tagSpan.style.fontSize = "9px";
@@ -8264,19 +8526,19 @@ ${prefix} ${jot.source.trim()}`;
             this.filterByTag(tag);
           });
         });
-        if (jot.source && jot.source.trim()) {
+        if (mindDump.source && mindDump.source.trim()) {
           const sourceDiv = card.createDiv();
-          sourceDiv.textContent = jot.source;
+          sourceDiv.textContent = mindDump.source;
           sourceDiv.style.fontSize = "10px";
           sourceDiv.style.color = "var(--text-muted)";
           sourceDiv.style.fontStyle = "italic";
           sourceDiv.style.marginTop = "4px";
         }
-        if (jot.attachments && jot.attachments.length > 0) {
+        if (mindDump.attachments && mindDump.attachments.length > 0) {
           let firstFileLine = true;
-          jot.attachments.forEach((attachment, idx) => {
+          mindDump.attachments.forEach((attachment, idx) => {
             var _a2;
-            const attType = (_a2 = jot.attachmentTypes) == null ? void 0 : _a2[idx];
+            const attType = (_a2 = mindDump.attachmentTypes) == null ? void 0 : _a2[idx];
             const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
             if (attType === "image" || attType !== "file" && pathLooksImage)
               return;
@@ -8291,46 +8553,46 @@ ${prefix} ${jot.source.trim()}`;
       });
     }
   }
-  filterJots() {
+  filterMindDumps() {
     if (this.viewingRecycleBin) {
-      return this.jots.filter((j) => j.deleted);
+      return this.mindDumps.filter((j) => j.deleted);
     }
-    let filtered = this.jots.filter((j) => !j.deleted);
+    let filtered = this.mindDumps.filter((j) => !j.deleted);
     const { date, updated, activity, keywords } = this.parseSearchFilters(this.searchQuery);
     if (date) {
-      filtered = filtered.filter((jot) => jot.date === date);
+      filtered = filtered.filter((mindDump) => mindDump.date === date);
     }
     if (updated) {
-      filtered = filtered.filter((jot) => jot.updatedAt.startsWith(updated));
+      filtered = filtered.filter((mindDump) => mindDump.updatedAt.startsWith(updated));
     }
     if (activity) {
-      filtered = filtered.filter((jot) => {
+      filtered = filtered.filter((mindDump) => {
         var _a;
-        const c = (_a = this.jotDateKey(jot.createdAt)) != null ? _a : /^\d{4}-\d{2}-\d{2}$/.test(jot.date) ? jot.date : null;
-        const u = this.jotDateKey(jot.updatedAt);
+        const c = (_a = this.mindDumpDateKey(mindDump.createdAt)) != null ? _a : /^\d{4}-\d{2}-\d{2}$/.test(mindDump.date) ? mindDump.date : null;
+        const u = this.mindDumpDateKey(mindDump.updatedAt);
         return c === activity || u === activity;
       });
     }
     if (!date && !activity && this.searchTimePreset !== "none" && this.searchTimePreset !== "custom") {
-      filtered = filtered.filter((jot) => this.jotMatchesTimePreset(jot));
+      filtered = filtered.filter((mindDump) => this.mindDumpMatchesTimePreset(mindDump));
     }
     if (keywords.length > 0) {
-      filtered = filtered.filter((jot) => {
-        const contentLower = jot.content.toLowerCase();
+      filtered = filtered.filter((mindDump) => {
+        const contentLower = mindDump.content.toLowerCase();
         return keywords.every((kw) => contentLower.includes(kw));
       });
     }
     if (this.tagMatchMode === "noTags") {
-      filtered = filtered.filter((jot) => jot.tags.length === 0);
+      filtered = filtered.filter((mindDump) => mindDump.tags.length === 0);
     } else if (this.selectedTags.size > 0) {
       if (this.tagMatchMode === "include") {
-        filtered = filtered.filter((jot) => jot.tags.some((tag) => this.selectedTags.has(tag)));
+        filtered = filtered.filter((mindDump) => mindDump.tags.some((tag) => this.selectedTags.has(tag)));
       } else {
-        filtered = filtered.filter((jot) => !jot.tags.some((tag) => this.selectedTags.has(tag)));
+        filtered = filtered.filter((mindDump) => !mindDump.tags.some((tag) => this.selectedTags.has(tag)));
       }
     }
     if (this.contentTypeFilters.size > 0) {
-      filtered = filtered.filter((jot) => this.jotMatchesContentFilters(jot));
+      filtered = filtered.filter((mindDump) => this.mindDumpMatchesContentFilters(mindDump));
     }
     return filtered;
   }
@@ -8344,20 +8606,20 @@ ${prefix} ${jot.source.trim()}`;
     }
     this.render();
   }
-  async openJot(jot) {
+  async openMindDump(mindDump) {
     const folder = (0, import_obsidian4.normalizePath)(this.plugin.settings.saveFolder);
     let filePath;
-    if (jot.filePath) {
-      filePath = (0, import_obsidian4.normalizePath)(jot.filePath);
+    if (mindDump.filePath) {
+      filePath = (0, import_obsidian4.normalizePath)(mindDump.filePath);
     } else if (this.plugin.settings.logMode === "multi") {
-      const dateStr = jot.date;
+      const dateStr = mindDump.date;
       let filename = this.plugin.settings.multiFileFormat.replace("YYYYMMDD", dateStr.replace(/-/g, ""));
       if (!filename.endsWith(".md")) {
         filename += ".md";
       }
       filePath = `${folder}/${filename}`;
     } else {
-      filePath = `${folder}/jots.md`;
+      filePath = `${folder}/minddumps.md`;
     }
     const file = this.app.vault.getAbstractFileByPath(filePath);
     if (file && file instanceof import_obsidian4.TFile) {
@@ -8408,8 +8670,8 @@ ${prefix} ${jot.source.trim()}`;
               }
               break;
             }
-            const resolvedId = metaId || stableLegacyJotId(file.path, datePart || "", timePart || "");
-            if (resolvedId === jot.id) {
+            const resolvedId = metaId || stableLegacyMindDumpId(file.path, datePart || "", timePart || "");
+            if (resolvedId === mindDump.id) {
               foundLine = blockStart;
               break;
             }
@@ -8423,7 +8685,7 @@ ${prefix} ${jot.source.trim()}`;
           }
         }
         if (foundLine === -1) {
-          const targetHeader = "### " + jot.date + " " + jot.time;
+          const targetHeader = "### " + mindDump.date + " " + mindDump.time;
           for (let line = 0; line < lines.length; line++) {
             if (lines[line].trim() === targetHeader) {
               foundLine = line;
@@ -8443,18 +8705,18 @@ ${prefix} ${jot.source.trim()}`;
   }
 };
 /** Columns in the activity heatmap (one column = one week). Kept modest so cells stay readable in the sidebar. */
-_JotView.CONTRIB_WEEKS = 8;
-var JotView = _JotView;
+_MindDumpView.CONTRIB_WEEKS = 8;
+var MindDumpView = _MindDumpView;
 
 // src/types.ts
 var DEFAULT_SETTINGS = {
-  saveFolder: "Jots",
+  saveFolder: "MindDump",
   logMode: "multi",
   useFixedTag: false,
-  fixedTag: "jot",
+  fixedTag: "minddump",
   enableTagsInFrontmatter: true,
-  multiFileFormat: "jot-YYYYMMDD",
-  attachmentsFolder: "Jots/attachments",
+  multiFileFormat: "minddump-YYYYMMDD",
+  attachmentsFolder: "MindDump/attachments",
   language: "zh",
   autoOpenView: true
 };
@@ -8462,7 +8724,7 @@ var DEFAULT_SETTINGS = {
 // src/settings.ts
 var import_obsidian5 = require("obsidian");
 init_i18n();
-var JotSettingTab = class extends import_obsidian5.PluginSettingTab {
+var MindDumpSettingTab = class extends import_obsidian5.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.logModeSetting = null;
@@ -8489,12 +8751,12 @@ var JotSettingTab = class extends import_obsidian5.PluginSettingTab {
       this.plugin.settings.autoOpenView = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian5.Setting(containerEl).setName(t("saveFolder", this.plugin.lang)).setDesc(t("saveFolderDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("Jots").setValue(this.plugin.settings.saveFolder).onChange(async (value) => {
-      this.plugin.settings.saveFolder = value.trim() || "Jots";
+    new import_obsidian5.Setting(containerEl).setName(t("saveFolder", this.plugin.lang)).setDesc(t("saveFolderDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("MindDump").setValue(this.plugin.settings.saveFolder).onChange(async (value) => {
+      this.plugin.settings.saveFolder = value.trim() || "MindDump";
       await this.plugin.saveSettings();
     }));
-    new import_obsidian5.Setting(containerEl).setName(t("attachmentsFolder", this.plugin.lang)).setDesc(t("attachmentsFolderDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("Jots/attachments").setValue(this.plugin.settings.attachmentsFolder).onChange(async (value) => {
-      this.plugin.settings.attachmentsFolder = value.trim() || "Jots/attachments";
+    new import_obsidian5.Setting(containerEl).setName(t("attachmentsFolder", this.plugin.lang)).setDesc(t("attachmentsFolderDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("MindDump/attachments").setValue(this.plugin.settings.attachmentsFolder).onChange(async (value) => {
+      this.plugin.settings.attachmentsFolder = value.trim() || "MindDump/attachments";
       await this.plugin.saveSettings();
     }));
     this.logModeSetting = new import_obsidian5.Setting(containerEl).setName(t("logMode", this.plugin.lang)).setDesc(t("logModeDesc", this.plugin.lang)).addDropdown((dropdown) => dropdown.addOption("multi", t("logModeMulti", this.plugin.lang)).addOption("single", t("logModeSingle", this.plugin.lang)).setValue(this.plugin.settings.logMode).onChange(async (value) => {
@@ -8502,8 +8764,8 @@ var JotSettingTab = class extends import_obsidian5.PluginSettingTab {
       await this.plugin.saveSettings();
       this.updateConditionalSettings();
     }));
-    this.multiFileFormatSetting = new import_obsidian5.Setting(containerEl).setName(t("fileFormat", this.plugin.lang)).setDesc(t("fileFormatDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("jot-YYYYMMDD").setValue(this.plugin.settings.multiFileFormat).onChange(async (value) => {
-      this.plugin.settings.multiFileFormat = value.trim() || "jot-YYYYMMDD";
+    this.multiFileFormatSetting = new import_obsidian5.Setting(containerEl).setName(t("fileFormat", this.plugin.lang)).setDesc(t("fileFormatDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("minddump-YYYYMMDD").setValue(this.plugin.settings.multiFileFormat).onChange(async (value) => {
+      this.plugin.settings.multiFileFormat = value.trim() || "minddump-YYYYMMDD";
       await this.plugin.saveSettings();
     }));
     this.multiFileFormatSetting.settingEl.style.display = this.plugin.settings.logMode === "multi" ? "" : "none";
@@ -8512,8 +8774,8 @@ var JotSettingTab = class extends import_obsidian5.PluginSettingTab {
       await this.plugin.saveSettings();
       this.updateConditionalSettings();
     }));
-    this.fixedTagSetting = new import_obsidian5.Setting(containerEl).setName(t("fixedTag", this.plugin.lang)).setDesc(t("fixedTagDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("jot").setValue(this.plugin.settings.fixedTag).onChange(async (value) => {
-      this.plugin.settings.fixedTag = value.trim() || "jot";
+    this.fixedTagSetting = new import_obsidian5.Setting(containerEl).setName(t("fixedTag", this.plugin.lang)).setDesc(t("fixedTagDesc", this.plugin.lang)).addText((text) => text.setPlaceholder("minddump").setValue(this.plugin.settings.fixedTag).onChange(async (value) => {
+      this.plugin.settings.fixedTag = value.trim() || "minddump";
       await this.plugin.saveSettings();
     }));
     this.fixedTagSetting.settingEl.style.display = this.plugin.settings.useFixedTag ? "" : "none";
@@ -8554,7 +8816,7 @@ var JotSettingTab = class extends import_obsidian5.PluginSettingTab {
     } else {
       infoEl.innerHTML = `
                 <strong>${t("singleModeInfo", this.plugin.lang)}</strong><br>
-                \u2022 ${t("fileFormat", this.plugin.lang)}\uFF1Ajots.md<br>
+                \u2022 ${t("fileFormat", this.plugin.lang)}\uFF1Aminddumps.md<br>
                 \u2022 ${t("attachmentsFolder", this.plugin.lang)}\uFF1A${this.plugin.settings.attachmentsFolder}<br>
                 \u2022 ${t("attachmentsNaming", this.plugin.lang)}<br>
                 \u2022 ${t("recordFormat", this.plugin.lang)}<br>
@@ -8593,11 +8855,11 @@ init_capture_modal();
 init_i18n();
 init_utils();
 var RECYCLE_BIN_RETENTION_DAYS = 30;
-var JotPlugin = class extends import_obsidian6.Plugin {
+var MindDumpPlugin = class extends import_obsidian6.Plugin {
   constructor() {
     super(...arguments);
     this.isLoaded = false;
-    this.jots = [];
+    this.mindDumps = [];
   }
   get lang() {
     var _a;
@@ -8606,38 +8868,38 @@ var JotPlugin = class extends import_obsidian6.Plugin {
   async onload() {
     await this.loadSettings();
     console.log(t("loadingPlugin", this.lang));
-    (0, import_obsidian6.addIcon)("jot-bolt", `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/><path d="M17 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/></svg>`);
+    (0, import_obsidian6.addIcon)("minddump-bolt", `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/><path d="M17 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/></svg>`);
     await this.ensureAttachmentsFolder();
-    this.registerView(VIEW_TYPE_JOTS, (leaf) => {
-      return new JotView(leaf, this);
+    this.registerView(VIEW_TYPE_MINDDUMP, (leaf) => {
+      return new MindDumpView(leaf, this);
     });
-    this.addRibbonIcon("jot-bolt", t("pluginName", this.lang), () => {
+    this.addRibbonIcon("minddump-bolt", t("pluginName", this.lang), () => {
       this.activateView();
     });
     this.addCommand({
-      id: "open-jot-view",
-      name: `jot${this.lang === "zh" ? "\uFF1A" : ": "}${t("openJotView", this.lang)}`,
+      id: "open-minddump-view",
+      name: `MindDump${this.lang === "zh" ? "\uFF1A" : ": "}${t("openMindDumpView", this.lang)}`,
       callback: () => {
         this.activateView();
       }
     });
     this.addCommand({
       id: "quick-capture",
-      name: `jot${this.lang === "zh" ? "\uFF1A" : ": "}${t("quickCapture", this.lang)}`,
+      name: `MindDump${this.lang === "zh" ? "\uFF1A" : ": "}${t("quickCapture", this.lang)}`,
       callback: () => {
         new CaptureModal(this.app, this).open();
       }
     });
-    this.addSettingTab(new JotSettingTab(this.app, this));
+    this.addSettingTab(new MindDumpSettingTab(this.app, this));
     this.registerEvent(
       this.app.workspace.on("editor-menu", (menu, editor) => {
         const selection = editor.getSelection();
         if (!selection)
           return;
         menu.addItem((item) => {
-          item.setTitle(t("saveAsJot", this.lang)).setIcon("jot-bolt").onClick(async () => {
-            await this.saveJot(selection, [], "", void 0);
-            new import_obsidian6.Notice(t("savedAsJot", this.lang));
+          item.setTitle(t("saveAsMindDump", this.lang)).setIcon("minddump-bolt").onClick(async () => {
+            await this.saveMindDump(selection, [], "", void 0);
+            new import_obsidian6.Notice(t("savedAsMindDump", this.lang));
           });
         });
       })
@@ -8645,21 +8907,21 @@ var JotPlugin = class extends import_obsidian6.Plugin {
     this.isLoaded = true;
     this.registerInterval(
       window.setInterval(() => {
-        void this.purgeExpiredRecycleBinJots();
+        void this.purgeExpiredRecycleBinMindDumps();
       }, 24 * 60 * 60 * 1e3)
     );
     this.app.workspace.onLayoutReady(async () => {
       if (this.settings.autoOpenView) {
         await this.activateView();
       }
-      await this.loadJotsData();
-      await this.purgeExpiredRecycleBinJots({ skipInitialLoad: true });
+      await this.loadMindDumpData();
+      await this.purgeExpiredRecycleBinMindDumps({ skipInitialLoad: true });
     });
   }
   async onunload() {
     this.isLoaded = false;
     try {
-      this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP).forEach((leaf) => {
         leaf.detach();
       });
     } catch (e) {
@@ -8679,49 +8941,49 @@ var JotPlugin = class extends import_obsidian6.Plugin {
   async activateView() {
     if (!this.isLoaded)
       return;
-    let leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS)[0];
+    let leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP)[0];
     if (!leaf) {
       leaf = this.app.workspace.getLeaf("tab");
       await leaf.setViewState({
-        type: VIEW_TYPE_JOTS,
+        type: VIEW_TYPE_MINDDUMP,
         active: true,
         state: {}
       });
     }
     this.app.workspace.revealLeaf(leaf);
-    await this.loadJotsData();
+    await this.loadMindDumpData();
   }
-  async refreshJots() {
-    await this.loadJotsData();
-    console.log("\u5237\u65B0 jots \u6570\u636E\u5B8C\u6210\uFF0C\u5171", this.jots.length, "\u6761\u8BB0\u5F55");
+  async refreshMindDumps() {
+    await this.loadMindDumpData();
+    console.log("\u5237\u65B0 mind dump \u6570\u636E\u5B8C\u6210\uFF0C\u5171", this.mindDumps.length, "\u6761\u8BB0\u5F55");
   }
-  async loadJotsData() {
+  async loadMindDumpData() {
     const folder = (0, import_obsidian6.normalizePath)(this.settings.saveFolder);
     const folderObj = this.app.vault.getAbstractFileByPath(folder);
     if (!folderObj || !(folderObj instanceof import_obsidian6.TFolder)) {
-      this.jots = [];
+      this.mindDumps = [];
       return;
     }
     const files = folderObj.children.filter((f) => f instanceof import_obsidian6.TFile && f.name.endsWith(".md"));
-    const allJots = [];
+    const allMindDumps = [];
     for (const file of files) {
       const content = await this.app.vault.read(file);
       const entries = parseFileContent(content, file.path, this.lang);
-      allJots.push(...entries);
+      allMindDumps.push(...entries);
     }
-    allJots.sort((a, b) => {
+    allMindDumps.sort((a, b) => {
       const dateA = (0, import_moment3.default)(a.date + " " + a.time, "YYYY-MM-DD HH:mm:ss");
       const dateB = (0, import_moment3.default)(b.date + " " + b.time, "YYYY-MM-DD HH:mm:ss");
       return dateB.valueOf() - dateA.valueOf();
     });
-    this.jots = allJots;
+    this.mindDumps = allMindDumps;
   }
-  async saveJot(content, tags, source, attachments) {
+  async saveMindDump(content, tags, source, attachments) {
     const now = /* @__PURE__ */ new Date();
     const dateStr = (0, import_moment3.default)(now).format("YYYY-MM-DD");
     const fullDateTime = (0, import_moment3.default)(now).format("YYYY-MM-DD HH:mm:ss");
-    const id = newJotId();
-    const { body, allTags } = composeJotMarkdownBody(
+    const id = newMindDumpId();
+    const { body, allTags } = composeMindDumpMarkdownBody(
       content,
       tags,
       source,
@@ -8730,33 +8992,33 @@ var JotPlugin = class extends import_obsidian6.Plugin {
       this.settings.useFixedTag,
       this.settings.fixedTag
     );
-    const newEntry = formatJotEntryBlock(fullDateTime, id, fullDateTime, body);
+    const newEntry = formatMindDumpEntryBlock(fullDateTime, id, fullDateTime, body);
     if (this.settings.logMode === "multi") {
       await this.saveToMultiFile(dateStr, newEntry, allTags);
     } else {
       await this.saveToSingleFile(newEntry);
     }
-    this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
-      if (leaf.view instanceof JotView)
+    this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP).forEach((leaf) => {
+      if (leaf.view instanceof MindDumpView)
         leaf.view.refresh();
     });
-    await this.loadJotsData();
+    await this.loadMindDumpData();
     new import_obsidian6.Notice(t("saved", this.lang));
   }
   /**
-   * Replace one jot in its source file by `id`. Keeps `###` created time; sets `updatedAt` to now.
+   * Replace one mindDump in its source file by `id`. Keeps `###` created time; sets `updatedAt` to now.
    */
-  async updateJot(updated) {
+  async updateMindDump(updated) {
     var _a, _b;
     if (!updated.filePath) {
-      const msg = t("jotUpdateNoFile", this.lang);
+      const msg = t("mindDumpUpdateNoFile", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
     const pathNorm = (0, import_obsidian6.normalizePath)(updated.filePath);
     const file = this.app.vault.getAbstractFileByPath(pathNorm);
     if (!(file instanceof import_obsidian6.TFile)) {
-      const msg = t("jotUpdateFileMissing", this.lang);
+      const msg = t("mindDumpUpdateFileMissing", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
@@ -8767,7 +9029,7 @@ var JotPlugin = class extends import_obsidian6.Plugin {
         type: (_b2 = (_a2 = updated.attachmentTypes) == null ? void 0 : _a2[i]) != null ? _b2 : "file"
       };
     })) != null ? _b : void 0;
-    const { body } = composeJotMarkdownBody(
+    const { body } = composeMindDumpMarkdownBody(
       updated.content,
       updated.tags,
       updated.source,
@@ -8778,122 +9040,122 @@ var JotPlugin = class extends import_obsidian6.Plugin {
     );
     const fullDateTime = `${updated.date} ${updated.time}`.trim();
     const updatedAtNow = (0, import_moment3.default)().format("YYYY-MM-DD HH:mm:ss");
-    const newBlock = formatJotEntryBlock(fullDateTime, updated.id, updatedAtNow, body, {
+    const newBlock = formatMindDumpEntryBlock(fullDateTime, updated.id, updatedAtNow, body, {
       deleted: updated.deleted === true
     });
     let found = false;
     await this.app.vault.process(file, (text) => {
-      const result = replaceJotBlockById(text, file.path, updated.id, newBlock);
+      const result = replaceMindDumpBlockById(text, file.path, updated.id, newBlock);
       found = result.found;
       return result.content;
     });
     if (!found) {
-      const msg = t("jotUpdateNotFound", this.lang);
+      const msg = t("mindDumpUpdateNotFound", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
-    this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
-      if (leaf.view instanceof JotView)
+    this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP).forEach((leaf) => {
+      if (leaf.view instanceof MindDumpView)
         leaf.view.refresh();
     });
-    await this.loadJotsData();
+    await this.loadMindDumpData();
   }
-  /** Move jot to in-vault trash (`#### deleted: true` on the block). */
-  async deleteJot(jot) {
+  /** Move mindDump to in-vault trash (`#### deleted: true` on the block). */
+  async deleteMindDump(mindDump) {
     var _a, _b;
-    if (jot.deleted)
+    if (mindDump.deleted)
       return;
-    if (!jot.filePath) {
-      const msg = t("jotUpdateNoFile", this.lang);
+    if (!mindDump.filePath) {
+      const msg = t("mindDumpUpdateNoFile", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
-    const pathNorm = (0, import_obsidian6.normalizePath)(jot.filePath);
+    const pathNorm = (0, import_obsidian6.normalizePath)(mindDump.filePath);
     const file = this.app.vault.getAbstractFileByPath(pathNorm);
     if (!(file instanceof import_obsidian6.TFile)) {
-      const msg = t("jotUpdateFileMissing", this.lang);
+      const msg = t("mindDumpUpdateFileMissing", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
-    const attachmentsPayload = (_b = (_a = jot.attachments) == null ? void 0 : _a.map((p, i) => {
+    const attachmentsPayload = (_b = (_a = mindDump.attachments) == null ? void 0 : _a.map((p, i) => {
       var _a2, _b2;
       return {
         path: p,
-        type: (_b2 = (_a2 = jot.attachmentTypes) == null ? void 0 : _a2[i]) != null ? _b2 : "file"
+        type: (_b2 = (_a2 = mindDump.attachmentTypes) == null ? void 0 : _a2[i]) != null ? _b2 : "file"
       };
     })) != null ? _b : void 0;
-    const { body } = composeJotMarkdownBody(
-      jot.content,
-      jot.tags,
-      jot.source,
+    const { body } = composeMindDumpMarkdownBody(
+      mindDump.content,
+      mindDump.tags,
+      mindDump.source,
       attachmentsPayload,
       this.lang,
       this.settings.useFixedTag,
       this.settings.fixedTag
     );
-    const fullDateTime = `${jot.date} ${jot.time}`.trim();
+    const fullDateTime = `${mindDump.date} ${mindDump.time}`.trim();
     const updatedAtNow = (0, import_moment3.default)().format("YYYY-MM-DD HH:mm:ss");
-    const newBlock = formatJotEntryBlock(fullDateTime, jot.id, updatedAtNow, body, { deleted: true });
+    const newBlock = formatMindDumpEntryBlock(fullDateTime, mindDump.id, updatedAtNow, body, { deleted: true });
     let found = false;
     await this.app.vault.process(file, (text) => {
-      const result = replaceJotBlockById(text, file.path, jot.id, newBlock);
+      const result = replaceMindDumpBlockById(text, file.path, mindDump.id, newBlock);
       found = result.found;
       return result.content;
     });
     if (!found) {
-      const msg = t("jotUpdateNotFound", this.lang);
+      const msg = t("mindDumpUpdateNotFound", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
-    this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
-      if (leaf.view instanceof JotView)
+    this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP).forEach((leaf) => {
+      if (leaf.view instanceof MindDumpView)
         leaf.view.refresh();
     });
-    await this.loadJotsData();
+    await this.loadMindDumpData();
   }
-  /** Permanently remove a jot block (e.g. from recycle bin). */
-  async purgeJot(jot, options) {
-    if (!jot.filePath) {
-      const msg = t("jotUpdateNoFile", this.lang);
+  /** Permanently remove a mindDump block (e.g. from recycle bin). */
+  async purgeMindDump(mindDump, options) {
+    if (!mindDump.filePath) {
+      const msg = t("mindDumpUpdateNoFile", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
-    const pathNorm = (0, import_obsidian6.normalizePath)(jot.filePath);
+    const pathNorm = (0, import_obsidian6.normalizePath)(mindDump.filePath);
     const file = this.app.vault.getAbstractFileByPath(pathNorm);
     if (!(file instanceof import_obsidian6.TFile)) {
-      const msg = t("jotUpdateFileMissing", this.lang);
+      const msg = t("mindDumpUpdateFileMissing", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
     let found = false;
     await this.app.vault.process(file, (text) => {
-      const result = removeJotBlockById(text, file.path, jot.id);
+      const result = removeMindDumpBlockById(text, file.path, mindDump.id);
       found = result.found;
       return result.content;
     });
     if (!found) {
-      const msg = t("jotUpdateNotFound", this.lang);
+      const msg = t("mindDumpUpdateNotFound", this.lang);
       new import_obsidian6.Notice(msg);
       throw new Error(msg);
     }
     if (!(options == null ? void 0 : options.skipReload)) {
-      this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
-        if (leaf.view instanceof JotView)
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP).forEach((leaf) => {
+        if (leaf.view instanceof MindDumpView)
           leaf.view.refresh();
       });
-      await this.loadJotsData();
+      await this.loadMindDumpData();
     }
   }
   /**
-   * Permanently removes recycle-bin jots whose last update time is older than
+   * Permanently removes recycle-bin mindDumps whose last update time is older than
    * {@link RECYCLE_BIN_RETENTION_DAYS} days (`updatedAt` is set when an item is moved to trash).
    */
-  async purgeExpiredRecycleBinJots(options) {
+  async purgeExpiredRecycleBinMindDumps(options) {
     if (!(options == null ? void 0 : options.skipInitialLoad)) {
-      await this.loadJotsData();
+      await this.loadMindDumpData();
     }
     const threshold = (0, import_moment3.default)().subtract(RECYCLE_BIN_RETENTION_DAYS, "days");
-    const expired = this.jots.filter((j) => {
+    const expired = this.mindDumps.filter((j) => {
       if (!j.deleted)
         return false;
       const m = (0, import_moment3.default)(j.updatedAt || j.createdAt, "YYYY-MM-DD HH:mm:ss", true);
@@ -8904,29 +9166,29 @@ var JotPlugin = class extends import_obsidian6.Plugin {
     if (expired.length === 0)
       return 0;
     let purged = 0;
-    for (const jot of expired) {
+    for (const mindDump of expired) {
       try {
-        await this.purgeJot(jot, { skipReload: true });
+        await this.purgeMindDump(mindDump, { skipReload: true });
         purged++;
       } catch (e) {
-        console.error("purgeExpiredRecycleBinJots:", e);
+        console.error("purgeExpiredRecycleBinMindDumps:", e);
       }
     }
     if (purged > 0) {
-      this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
-        if (leaf.view instanceof JotView)
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP).forEach((leaf) => {
+        if (leaf.view instanceof MindDumpView)
           leaf.view.refresh();
       });
-      await this.loadJotsData();
+      await this.loadMindDumpData();
       new import_obsidian6.Notice(t("recycleBinAutoPurged", this.lang, { count: String(purged) }));
     }
     return purged;
   }
-  /** Permanently remove every jot currently in the recycle bin. */
-  async purgeAllDeletedJots() {
-    const victims = this.jots.filter((j) => j.deleted);
-    for (const jot of victims) {
-      await this.purgeJot(jot);
+  /** Permanently remove every mindDump currently in the recycle bin. */
+  async purgeAllDeletedMindDumps() {
+    const victims = this.mindDumps.filter((j) => j.deleted);
+    for (const mindDump of victims) {
+      await this.purgeMindDump(mindDump);
     }
     return victims.length;
   }
@@ -8969,7 +9231,7 @@ ${tags.map((tg) => `  - ${tg}`).join("\n")}
   }
   async saveToSingleFile(newEntry) {
     const folder = (0, import_obsidian6.normalizePath)(this.settings.saveFolder);
-    const filePath = `${folder}/jots.md`;
+    const filePath = `${folder}/minddumps.md`;
     if (!this.app.vault.getAbstractFileByPath(folder))
       await this.app.vault.createFolder(folder);
     const existingFile = this.app.vault.getAbstractFileByPath(filePath);
@@ -8997,23 +9259,23 @@ ${tags.map((tg) => `  - ${tg}`).join("\n")}
   async saveSettings() {
     await this.saveData(this.settings);
     await this.ensureAttachmentsFolder();
-    this.app.workspace.getLeavesOfType(VIEW_TYPE_JOTS).forEach((leaf) => {
-      if (leaf.view instanceof JotView)
+    this.app.workspace.getLeavesOfType(VIEW_TYPE_MINDDUMP).forEach((leaf) => {
+      if (leaf.view instanceof MindDumpView)
         leaf.view.refresh();
     });
-    await this.loadJotsData();
+    await this.loadMindDumpData();
     this.updateCommandNames();
   }
   updateCommandNames() {
     const commands = [
-      { id: "open-jot-view", key: "openJotView" },
+      { id: "open-minddump-view", key: "openMindDumpView" },
       { id: "quick-capture", key: "quickCapture" }
     ];
     const separator = this.lang === "zh" ? "\uFF1A" : ": ";
     commands.forEach(({ id, key }) => {
       const command = this.app.commands.findCommand(`${this.manifest.id}:${id}`);
       if (command) {
-        command.name = `jot${separator}${t(key, this.lang)}`;
+        command.name = `MindDump${separator}${t(key, this.lang)}`;
       }
     });
   }

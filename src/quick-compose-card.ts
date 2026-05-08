@@ -1,6 +1,6 @@
 // src/quick-compose-card.ts
 import { App, Notice, TFile, normalizePath } from "obsidian";
-import type { Language, JotSettings } from "./types";
+import type { Language, MindDumpSettings } from "./types";
 import { t, Translations } from "./i18n";
 import {
     getClipboardImageFiles,
@@ -21,7 +21,7 @@ export type QuickComposeAttachment = { path: string; type: "image" | "file" };
 export interface QuickComposeCardDeps {
     app: App;
     lang: Language;
-    pluginSettings: JotSettings;
+    pluginSettings: MindDumpSettings;
     getExistingTags: () => string[];
 }
 
@@ -34,7 +34,7 @@ export interface QuickComposeCardApi {
 
 export function createPaperPlaneSendIcon(): SVGSVGElement {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "jots-quick-send-icon");
+    svg.setAttribute("class", "minddump-quick-send-icon");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("fill", "none");
     svg.setAttribute("aria-hidden", "true");
@@ -110,12 +110,12 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     const { app, lang, pluginSettings, getExistingTags } = deps;
     const isEdit = options.mode === "edit";
 
-    const inputCard = parent.createDiv({ cls: "jots-quick-compose-card" });
-    if (isEdit) inputCard.addClass("jots-quick-compose-card--inline-edit");
+    const inputCard = parent.createDiv({ cls: "minddump-quick-compose-card" });
+    if (isEdit) inputCard.addClass("minddump-quick-compose-card--inline-edit");
 
-    const textareaContainer = inputCard.createDiv({ cls: "jots-quick-textarea-container" });
+    const textareaContainer = inputCard.createDiv({ cls: "minddump-quick-textarea-container" });
     const contentField = mountRichMarkdownField(textareaContainer, "", {
-        className: "jots-quick-textarea",
+        className: "minddump-quick-textarea",
         placeholder: isEdit ? t("placeholderWithLink", lang) : t("contentPlaceholder", lang),
     });
 
@@ -128,7 +128,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     let resetCompactCaptureState: () => void = () => {};
     let syncCompactDraftLockFromContent: () => void = () => {};
     if (!isEdit) {
-        inputCard.addClass("jots-quick-compose-card--textarea-compact");
+        inputCard.addClass("minddump-quick-compose-card--textarea-compact");
         let compactUserHasDrafted = false;
         let compactScrollCleanup: (() => void) | null = null;
         let compactLastScrollTop = 0;
@@ -155,11 +155,11 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
                     compactLastScrollTop = sp.scrollTop;
                     return;
                 }
-                if (!inputCard.classList.contains("jots-quick-compose-card--textarea-expanded")) return;
+                if (!inputCard.classList.contains("minddump-quick-compose-card--textarea-expanded")) return;
                 const st = sp.scrollTop;
                 if (st > compactLastScrollTop + 6) {
-                    inputCard.addClass("jots-quick-compose-card--textarea-compact");
-                    inputCard.removeClass("jots-quick-compose-card--textarea-expanded");
+                    inputCard.addClass("minddump-quick-compose-card--textarea-compact");
+                    inputCard.removeClass("minddump-quick-compose-card--textarea-expanded");
                     compactScrollCleanup?.();
                     compactScrollCleanup = null;
                 }
@@ -173,9 +173,9 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
         };
 
         expandCompactTextarea = () => {
-            if (inputCard.classList.contains("jots-quick-compose-card--textarea-expanded")) return;
-            inputCard.removeClass("jots-quick-compose-card--textarea-compact");
-            inputCard.addClass("jots-quick-compose-card--textarea-expanded");
+            if (inputCard.classList.contains("minddump-quick-compose-card--textarea-expanded")) return;
+            inputCard.removeClass("minddump-quick-compose-card--textarea-compact");
+            inputCard.addClass("minddump-quick-compose-card--textarea-expanded");
             bindCompactScrollCollapse();
             syncQuickTextareaHeight();
         };
@@ -184,8 +184,8 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
             compactUserHasDrafted = false;
             compactScrollCleanup?.();
             compactScrollCleanup = null;
-            inputCard.addClass("jots-quick-compose-card--textarea-compact");
-            inputCard.removeClass("jots-quick-compose-card--textarea-expanded");
+            inputCard.addClass("minddump-quick-compose-card--textarea-compact");
+            inputCard.removeClass("minddump-quick-compose-card--textarea-expanded");
             syncQuickTextareaHeight();
         };
 
@@ -207,7 +207,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     }
 
     syncQuickTextareaHeight = () => {
-        if (!isEdit && inputCard.classList.contains("jots-quick-compose-card--textarea-compact")) {
+        if (!isEdit && inputCard.classList.contains("minddump-quick-compose-card--textarea-compact")) {
             contentField.el.style.removeProperty("height");
             contentField.el.style.removeProperty("overflow-y");
             return;
@@ -232,7 +232,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
         }
     );
 
-    const embedPreviewRow = inputCard.createDiv({ cls: "jots-quick-embed-preview" });
+    const embedPreviewRow = inputCard.createDiv({ cls: "minddump-quick-embed-preview" });
 
     const isVaultImagePath = (p: string) => /\.(png|jpe?g|gif|webp|bmp|svg|heic|heif|avif)$/i.test(p);
 
@@ -251,12 +251,12 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
             seen.add(vaultPath);
             const af = app.vault.getAbstractFileByPath(vaultPath);
             if (!(af instanceof TFile) || !isVaultImagePath(af.path)) continue;
-            const thumb = embedPreviewRow.createDiv({ cls: "jots-quick-embed-thumb jots-quick-embed-thumb--removable" });
-            const img = thumb.createEl("img", { cls: "jots-quick-embed-img" });
+            const thumb = embedPreviewRow.createDiv({ cls: "minddump-quick-embed-thumb minddump-quick-embed-thumb--removable" });
+            const img = thumb.createEl("img", { cls: "minddump-quick-embed-img" });
             img.src = app.vault.getResourcePath(af);
             img.alt = af.name;
             const rm = thumb.createEl("button", {
-                cls: "jots-quick-embed-remove",
+                cls: "minddump-quick-embed-remove",
                 type: "button",
                 attr: { "aria-label": t("removeEditorImage", lang) },
             });
@@ -269,12 +269,12 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
         }
     };
 
-    const tagSection = inputCard.createDiv({ cls: "jots-quick-meta-section" });
-    const tagInputContainer = tagSection.createDiv({ cls: "jots-quick-meta-input-container" });
-    const tagInput = tagInputContainer.createEl("input", { cls: "jots-tag-input jots-quick-meta-input" });
+    const tagSection = inputCard.createDiv({ cls: "minddump-quick-meta-section" });
+    const tagInputContainer = tagSection.createDiv({ cls: "minddump-quick-meta-input-container" });
+    const tagInput = tagInputContainer.createEl("input", { cls: "minddump-tag-input minddump-quick-meta-input" });
     tagInput.placeholder = t("tagsInputPlaceholder", lang);
 
-    const tagListContainer = tagSection.createDiv({ cls: "jots-quick-tag-list" });
+    const tagListContainer = tagSection.createDiv({ cls: "minddump-quick-tag-list" });
     /** Same array reference for `setupTagAutocomplete` (it reads `includes` / filters against this). */
     const sessionTags: string[] = isEdit ? [...options.initial.tags] : [];
     /** When set, the next commit from the tag input replaces this tag (click pill to edit). */
@@ -385,8 +385,8 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
         }, 200);
     });
 
-    const sourceSection = inputCard.createDiv({ cls: "jots-quick-source-section" });
-    const sourceInput = sourceSection.createEl("input", { cls: "jots-quick-meta-input" });
+    const sourceSection = inputCard.createDiv({ cls: "minddump-quick-source-section" });
+    const sourceInput = sourceSection.createEl("input", { cls: "minddump-quick-meta-input" });
     sourceInput.placeholder = t("sourcePlaceholder", lang);
 
     tagSection.style.display = isEdit ? "block" : "none";
@@ -398,7 +398,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     }
     syncQuickTextareaHeight();
 
-    const attachmentTray = inputCard.createDiv({ cls: "jots-quick-attachment-tray" });
+    const attachmentTray = inputCard.createDiv({ cls: "minddump-quick-attachment-tray" });
     let selectedAttachments: QuickComposeAttachment[] = isEdit
         ? [...(options.initial.attachments ?? [])]
         : [];
@@ -441,17 +441,17 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
 
             const item = attachmentTray.createDiv({
                 cls: isImageTile
-                    ? "jots-quick-attachment-item jots-quick-attachment-item--image-tile"
-                    : "jots-quick-attachment-item",
+                    ? "minddump-quick-attachment-item minddump-quick-attachment-item--image-tile"
+                    : "minddump-quick-attachment-item",
             });
 
             if (isImageTile) {
-                const thumb = item.createDiv({ cls: "jots-quick-embed-thumb jots-quick-embed-thumb--removable" });
-                const img = thumb.createEl("img", { cls: "jots-quick-embed-img" });
+                const thumb = item.createDiv({ cls: "minddump-quick-embed-thumb minddump-quick-embed-thumb--removable" });
+                const img = thumb.createEl("img", { cls: "minddump-quick-embed-img" });
                 img.src = app.vault.getResourcePath(imgFile);
                 img.alt = imgFile.name;
                 const overlayRm = thumb.createEl("button", {
-                    cls: "jots-quick-embed-remove",
+                    cls: "minddump-quick-embed-remove",
                     type: "button",
                     attr: { "aria-label": t("removeEditorImage", lang) },
                 });
@@ -461,16 +461,16 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
                     e.stopPropagation();
                     removeImageEverywhere(pathNorm);
                 });
-                const cap = item.createDiv({ cls: "jots-quick-attachment-item-caption" });
+                const cap = item.createDiv({ cls: "minddump-quick-attachment-item-caption" });
                 cap.textContent = attachment.path.split("/").pop() || attachment.path;
                 cap.title = attachment.path;
             } else if (attachment.type === "image") {
-                const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
+                const icon = item.createSpan({ cls: "minddump-quick-attachment-icon" });
                 icon.textContent = "🖼️";
-                const label = item.createSpan({ cls: "jots-quick-attachment-label" });
+                const label = item.createSpan({ cls: "minddump-quick-attachment-label" });
                 label.textContent = attachment.path.split("/").pop() || attachment.path;
                 label.title = attachment.path;
-                const removeBtn = item.createEl("button", { cls: "jots-quick-attachment-remove" });
+                const removeBtn = item.createEl("button", { cls: "minddump-quick-attachment-remove" });
                 removeBtn.type = "button";
                 removeBtn.textContent = "×";
                 removeBtn.setAttribute("aria-label", t("removeEditorImage", lang));
@@ -487,12 +487,12 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
                     syncQuickTextareaHeight();
                 });
             } else {
-                const icon = item.createSpan({ cls: "jots-quick-attachment-icon" });
+                const icon = item.createSpan({ cls: "minddump-quick-attachment-icon" });
                 icon.textContent = "📎";
-                const label = item.createSpan({ cls: "jots-quick-attachment-label" });
+                const label = item.createSpan({ cls: "minddump-quick-attachment-label" });
                 label.textContent = attachment.path.split("/").pop() || attachment.path;
                 label.title = attachment.path;
-                const removeBtn = item.createEl("button", { cls: "jots-quick-attachment-remove" });
+                const removeBtn = item.createEl("button", { cls: "minddump-quick-attachment-remove" });
                 removeBtn.type = "button";
                 removeBtn.textContent = "×";
                 removeBtn.addEventListener("click", (e) => {
@@ -589,14 +589,14 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
         }
     });
 
-    const toolbarRow = inputCard.createDiv({ cls: "jots-quick-toolbar-row" });
+    const toolbarRow = inputCard.createDiv({ cls: "minddump-quick-toolbar-row" });
 
-    const toolGroup = toolbarRow.createDiv({ cls: "jots-quick-tools jots-tool-menu" });
+    const toolGroup = toolbarRow.createDiv({ cls: "minddump-quick-tools minddump-tool-menu" });
 
     const createToolBtn = (label: string | SVGSVGElement, tooltip: string, onClick: () => void) => {
-        const btn = toolGroup.createEl("button", { cls: "jots-quick-tool-btn jots-tool-btn--text" });
+        const btn = toolGroup.createEl("button", { cls: "minddump-quick-tool-btn minddump-tool-btn--text" });
         btn.type = "button";
-        const inner = btn.createSpan({ cls: "jots-tool-btn-inner" });
+        const inner = btn.createSpan({ cls: "minddump-tool-btn-inner" });
         if (typeof label === "string") {
             inner.textContent = label;
         } else {
@@ -616,7 +616,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
 
     const createToolbarImageIcon = (): SVGSVGElement => {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("class", "jots-toolbar-image-icon");
+        svg.setAttribute("class", "minddump-toolbar-image-icon");
         svg.setAttribute("viewBox", "0 0 24 24");
         svg.setAttribute("width", "16");
         svg.setAttribute("height", "16");
@@ -636,7 +636,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
 
     const createToolbarUnorderedListIcon = (): SVGSVGElement => {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("class", "jots-toolbar-unordered-list-icon");
+        svg.setAttribute("class", "minddump-toolbar-unordered-list-icon");
         svg.setAttribute("viewBox", "0 0 1024 1024");
         svg.setAttribute("width", "16");
         svg.setAttribute("height", "16");
@@ -660,7 +660,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
 
     const createToolbarOrderedListIcon = (): SVGSVGElement => {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("class", "jots-toolbar-ordered-list-icon");
+        svg.setAttribute("class", "minddump-toolbar-ordered-list-icon");
         svg.setAttribute("viewBox", "0 0 1024 1024");
         svg.setAttribute("width", "16");
         svg.setAttribute("height", "16");
@@ -676,7 +676,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     };
 
     const addToolDivider = () => {
-        toolGroup.createSpan({ cls: "jots-vertical-line" });
+        toolGroup.createSpan({ cls: "minddump-vertical-line" });
     };
 
     const toggleSection = (section: HTMLElement, focusInput: HTMLInputElement) => {
@@ -712,10 +712,10 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
     addToolDivider();
     createToolBtn("@", t("sourcePlaceholder", lang), () => toggleSection(sourceSection, sourceInput));
 
-    const sendGroup = toolbarRow.createDiv({ cls: "jots-quick-toolbar-send-group" });
+    const sendGroup = toolbarRow.createDiv({ cls: "minddump-quick-toolbar-send-group" });
     if (isEdit) {
         const cancelBtn = sendGroup.createEl("button", {
-            cls: "jots-quick-edit-cancel-btn",
+            cls: "minddump-quick-edit-cancel-btn",
             type: "button",
         });
         cancelBtn.textContent = t("cancel", lang);
@@ -726,7 +726,7 @@ export function mountQuickComposeCard(options: MountQuickComposeCardOptions): Qu
             options.onCancel();
         });
     }
-    const saveBtn = sendGroup.createEl("button", { cls: "jots-quick-send-btn mod-cta" });
+    const saveBtn = sendGroup.createEl("button", { cls: "minddump-quick-send-btn mod-cta" });
     saveBtn.type = "button";
     saveBtn.appendChild(createPaperPlaneSendIcon());
     saveBtn.title = t("save", lang);

@@ -4,11 +4,11 @@ import { Language } from './types';
 export interface Translations {
     pluginName: string;
     pluginDescription: string;
-    openJotView: string;
+    openMindDumpView: string;
     quickCapture: string;
-    saveAsJot: string;
-    savedAsJot: string;
-    jotView: string;
+    saveAsMindDump: string;
+    savedAsMindDump: string;
+    mindDumpView: string;
     quickRecord: string;
     contentPlaceholder: string;
     /** Rich editor toolbar */
@@ -29,9 +29,9 @@ export interface Translations {
     cancel: string;
     contentRequired: string;
     saved: string;
-    jotUpdateNotFound: string;
-    jotUpdateNoFile: string;
-    jotUpdateFileMissing: string;
+    mindDumpUpdateNotFound: string;
+    mindDumpUpdateNoFile: string;
+    mindDumpUpdateFileMissing: string;
     saveFailed: string;
     attachmentSaved: string;
     calendar: string;
@@ -99,7 +99,7 @@ export interface Translations {
     loadingSettings: string;
     creatingAttachmentsFolder: string;
     attachmentsFolderExists: string;
-    creatingJotView: string;
+    creatingMindDumpView: string;
     activatingView: string;
     pluginNotLoaded: string;
     existingViewFound: string;
@@ -109,7 +109,7 @@ export interface Translations {
     recordsCount: string;
     autoOpenView: string;
     autoOpenViewDesc: string;
-    jotUpdatedAt: string;
+    mindDumpUpdatedAt: string;
     pasteImageUploadFailed: string;
     cardMenuShare: string;
     cardMenuEdit: string;
@@ -151,12 +151,12 @@ export interface Translations {
     rightRailTagSortNameDesc: string;
     rightRailTagSortCountDesc: string;
     rightRailTagSortCountAsc: string;
-    /** Search row: sort jot list (icon button) */
-    jotListSortButton: string;
-    jotListSortCreatedDesc: string;
-    jotListSortCreatedAsc: string;
-    jotListSortUpdatedDesc: string;
-    jotListSortUpdatedAsc: string;
+    /** Search row: sort mindDump list (icon button) */
+    mindDumpListSortButton: string;
+    mindDumpListSortCreatedDesc: string;
+    mindDumpListSortCreatedAsc: string;
+    mindDumpListSortUpdatedDesc: string;
+    mindDumpListSortUpdatedAsc: string;
     rightRailTagFilterPlaceholder: string;
     /** Main layout: collapse the right column (search, calendar, tags) */
     rightPanelCollapse: string;
@@ -167,11 +167,11 @@ export const translations: Record<Language, Translations> = {
     zh: {
         pluginName: "随手记",
         pluginDescription: "随手记录想法和笔记",
-        openJotView: "打开随手记视图",
+        openMindDumpView: "打开随手记视图",
         quickCapture: "快速记录",
-        saveAsJot: "保存为随手记",
-        savedAsJot: "已保存为随手记！",
-        jotView: "随手记",
+        saveAsMindDump: "保存为随手记",
+        savedAsMindDump: "已保存为随手记！",
+        mindDumpView: "随手记",
         quickRecord: "快速记录",
         contentPlaceholder: "现在的想法是...",
         toolbarBold: "加粗",
@@ -189,9 +189,9 @@ export const translations: Record<Language, Translations> = {
         cancel: "取消",
         contentRequired: "内容不能为空",
         saved: "已保存！",
-        jotUpdateNotFound: "在文件中找不到该条随手记。",
-        jotUpdateNoFile: "该记录没有关联的文件。",
-        jotUpdateFileMissing: "源文件不存在。",
+        mindDumpUpdateNotFound: "在文件中找不到该条随手记。",
+        mindDumpUpdateNoFile: "该记录没有关联的文件。",
+        mindDumpUpdateFileMissing: "源文件不存在。",
         saveFailed: "保存失败: {error}",
         attachmentSaved: "附件已保存: {filename}",
         calendar: "日历",
@@ -226,16 +226,16 @@ export const translations: Record<Language, Translations> = {
         noRecords: "暂无记录，开始记录你的想法吧！",
         settings: "设置",
         saveFolder: "保存文件夹",
-        saveFolderDesc: "位于 vault 根目录，例如：Jots",
+        saveFolderDesc: "位于 vault 根目录，例如：MindDump",
         attachmentsFolder: "附件存放目录",
-        attachmentsFolderDesc: "附件存放位置，例如：Jots/attachments。附件命名格式：jot-YYYYMMDD-序数",
-        attachmentsNaming: "附件命名格式：jot-YYYYMMDD-序数",
+        attachmentsFolderDesc: "附件存放位置，例如：MindDump/attachments。附件命名格式：minddump-YYYYMMDD-序数",
+        attachmentsNaming: "附件命名格式：minddump-YYYYMMDD-序数",
         logMode: "记录模式",
         logModeDesc: "选择记录保存方式",
         logModeMulti: "每天一个文件",
         logModeSingle: "单个文件",
         fileFormat: "文件名格式",
-        fileFormatDesc: "文件名命名格式，例如：jot-YYYYMMDD 会生成 jot-20260326.md",
+        fileFormatDesc: "文件名命名格式，例如：minddump-YYYYMMDD 会生成 minddump-20260326.md",
         useFixedTag: "使用固定标签",
         useFixedTagDesc: "为每条记录自动添加固定标签",
         fixedTag: "固定标签值",
@@ -257,7 +257,7 @@ export const translations: Record<Language, Translations> = {
         loadingSettings: "加载设置:",
         creatingAttachmentsFolder: "创建附件目录:",
         attachmentsFolderExists: "附件目录已存在或创建失败:",
-        creatingJotView: "创建 JotView 实例",
+        creatingMindDumpView: "创建 MindDumpView 实例",
         activatingView: "激活视图",
         pluginNotLoaded: "插件未完全加载，延迟激活",
         existingViewFound: "找到现有视图",
@@ -267,7 +267,7 @@ export const translations: Record<Language, Translations> = {
         recordsCount: "{count}条记录",
         autoOpenView: "打开 vault 时自动打开随手记视图",
         autoOpenViewDesc: "启动 Obsidian 时自动打开随手记视图",
-        jotUpdatedAt: "更新",
+        mindDumpUpdatedAt: "更新",
         pasteImageUploadFailed: "图片上传失败：{error}",
         cardMenuShare: "分享",
         cardMenuEdit: "编辑",
@@ -306,23 +306,23 @@ export const translations: Record<Language, Translations> = {
         rightRailTagSortNameDesc: "名称 Z → A",
         rightRailTagSortCountDesc: "使用次数（多 → 少）",
         rightRailTagSortCountAsc: "使用次数（少 → 多）",
-        jotListSortButton: "列表排序",
-        jotListSortCreatedDesc: "创建时间（新 → 旧）",
-        jotListSortCreatedAsc: "创建时间（旧 → 新）",
-        jotListSortUpdatedDesc: "更新时间（新 → 旧）",
-        jotListSortUpdatedAsc: "更新时间（旧 → 新）",
+        mindDumpListSortButton: "列表排序",
+        mindDumpListSortCreatedDesc: "创建时间（新 → 旧）",
+        mindDumpListSortCreatedAsc: "创建时间（旧 → 新）",
+        mindDumpListSortUpdatedDesc: "更新时间（新 → 旧）",
+        mindDumpListSortUpdatedAsc: "更新时间（旧 → 新）",
         rightRailTagFilterPlaceholder: "筛选标签…",
         rightPanelCollapse: "收起侧栏",
         rightPanelExpand: "展开侧栏",
     },
     en: {
-        pluginName: "Jot",
+        pluginName: "MindDump",
         pluginDescription: "Quick note-taking plugin",
-        openJotView: "Open Jot View",
+        openMindDumpView: "Open MindDump View",
         quickCapture: "Quick Capture",
-        saveAsJot: "Save as Jot",
-        savedAsJot: "Saved as Jot!",
-        jotView: "Jot",
+        saveAsMindDump: "Save as MindDump",
+        savedAsMindDump: "Saved as MindDump!",
+        mindDumpView: "MindDump",
         quickRecord: "Quick Record",
         contentPlaceholder: "What's on your mind...",
         toolbarBold: "Bold",
@@ -340,9 +340,9 @@ export const translations: Record<Language, Translations> = {
         cancel: "Cancel",
         contentRequired: "Content cannot be empty",
         saved: "Saved!",
-        jotUpdateNotFound: "Could not find that jot in the file.",
-        jotUpdateNoFile: "This jot has no source file.",
-        jotUpdateFileMissing: "Source file not found.",
+        mindDumpUpdateNotFound: "Could not find that mind dump in the file.",
+        mindDumpUpdateNoFile: "This mind dump has no source file.",
+        mindDumpUpdateFileMissing: "Source file not found.",
         saveFailed: "Save failed: {error}",
         attachmentSaved: "Attachment saved: {filename}",
         calendar: "Calendar",
@@ -377,16 +377,16 @@ export const translations: Record<Language, Translations> = {
         noRecords: "No records yet. Start capturing your thoughts!",
         settings: "Settings",
         saveFolder: "Save Folder",
-        saveFolderDesc: "Located in vault root, e.g., Jots",
+        saveFolderDesc: "Located in vault root, e.g., MindDump",
         attachmentsFolder: "Attachments Folder",
-        attachmentsFolderDesc: "Attachment storage location, e.g., Jots/attachments. Naming format: jot-YYYYMMDD-number",
-        attachmentsNaming: "Naming format: jot-YYYYMMDD-number",
+        attachmentsFolderDesc: "Attachment storage location, e.g., MindDump/attachments. Naming format: minddump-YYYYMMDD-number",
+        attachmentsNaming: "Naming format: minddump-YYYYMMDD-number",
         logMode: "Log Mode",
         logModeDesc: "Choose how to save records",
         logModeMulti: "One file per day",
         logModeSingle: "Single file",
         fileFormat: "File Format",
-        fileFormatDesc: "File naming format, e.g., jot-YYYYMMDD generates jot-20260326.md",
+        fileFormatDesc: "File naming format, e.g., minddump-YYYYMMDD generates minddump-20260326.md",
         useFixedTag: "Use Fixed Tag",
         useFixedTagDesc: "Automatically add a fixed tag to each record",
         fixedTag: "Fixed Tag Value",
@@ -403,12 +403,12 @@ export const translations: Record<Language, Translations> = {
         newRecordAtTop: "• New records are automatically added to the top",
         imageEmbed: "• Images embedded with ![[path]]",
         fileLink: "• Other files linked with [[path]]",
-        loadingPlugin: "Loading Jot plugin",
-        unloadingPlugin: "Unloading Jot plugin",
+        loadingPlugin: "Loading MindDump plugin",
+        unloadingPlugin: "Unloading MindDump plugin",
         loadingSettings: "Loading settings:",
         creatingAttachmentsFolder: "Creating attachments folder:",
         attachmentsFolderExists: "Attachments folder exists or creation failed:",
-        creatingJotView: "Creating JotView instance",
+        creatingMindDumpView: "Creating MindDumpView instance",
         activatingView: "Activating view",
         pluginNotLoaded: "Plugin not fully loaded, delaying activation",
         existingViewFound: "Found existing view",
@@ -416,9 +416,9 @@ export const translations: Record<Language, Translations> = {
         weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
         selectedFiles: "✅ Selected {count} file(s)",
         recordsCount: "{count} record(s)",
-        autoOpenView: "Auto-open Jot View on vault open",
-        autoOpenViewDesc: "Automatically open Jot View when Obsidian starts",
-        jotUpdatedAt: "Updated",
+        autoOpenView: "Auto-open MindDump View on vault open",
+        autoOpenViewDesc: "Automatically open MindDump View when Obsidian starts",
+        mindDumpUpdatedAt: "Updated",
         pasteImageUploadFailed: "Image upload failed: {error}",
         cardMenuShare: "Share",
         cardMenuEdit: "Edit",
@@ -436,12 +436,12 @@ export const translations: Record<Language, Translations> = {
         cardMenuLinkCopied: "Link copied",
         cardMenuShareCopied: "Copied to clipboard",
         cardMenuDeleted: "Moved to recycle bin",
-        cardMenuDeleteConfirm: "Delete this jot? It will go to the recycle bin; you can remove it permanently there.",
+        cardMenuDeleteConfirm: "Delete this mind dump? It will go to the recycle bin; you can remove it permanently there.",
         cardMenuComingSoon: "Coming soon",
         cardMenuAiBadge: "AI",
         cardMenuRestore: "Restore",
         cardMenuPurge: "Delete permanently",
-        cardMenuPurgeConfirm: "Permanently delete this jot? This cannot be undone.",
+        cardMenuPurgeConfirm: "Permanently delete this mind dump? This cannot be undone.",
         cardMenuRestored: "Restored",
         cardMenuPurged: "Permanently deleted",
         rightRailAllTags: "All tags",
@@ -449,19 +449,19 @@ export const translations: Record<Language, Translations> = {
         recycleBinEmpty: "Recycle bin is empty",
         recycleBinRetentionBanner: "Notes in the recycle bin for more than 30 days will be automatically deleted.",
         recycleBinEmptyAll: "Empty recycle bin",
-        recycleBinEmptyAllConfirm: "Empty the recycle bin? All jots in it will be permanently deleted. This cannot be undone.",
-        recycleBinAllPurged: "Permanently deleted {count} jot(s).",
-        recycleBinAutoPurged: "Permanently removed {count} recycle bin jot(s) older than 30 days.",
+        recycleBinEmptyAllConfirm: "Empty the recycle bin? All mind dumps in it will be permanently deleted. This cannot be undone.",
+        recycleBinAllPurged: "Permanently deleted {count} mind dump(s).",
+        recycleBinAutoPurged: "Permanently removed {count} recycle bin mind dump(s) older than 30 days.",
         rightRailTagSort: "Sort",
         rightRailTagSortNameAsc: "Name A → Z",
         rightRailTagSortNameDesc: "Name Z → A",
         rightRailTagSortCountDesc: "Usage count (high → low)",
         rightRailTagSortCountAsc: "Usage count (low → high)",
-        jotListSortButton: "Sort list",
-        jotListSortCreatedDesc: "Created (newest first)",
-        jotListSortCreatedAsc: "Created (oldest first)",
-        jotListSortUpdatedDesc: "Updated (newest first)",
-        jotListSortUpdatedAsc: "Updated (oldest first)",
+        mindDumpListSortButton: "Sort list",
+        mindDumpListSortCreatedDesc: "Created (newest first)",
+        mindDumpListSortCreatedAsc: "Created (oldest first)",
+        mindDumpListSortUpdatedDesc: "Updated (newest first)",
+        mindDumpListSortUpdatedAsc: "Updated (oldest first)",
         rightRailTagFilterPlaceholder: "Filter tags…",
         rightPanelCollapse: "Collapse side panel",
         rightPanelExpand: "Expand side panel",

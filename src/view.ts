@@ -1,15 +1,15 @@
 // src/view.ts
 import { ItemView, WorkspaceLeaf, TFile, TFolder, Notice, MarkdownView, MarkdownRenderer, Component, normalizePath, setIcon, Menu } from 'obsidian';
 import moment from 'moment';
-import JotPlugin from './main';
-import { Jot, HeatDayCell, Language } from './types';
+import MindDumpPlugin from './main';
+import { MindDump, HeatDayCell, Language } from './types';
 import { translations, t, Translations } from './i18n';
 import {
     parseFileContent,
     highlightMarkdownContent,
     debounce,
-    stableLegacyJotId,
-    normalizeJotTags
+    stableLegacyMindDumpId,
+    normalizeMindDumpTags
 } from './utils';
 import { mountQuickComposeCard } from './quick-compose-card';
 import type { RichMarkdownFieldApi } from './rich-markdown-field';
@@ -24,13 +24,13 @@ type SearchTimePreset = "none" | "onThisDay" | "thisMonth" | "lastMonth" | "last
 type TagMatchMode = "include" | "exclude" | "noTags";
 type ContentTypeFilter = "image" | "link" | "audio";
 type RightRailTagSort = "nameAsc" | "nameDesc" | "countDesc" | "countAsc";
-type JotListSort = "createdDesc" | "createdAsc" | "updatedDesc" | "updatedAsc";
+type MindDumpListSort = "createdDesc" | "createdAsc" | "updatedDesc" | "updatedAsc";
 
-export const VIEW_TYPE_JOTS = "jot-view";
+export const VIEW_TYPE_MINDDUMP = "minddump-view";
 
-export class JotView extends ItemView {
-    plugin: JotPlugin;
-    jots: Jot[] = [];
+export class MindDumpView extends ItemView {
+    plugin: MindDumpPlugin;
+    mindDumps: MindDump[] = [];
     searchQuery: string = "";
     selectedTags: Set<string> = new Set();
     isSidebar: boolean = false;
@@ -44,13 +44,15 @@ export class JotView extends ItemView {
     private debouncedRender: (() => void) | null = null;
     private debouncedSearch: (query: string) => void;
     private wikilinkCleanup: (() => void) | null = null;
-    /** Inline jot edit */
-    private editingJotId: string | null = null;
-    private jotListCleanups: (() => void)[] = [];
+    /** Inline mindDump edit */
+    private editingMindDumpId: string | null = null;
+    private mindDumpListCleanups: (() => void)[] = [];
     /** Tears down floating card ⋮ menu (outside list DOM). */
     private cardMenuUnmount: (() => void) | null = null;
     /** Fullscreen image preview overlay. */
     private imageLightboxUnmount: (() => void) | null = null;
+    /** Pull-to-refresh cleanup */
+    private ptrCleanup: (() => void) | null = null;
 
     private searchTimePreset: SearchTimePreset = "none";
     private tagMatchMode: TagMatchMode = "include";
@@ -64,13 +66,13 @@ export class JotView extends ItemView {
     /** Right rail tag list: substring filter (sidebar / main layout) */
     private rightRailTagListQuery = "";
     private rightRailTagSort: RightRailTagSort = "nameAsc";
-    private jotListSort: JotListSort = "createdDesc";
+    private mindDumpListSort: MindDumpListSort = "createdDesc";
 
     get lang(): Language {
         return this.plugin.lang;
     }
 
-    constructor(leaf: WorkspaceLeaf, plugin: JotPlugin) {
+    constructor(leaf: WorkspaceLeaf, plugin: MindDumpPlugin) {
         super(leaf);
         this.plugin = plugin;
 
@@ -83,19 +85,19 @@ export class JotView extends ItemView {
     }
 
     getViewType(): string {
-        return VIEW_TYPE_JOTS;
+        return VIEW_TYPE_MINDDUMP;
     }
 
     getDisplayText(): string {
-        return t('jotView', this.lang);
+        return t('mindDumpView', this.lang);
     }
 
     getIcon(): string {
-        return "jot-bolt"; 
+        return "minddump-bolt";
     }
 
     async onOpen() {
-        this.contentEl.addClass("jots-view");
+        this.contentEl.addClass("minddump-view");
 
         if (this.leaf.tabHeaderInnerIconEl) {
             this.leaf.tabHeaderInnerIconEl.empty();
@@ -151,8 +153,9 @@ export class JotView extends ItemView {
         this.renderedComponents = [];
         this.closeCardMenu();
         this.closeImageLightbox();
+        this.destroyPtr();
     }
-    
+
     private focusTextarea() {
         if (this.quickComposeContent) {
             setTimeout(() => {
@@ -174,30 +177,30 @@ export class JotView extends ItemView {
         this.inputCard = null;
         this.quickComposeContent = null;
     }
-    
+
     private updateSearchAndFilter() {
         if (this.searchInput) {
             this.searchInput.value = this.searchQuery;
         }
         this.updateClearButton();
-        const listSection = this.contentEl.querySelector(".jots-list-section");
+        const listSection = this.contentEl.querySelector(".minddump-list-section");
         if (listSection) {
-            this.renderJotList(listSection as HTMLElement);
+            this.renderMindDumpList(listSection as HTMLElement);
         }
     }
-    
+
     private updateClearButton() {
         if (this.searchContainer) {
             let clearBtnContainer = this.searchContainer.querySelector(".search-clear-container");
             if (!clearBtnContainer) {
                 clearBtnContainer = this.searchContainer.createDiv({ cls: "search-clear-container" });
             }
-            
+
             if (this.searchQuery && this.searchQuery.length > 0) {
                 clearBtnContainer.empty();
                 const clearIcon = clearBtnContainer.createSpan();
                 clearIcon.textContent = "×";
-                
+
                 clearBtnContainer.style.display = "flex";
                 clearBtnContainer.style.position = "absolute";
                 clearBtnContainer.style.right = "8px";
@@ -213,11 +216,11 @@ export class JotView extends ItemView {
                 clearBtnContainer.style.zIndex = "10";
 
                 clearBtnContainer.addEventListener("mousedown", (e) => e.preventDefault());
-                
+
                 if (this.searchInput) {
                     this.searchInput.style.paddingRight = "32px";
                 }
-                
+
                 clearBtnContainer.addEventListener("click", (e) => {
                     e.stopPropagation();
                     this.searchQuery = "";
@@ -256,7 +259,7 @@ export class JotView extends ItemView {
         return { date, updated, activity, keywords };
     }
 
-    private attachCardTapAndLongPress(card: HTMLElement, jot: Jot) {
+    private attachCardTapAndLongPress(card: HTMLElement, mindDump: MindDump) {
         let timer: ReturnType<typeof setTimeout> | null = null;
         let longPressFired = false;
         let startX = 0;
@@ -285,7 +288,7 @@ export class JotView extends ItemView {
             timer = setTimeout(() => {
                 timer = null;
                 longPressFired = true;
-                void this.openJot(jot);
+                void this.openMindDump(mindDump);
             }, CARD_LONG_PRESS_MS);
         };
 
@@ -325,7 +328,7 @@ export class JotView extends ItemView {
         card.addEventListener("pointerup", onPointerUp);
         card.addEventListener("pointercancel", onPointerCancel);
 
-        this.jotListCleanups.push(() => {
+        this.mindDumpListCleanups.push(() => {
             clearTimer();
             card.removeEventListener("pointerdown", onPointerDown);
             card.removeEventListener("pointermove", onPointerMove);
@@ -352,11 +355,11 @@ export class JotView extends ItemView {
         const win = doc.defaultView ?? window;
         const ws = this.app.workspace.containerEl;
         const mount = ws && ws.ownerDocument === doc ? ws : doc.body;
-        const root = mount.createDiv({ cls: "jots-image-lightbox" });
+        const root = mount.createDiv({ cls: "minddump-image-lightbox" });
         root.tabIndex = -1;
         root.setAttribute("role", "dialog");
         root.setAttribute("aria-modal", "true");
-        const imgEl = root.createEl("img", { cls: "jots-image-lightbox-img", attr: { src, alt: "" } });
+        const imgEl = root.createEl("img", { cls: "minddump-image-lightbox-img", attr: { src, alt: "" } });
         imgEl.draggable = false;
         imgEl.style.setProperty("max-width", "96vw", "important");
         imgEl.style.setProperty("max-height", "96vh", "important");
@@ -410,8 +413,8 @@ export class JotView extends ItemView {
         }
     }
 
-    private jotWordCount(jot: Jot): number {
-        const stripped = jot.content
+    private mindDumpWordCount(mindDump: MindDump): number {
+        const stripped = mindDump.content
             .replace(/!\[\[[^\]]+\]\]/g, "")
             .replace(/\[\[[^\]]+\]\]/g, "x")
             .replace(/```[\s\S]*?```/g, "")
@@ -421,26 +424,26 @@ export class JotView extends ItemView {
         return stripped.length > 0 ? [...stripped].length : 0;
     }
 
-    private buildObsidianFileUri(jot: Jot): string | null {
-        if (!jot.filePath) return null;
+    private buildObsidianFileUri(mindDump: MindDump): string | null {
+        if (!mindDump.filePath) return null;
         const vault = this.app.vault.getName();
-        return `obsidian://open?vault=${encodeURIComponent(vault)}&file=${encodeURIComponent(normalizePath(jot.filePath))}`;
+        return `obsidian://open?vault=${encodeURIComponent(vault)}&file=${encodeURIComponent(normalizePath(mindDump.filePath))}`;
     }
 
-    private jotMarkdownClipboardText(jot: Jot): string {
-        let md = jot.content;
-        const tagLine = normalizeJotTags(jot.tags)
+    private mindDumpMarkdownClipboardText(mindDump: MindDump): string {
+        let md = mindDump.content;
+        const tagLine = normalizeMindDumpTags(mindDump.tags)
             .map((x) => `#${x}`)
             .join(" ");
         if (tagLine) md += `\n\n${tagLine}`;
-        if (jot.source?.trim()) {
+        if (mindDump.source?.trim()) {
             const prefix = this.lang === "zh" ? "来源:" : "Source:";
-            md += `\n\n${prefix} ${jot.source.trim()}`;
+            md += `\n\n${prefix} ${mindDump.source.trim()}`;
         }
         return md;
     }
 
-    /** Same window/document as the jot view (pop-out safe). */
+    /** Same window/document as the mindDump view (pop-out safe). */
     private getCardMenuMount(): { mountEl: HTMLElement; doc: Document; win: Window } {
         const doc = this.contentEl.doc;
         const win = this.contentEl.win;
@@ -482,22 +485,22 @@ export class JotView extends ItemView {
         menu.style.top = `${top}px`;
     }
 
-    private openDeletedCardMenu(anchor: HTMLElement, jot: Jot) {
+    private openDeletedCardMenu(anchor: HTMLElement, mindDump: MindDump) {
         this.closeCardMenu();
         const lang = this.lang;
         const { mountEl, doc, win } = this.getCardMenuMount();
 
-        const menu = mountEl.createDiv({ cls: "jots-card-menu-popover" });
-        menu.dataset.anchorId = jot.id;
+        const menu = mountEl.createDiv({ cls: "minddump-card-menu-popover" });
+        menu.dataset.anchorId = mindDump.id;
         this.applyCardMenuShellStyles(menu, win);
 
-        const addDivider = () => menu.createDiv({ cls: "jots-card-menu-divider" });
+        const addDivider = () => menu.createDiv({ cls: "minddump-card-menu-divider" });
 
         const addIconRow = (iconId: string, label: string, onActivate: () => void) => {
-            const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--action" });
-            const iconWrap = row.createSpan({ cls: "jots-card-menu-row-icon" });
+            const row = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--action" });
+            const iconWrap = row.createSpan({ cls: "minddump-card-menu-row-icon" });
             setIcon(iconWrap, iconId);
-            row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+            row.createSpan({ cls: "minddump-card-menu-row-label", text: label });
             row.addEventListener("pointerdown", (e) => e.stopPropagation());
             row.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -509,15 +512,15 @@ export class JotView extends ItemView {
             this.closeCardMenu();
             try {
                 if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-                    await navigator.share({ text: jot.content });
+                    await navigator.share({ text: mindDump.content });
                 } else {
-                    await navigator.clipboard.writeText(jot.content);
+                    await navigator.clipboard.writeText(mindDump.content);
                     new Notice(t("cardMenuShareCopied", lang));
                 }
             } catch (err) {
                 if ((err as { name?: string })?.name === "AbortError") return;
                 try {
-                    await navigator.clipboard.writeText(jot.content);
+                    await navigator.clipboard.writeText(mindDump.content);
                     new Notice(t("cardMenuShareCopied", lang));
                 } catch {
                     /* ignore */
@@ -528,16 +531,16 @@ export class JotView extends ItemView {
         addIconRow("undo-2", t("cardMenuRestore", lang), async () => {
             this.closeCardMenu();
             try {
-                await this.plugin.updateJot({ ...jot, deleted: false });
+                await this.plugin.updateMindDump({ ...mindDump, deleted: false });
                 new Notice(t("cardMenuRestored", lang));
             } catch {
-                /* updateJot already showed Notice */
+                /* updateMindDump already showed Notice */
             }
         });
 
         addDivider();
 
-        const purRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--danger" });
+        const purRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--danger" });
         purRow.textContent = t("cardMenuPurge", lang);
         purRow.addEventListener("pointerdown", (e) => e.stopPropagation());
         purRow.addEventListener("click", async (e) => {
@@ -545,26 +548,26 @@ export class JotView extends ItemView {
             this.closeCardMenu();
             if (!confirm(t("cardMenuPurgeConfirm", lang))) return;
             try {
-                await this.plugin.purgeJot(jot);
+                await this.plugin.purgeMindDump(mindDump);
                 new Notice(t("cardMenuPurged", lang));
             } catch {
-                /* purgeJot already showed Notice */
+                /* purgeMindDump already showed Notice */
             }
         });
 
         addDivider();
 
-        const footer = menu.createDiv({ cls: "jots-card-menu-footer" });
-        const wc = this.jotWordCount(jot);
+        const footer = menu.createDiv({ cls: "minddump-card-menu-footer" });
+        const wc = this.mindDumpWordCount(mindDump);
         footer.createDiv({
-            cls: "jots-card-menu-footer-line",
+            cls: "minddump-card-menu-footer-line",
             text: t("cardMenuWordCount", lang, { count: String(wc) })
         });
-        const timeDisplay = moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid()
-            ? moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm")
-            : (jot.updatedAt.includes(" ") ? jot.updatedAt.split(/\s+/).pop() ?? jot.updatedAt : jot.updatedAt);
+        const timeDisplay = moment(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid()
+            ? moment(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm")
+            : (mindDump.updatedAt.includes(" ") ? mindDump.updatedAt.split(/\s+/).pop() ?? mindDump.updatedAt : mindDump.updatedAt);
         footer.createDiv({
-            cls: "jots-card-menu-footer-line",
+            cls: "minddump-card-menu-footer-line",
             text: t("cardMenuEditedAtFooter", lang, { time: timeDisplay })
         });
 
@@ -602,26 +605,26 @@ export class JotView extends ItemView {
         });
     }
 
-    private openCardMenu(anchor: HTMLElement, jot: Jot) {
-        if (jot.deleted) {
-            this.openDeletedCardMenu(anchor, jot);
+    private openCardMenu(anchor: HTMLElement, mindDump: MindDump) {
+        if (mindDump.deleted) {
+            this.openDeletedCardMenu(anchor, mindDump);
             return;
         }
         this.closeCardMenu();
         const lang = this.lang;
         const { mountEl, doc, win } = this.getCardMenuMount();
 
-        const menu = mountEl.createDiv({ cls: "jots-card-menu-popover" });
-        menu.dataset.anchorId = jot.id;
+        const menu = mountEl.createDiv({ cls: "minddump-card-menu-popover" });
+        menu.dataset.anchorId = mindDump.id;
         this.applyCardMenuShellStyles(menu, win);
 
-        const addDivider = () => menu.createDiv({ cls: "jots-card-menu-divider" });
+        const addDivider = () => menu.createDiv({ cls: "minddump-card-menu-divider" });
 
         const addIconRow = (iconId: string, label: string, onActivate: () => void) => {
-            const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--action" });
-            const iconWrap = row.createSpan({ cls: "jots-card-menu-row-icon" });
+            const row = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--action" });
+            const iconWrap = row.createSpan({ cls: "minddump-card-menu-row-icon" });
             setIcon(iconWrap, iconId);
-            row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+            row.createSpan({ cls: "minddump-card-menu-row-label", text: label });
             row.addEventListener("pointerdown", (e) => e.stopPropagation());
             row.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -630,8 +633,8 @@ export class JotView extends ItemView {
         };
 
         const addStubRow = (label: string) => {
-            const row = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub" });
-            row.createSpan({ cls: "jots-card-menu-row-label", text: label });
+            const row = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--stub" });
+            row.createSpan({ cls: "minddump-card-menu-row-label", text: label });
             row.addEventListener("pointerdown", (e) => e.stopPropagation());
             row.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -643,15 +646,15 @@ export class JotView extends ItemView {
             this.closeCardMenu();
             try {
                 if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-                    await navigator.share({ text: jot.content });
+                    await navigator.share({ text: mindDump.content });
                 } else {
-                    await navigator.clipboard.writeText(jot.content);
+                    await navigator.clipboard.writeText(mindDump.content);
                     new Notice(t("cardMenuShareCopied", lang));
                 }
             } catch (err) {
                 if ((err as { name?: string })?.name === "AbortError") return;
                 try {
-                    await navigator.clipboard.writeText(jot.content);
+                    await navigator.clipboard.writeText(mindDump.content);
                     new Notice(t("cardMenuShareCopied", lang));
                 } catch {
                     /* ignore */
@@ -661,31 +664,31 @@ export class JotView extends ItemView {
 
         addIconRow("pencil", t("cardMenuEdit", lang), () => {
             this.closeCardMenu();
-            this.enterEditMode(jot);
+            this.enterEditMode(mindDump);
         });
 
         addDivider();
         addStubRow(t("cardMenuPinTop", lang));
         addStubRow(t("cardMenuFloatingWindow", lang));
 
-        const relatedRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--stub jots-card-menu-row--spread" });
-        relatedRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuRelatedNotes", lang) });
-        relatedRow.createSpan({ cls: "jots-card-menu-ai-badge", text: t("cardMenuAiBadge", lang) });
+        const relatedRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--stub minddump-card-menu-row--spread" });
+        relatedRow.createSpan({ cls: "minddump-card-menu-row-label", text: t("cardMenuRelatedNotes", lang) });
+        relatedRow.createSpan({ cls: "minddump-card-menu-ai-badge", text: t("cardMenuAiBadge", lang) });
         relatedRow.addEventListener("pointerdown", (e) => e.stopPropagation());
         relatedRow.addEventListener("click", (e) => {
             e.stopPropagation();
             new Notice(t("cardMenuComingSoon", lang));
         });
 
-        const copyLinkRow = menu.createDiv({ cls: "jots-card-menu-row" });
-        copyLinkRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuCopyLink", lang) });
+        const copyLinkRow = menu.createDiv({ cls: "minddump-card-menu-row" });
+        copyLinkRow.createSpan({ cls: "minddump-card-menu-row-label", text: t("cardMenuCopyLink", lang) });
         copyLinkRow.addEventListener("pointerdown", (e) => e.stopPropagation());
         copyLinkRow.addEventListener("click", async (e) => {
             e.stopPropagation();
             this.closeCardMenu();
-            const uri = this.buildObsidianFileUri(jot);
+            const uri = this.buildObsidianFileUri(mindDump);
             if (!uri) {
-                new Notice(t("jotUpdateNoFile", lang));
+                new Notice(t("mindDumpUpdateNoFile", lang));
                 return;
             }
             try {
@@ -698,27 +701,27 @@ export class JotView extends ItemView {
 
         addStubRow(t("cardMenuAnnotate", lang));
 
-        const moreRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--spread jots-card-menu-row--more" });
-        moreRow.createSpan({ cls: "jots-card-menu-row-label", text: t("cardMenuMore", lang) });
-        const chev = moreRow.createSpan({ cls: "jots-card-menu-row-chevron" });
+        const moreRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--spread minddump-card-menu-row--more" });
+        moreRow.createSpan({ cls: "minddump-card-menu-row-label", text: t("cardMenuMore", lang) });
+        const chev = moreRow.createSpan({ cls: "minddump-card-menu-row-chevron" });
         setIcon(chev, "chevron-right");
-        const sub = menu.createDiv({ cls: "jots-card-menu-sub" });
-        const subOpenNote = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+        const sub = menu.createDiv({ cls: "minddump-card-menu-sub" });
+        const subOpenNote = sub.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--sub" });
         subOpenNote.textContent = t("cardMenuMoreOpenNote", lang);
         subOpenNote.addEventListener("pointerdown", (e) => e.stopPropagation());
         subOpenNote.addEventListener("click", (e) => {
             e.stopPropagation();
             this.closeCardMenu();
-            void this.openJot(jot);
+            void this.openMindDump(mindDump);
         });
-        const subCopyMd = sub.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--sub" });
+        const subCopyMd = sub.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--sub" });
         subCopyMd.textContent = t("cardMenuMoreCopyMarkdown", lang);
         subCopyMd.addEventListener("pointerdown", (e) => e.stopPropagation());
         subCopyMd.addEventListener("click", async (e) => {
             e.stopPropagation();
             this.closeCardMenu();
             try {
-                await navigator.clipboard.writeText(this.jotMarkdownClipboardText(jot));
+                await navigator.clipboard.writeText(this.mindDumpMarkdownClipboardText(mindDump));
                 new Notice(t("cardMenuShareCopied", lang));
             } catch {
                 /* ignore */
@@ -734,7 +737,7 @@ export class JotView extends ItemView {
 
         addDivider();
 
-        const delRow = menu.createDiv({ cls: "jots-card-menu-row jots-card-menu-row--danger" });
+        const delRow = menu.createDiv({ cls: "minddump-card-menu-row minddump-card-menu-row--danger" });
         delRow.textContent = t("cardMenuDelete", lang);
         delRow.addEventListener("pointerdown", (e) => e.stopPropagation());
         delRow.addEventListener("click", async (e) => {
@@ -742,26 +745,26 @@ export class JotView extends ItemView {
             this.closeCardMenu();
             if (!confirm(t("cardMenuDeleteConfirm", lang))) return;
             try {
-                await this.plugin.deleteJot(jot);
+                await this.plugin.deleteMindDump(mindDump);
                 new Notice(t("cardMenuDeleted", lang));
             } catch {
-                /* deleteJot already showed Notice */
+                /* deleteMindDump already showed Notice */
             }
         });
 
         addDivider();
 
-        const footer = menu.createDiv({ cls: "jots-card-menu-footer" });
-        const wc = this.jotWordCount(jot);
+        const footer = menu.createDiv({ cls: "minddump-card-menu-footer" });
+        const wc = this.mindDumpWordCount(mindDump);
         footer.createDiv({
-            cls: "jots-card-menu-footer-line",
+            cls: "minddump-card-menu-footer-line",
             text: t("cardMenuWordCount", lang, { count: String(wc) })
         });
-        const timeDisplay = moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid()
-            ? moment(jot.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm")
-            : (jot.updatedAt.includes(" ") ? jot.updatedAt.split(/\s+/).pop() ?? jot.updatedAt : jot.updatedAt);
+        const timeDisplay = moment(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss", true).isValid()
+            ? moment(mindDump.updatedAt, "YYYY-MM-DD HH:mm:ss").format("HH:mm")
+            : (mindDump.updatedAt.includes(" ") ? mindDump.updatedAt.split(/\s+/).pop() ?? mindDump.updatedAt : mindDump.updatedAt);
         footer.createDiv({
-            cls: "jots-card-menu-footer-line",
+            cls: "minddump-card-menu-footer-line",
             text: t("cardMenuEditedAtFooter", lang, { time: timeDisplay })
         });
 
@@ -799,27 +802,27 @@ export class JotView extends ItemView {
         });
     }
 
-    private enterEditMode(jot: Jot) {
-        this.editingJotId = jot.id;
-        const listSection = this.contentEl.querySelector(".jots-list-section");
+    private enterEditMode(mindDump: MindDump) {
+        this.editingMindDumpId = mindDump.id;
+        const listSection = this.contentEl.querySelector(".minddump-list-section");
         if (listSection) {
-            this.renderJotList(listSection as HTMLElement);
+            this.renderMindDumpList(listSection as HTMLElement);
         }
     }
 
     private exitEditMode() {
-        this.editingJotId = null;
-        const listSection = this.contentEl.querySelector(".jots-list-section");
+        this.editingMindDumpId = null;
+        const listSection = this.contentEl.querySelector(".minddump-list-section");
         if (listSection) {
-            this.renderJotList(listSection as HTMLElement);
+            this.renderMindDumpList(listSection as HTMLElement);
         }
     }
 
     private getExistingTags(): string[] {
         const tags = new Set<string>();
-        for (const jot of this.jots) {
-            if (jot.deleted) continue;
-            jot.tags.forEach(tag => tags.add(tag));
+        for (const mindDump of this.mindDumps) {
+            if (mindDump.deleted) continue;
+            mindDump.tags.forEach(tag => tags.add(tag));
         }
         return Array.from(tags);
     }
@@ -832,82 +835,108 @@ export class JotView extends ItemView {
     }
 
     async refresh() {
-        await this.loadJots();
+        await this.loadMindDumps();
         this.render();
     }
 
-    async loadJots() {
+    async loadMindDumps() {
         const folder = this.plugin.settings.saveFolder;
         const folderObj = this.app.vault.getAbstractFileByPath(folder);
 
         if (!folderObj || !(folderObj instanceof TFolder)) {
-            this.jots = [];
+            this.mindDumps = [];
             return;
         }
 
         const files = folderObj.children.filter(f => f instanceof TFile && f.name.endsWith(".md"));
-        const allJots: Jot[] = [];
+        const allMindDumps: MindDump[] = [];
 
         for (const file of files) {
             const content = await this.app.vault.read(file as TFile);
             const entries = parseFileContent(content, file.path, this.lang);
-            allJots.push(...entries);
+            allMindDumps.push(...entries);
         }
 
-        allJots.sort((a, b) => {
+        allMindDumps.sort((a, b) => {
             const dateA = moment(a.date + " " + a.time, "YYYY-MM-DD HH:mm:ss");
             const dateB = moment(b.date + " " + b.time, "YYYY-MM-DD HH:mm:ss");
             return dateB.valueOf() - dateA.valueOf();
         });
 
-        this.jots = allJots;
+        this.mindDumps = allMindDumps;
     }
-    
+
     render() {
+        this.destroyPtr();
         this.checkIfSidebar();
         this.disposeQuickCaptureInput();
         this.contentEl.empty();
-        this.contentEl.toggleClass("jots-view--main-layout", !this.isSidebar);
+        this.contentEl.toggleClass("minddump-view--main-layout", !this.isSidebar);
 
         if (this.isSidebar) {
             this.renderSidebarLayout();
         } else {
             this.renderMainLayout();
         }
-        
+
         this.focusTextarea();
     }
-    
+
     renderMainLayout() {
         const container = this.contentEl.createDiv();
         container.style.display = "flex";
         container.style.gap = "20px";
         container.style.height = "100%";
         container.style.overflow = "hidden";
-        
+
         const leftPanel = container.createDiv();
         leftPanel.style.flex = "4";
-        leftPanel.style.overflow = "auto";
+        leftPanel.style.display = "flex";
+        leftPanel.style.flexDirection = "column";
+        leftPanel.style.overflow = "hidden";
+        leftPanel.style.position = "relative";
         leftPanel.style.padding = "0 10px 10px";
-        
-        const rightShell = container.createDiv({ cls: "jots-right-shell" });
+
+        // Pull-to-refresh indicator (slides in via GPU-composited transform)
+        const ptrIndicator = leftPanel.createDiv({ cls: "minddump-ptr-indicator" });
+        ptrIndicator.style.position = "absolute";
+        ptrIndicator.style.top = "0";
+        ptrIndicator.style.left = "0";
+        ptrIndicator.style.right = "0";
+        ptrIndicator.style.zIndex = "2";
+        ptrIndicator.style.display = "flex";
+        ptrIndicator.style.alignItems = "center";
+        ptrIndicator.style.justifyContent = "center";
+        ptrIndicator.style.pointerEvents = "none";
+        ptrIndicator.style.transform = "translateY(-100%)";
+        const ptrIcon = ptrIndicator.createSpan({ cls: "minddump-ptr-icon" });
+        ptrIcon.style.transition = "transform 0.2s ease";
+        setIcon(ptrIcon, "arrow-down");
+
+        // Scrollable content wrapper (GPU-composited via will-change)
+        const ptrScroll = leftPanel.createDiv({ cls: "minddump-ptr-content" });
+        ptrScroll.style.flex = "1";
+        ptrScroll.style.overflow = "auto";
+        ptrScroll.style.willChange = "transform";
+
+        const rightShell = container.createDiv({ cls: "minddump-right-shell" });
         if (this.rightFunctionalPanelCollapsed) {
             rightShell.addClass("is-collapsed");
         }
         rightShell.style.flex = this.rightFunctionalPanelCollapsed ? "0" : "1";
         rightShell.style.minWidth = "0";
 
-        const rightPanelInner = rightShell.createDiv({ cls: "jots-right-panel-inner" });
+        const rightPanelInner = rightShell.createDiv({ cls: "minddump-right-panel-inner" });
 
         /** Search + quick input (or recycle banner) stick together while the list scrolls. */
-        const leftStickyStack = leftPanel.createDiv({ cls: "jots-left-sticky-stack" });
+        const leftStickyStack = ptrScroll.createDiv({ cls: "minddump-left-sticky-stack" });
 
-        const searchRow = leftStickyStack.createDiv({ cls: "jots-main-search-row" });
-        const searchRowMain = searchRow.createDiv({ cls: "jots-main-search-row__main" });
+        const searchRow = leftStickyStack.createDiv({ cls: "minddump-main-search-row" });
+        const searchRowMain = searchRow.createDiv({ cls: "minddump-main-search-row__main" });
         this.renderSearch(searchRowMain);
         const rightPanelToggleBtn = searchRow.createEl("button", {
             type: "button",
-            cls: "jots-right-shell-toggle-btn jots-main-search-row__toggle",
+            cls: "minddump-right-shell-toggle-btn minddump-main-search-row__toggle",
             attr: this.rightFunctionalPanelCollapsed
                 ? {
                       "aria-label": t("rightPanelExpand", this.lang),
@@ -931,26 +960,52 @@ export class JotView extends ItemView {
             this.renderFullInput(leftStickyStack);
         }
 
-        const listContainer = leftPanel.createDiv();
+        const listContainer = ptrScroll.createDiv();
         listContainer.style.marginTop = "20px";
-        this.renderJotList(listContainer);
+        this.renderMindDumpList(listContainer);
 
-        const calendarRoot = rightPanelInner.createDiv({ cls: "jots-calendar" });
+        const calendarRoot = rightPanelInner.createDiv({ cls: "minddump-calendar" });
         this.renderCalendar(calendarRoot);
         this.renderRightRail(rightPanelInner);
+
+        this.setupPtr(ptrScroll, ptrIndicator);
     }
-    
+
     renderSidebarLayout() {
         const container = this.contentEl.createDiv();
         container.style.display = "flex";
         container.style.flexDirection = "column";
-        container.style.gap = "12px";
         container.style.height = "100%";
-        container.style.overflow = "auto";
+        container.style.overflow = "hidden";
+        container.style.position = "relative";
         container.style.padding = "8px";
-        
-        const addBtn = container.createEl("button", {
-            cls: "jots-quick-capture-entry-btn",
+
+        // Pull-to-refresh indicator (slides in via GPU-composited transform)
+        const ptrIndicator = container.createDiv({ cls: "minddump-ptr-indicator" });
+        ptrIndicator.style.position = "absolute";
+        ptrIndicator.style.top = "0";
+        ptrIndicator.style.left = "0";
+        ptrIndicator.style.right = "0";
+        ptrIndicator.style.zIndex = "2";
+        ptrIndicator.style.display = "flex";
+        ptrIndicator.style.alignItems = "center";
+        ptrIndicator.style.justifyContent = "center";
+        ptrIndicator.style.pointerEvents = "none";
+        ptrIndicator.style.transform = "translateY(-100%)";
+        const ptrIcon = ptrIndicator.createSpan({ cls: "minddump-ptr-icon" });
+        ptrIcon.style.transition = "transform 0.2s ease";
+        setIcon(ptrIcon, "arrow-down");
+
+        // Scrollable content wrapper (GPU-composited via will-change)
+        const ptrScroll = container.createDiv({ cls: "minddump-ptr-content" });
+        ptrScroll.style.flex = "1";
+        ptrScroll.style.overflow = "auto";
+        ptrScroll.style.display = "flex";
+        ptrScroll.style.flexDirection = "column";
+        ptrScroll.style.gap = "12px";
+
+        const addBtn = ptrScroll.createEl("button", {
+            cls: "minddump-quick-capture-entry-btn",
             type: "button",
         });
         addBtn.textContent = "+ " + t("quickCapture", this.lang);
@@ -958,16 +1013,257 @@ export class JotView extends ItemView {
             const { CaptureModal } = require('./capture-modal');
             new CaptureModal(this.app, this.plugin).open();
         });
-        
-        this.renderSearchCompact(container);
-        const calendarRoot = container.createDiv({ cls: "jots-calendar" });
+
+        this.renderSearchCompact(ptrScroll);
+        const calendarRoot = ptrScroll.createDiv({ cls: "minddump-calendar" });
         this.renderCalendarCompact(calendarRoot);
-        
-        const listContainer = container.createDiv();
+
+        const listContainer = ptrScroll.createDiv();
         listContainer.style.marginTop = "8px";
-        this.renderJotList(listContainer);
+        this.renderMindDumpList(listContainer);
+
+        this.setupPtr(ptrScroll, ptrIndicator);
     }
-    
+
+    /**
+     * Set up pull-to-refresh using GPU-composited transforms.
+     * ptrScroll translates down to reveal ptrIndicator above it.
+     * No layout-triggering properties (height/margin) are touched during the gesture.
+     */
+    private setupPtr(ptrScroll: HTMLElement, ptrIndicator: HTMLElement): void {
+        let startY = 0;
+        let pulling = false;
+        let pullDist = 0;
+        let refreshing = false;
+        const THRESHOLD = 60;
+        const DAMPING = 0.5;
+        const MAX_PULL = 100;
+        const INDICATOR_H = 44;
+
+        // Wheel-based pull state (trackpad / scroll wheel)
+        let wheelPull = 0;
+        let wheelReleaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+        const iconEl = ptrIndicator.querySelector(".minddump-ptr-icon") as HTMLElement | null;
+
+        const SNAP_TRANSITION = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+
+        /** Update both transforms at once — the only per-frame DOM writes. */
+        const applyPull = (dist: number) => {
+            ptrScroll.style.transform = `translateY(${dist}px)`;
+            const off = dist < INDICATOR_H ? -INDICATOR_H + dist : 0;
+            ptrIndicator.style.transform = `translateY(${off}px)`;
+        };
+
+        const snapBack = (instant = false) => {
+            pulling = false;
+            pullDist = 0;
+            wheelPull = 0;
+            if (instant) {
+                ptrScroll.style.transition = "none";
+                ptrIndicator.style.transition = "none";
+                ptrScroll.style.transform = "";
+                ptrIndicator.style.transform = "translateY(-100%)";
+            } else {
+                ptrScroll.style.transition = SNAP_TRANSITION;
+                ptrIndicator.style.transition = SNAP_TRANSITION;
+                ptrScroll.style.transform = "";
+                ptrIndicator.style.transform = "translateY(-100%)";
+            }
+            if (iconEl) iconEl.style.transform = "";
+        };
+
+        const rebuildIndicatorIcon = () => {
+            ptrIndicator.empty();
+            const ni = ptrIndicator.createSpan({ cls: "minddump-ptr-icon" });
+            ni.style.transition = "transform 0.2s ease";
+            setIcon(ni, "arrow-down");
+        };
+
+        const triggerRefresh = async () => {
+            refreshing = true;
+            ptrScroll.style.transition = "none";
+            ptrIndicator.style.transition = "none";
+            applyPull(INDICATOR_H);
+
+            ptrIndicator.empty();
+            const spinner = ptrIndicator.createSpan({ cls: "minddump-ptr-spinner" });
+            setIcon(spinner, "loader-2");
+
+            try {
+                await this.loadMindDumps();
+                const listSection = this.contentEl.querySelector(".minddump-list-section");
+                if (listSection) {
+                    this.renderMindDumpList(listSection as HTMLElement);
+                }
+            } finally {
+                refreshing = false;
+                snapBack(false);
+                setTimeout(rebuildIndicatorIcon, 350);
+            }
+        };
+
+        const cancelPull = () => {
+            if (wheelReleaseTimer) {
+                clearTimeout(wheelReleaseTimer);
+                wheelReleaseTimer = null;
+            }
+            snapBack(true);
+        };
+
+        // --- Pointer event handlers (touch / mouse) ---
+
+        const onPointerDown = (e: PointerEvent) => {
+            if (refreshing) return;
+            if (ptrScroll.scrollTop > 0) return;
+            if (e.pointerType === "mouse" && e.button !== 0) return;
+            ptrScroll.style.transition = "none";
+            ptrIndicator.style.transition = "none";
+            startY = e.clientY;
+            pulling = true;
+            pullDist = 0;
+        };
+
+        const onPointerMove = (e: PointerEvent) => {
+            if (!pulling || refreshing) return;
+            const dy = e.clientY - startY;
+            if (dy <= 0 || ptrScroll.scrollTop > 0) {
+                snapBack(true);
+                return;
+            }
+            pullDist = dy * DAMPING;
+            if (pullDist > MAX_PULL) pullDist = MAX_PULL;
+            applyPull(pullDist);
+            if (iconEl) {
+                iconEl.style.transform = pullDist >= THRESHOLD ? "rotate(180deg)" : "";
+            }
+        };
+
+        const onPointerUp = () => {
+            if (!pulling) return;
+            const dist = pullDist;
+            pulling = false;
+
+            if (dist >= THRESHOLD && !refreshing) {
+                void triggerRefresh();
+            } else {
+                snapBack(false);
+            }
+            pullDist = 0;
+        };
+
+        const onPointerCancel = () => {
+            if (refreshing) {
+                refreshing = false;
+                snapBack(false);
+                setTimeout(rebuildIndicatorIcon, 350);
+            } else {
+                snapBack(true);
+            }
+        };
+
+        // --- Wheel event handler (trackpad / scroll wheel) ---
+
+        const scheduleWheelRelease = () => {
+            if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
+            wheelReleaseTimer = setTimeout(() => {
+                wheelReleaseTimer = null;
+                const dist = wheelPull;
+                wheelPull = 0;
+                if (dist >= THRESHOLD && !refreshing) {
+                    void triggerRefresh();
+                } else {
+                    snapBack(false);
+                }
+            }, 180);
+        };
+
+        const onWheel = (e: WheelEvent) => {
+            if (refreshing) return;
+
+            if (ptrScroll.scrollTop > 0) {
+                if (wheelPull > 0) {
+                    wheelPull = 0;
+                    if (wheelReleaseTimer) {
+                        clearTimeout(wheelReleaseTimer);
+                        wheelReleaseTimer = null;
+                    }
+                    snapBack(true);
+                }
+                return;
+            }
+
+            if (e.deltaY < 0) {
+                // Scrolling up (pulling down) — intercept
+                e.preventDefault();
+                ptrScroll.style.transition = "none";
+                ptrIndicator.style.transition = "none";
+                wheelPull += Math.abs(e.deltaY) * 0.3;
+                if (wheelPull > MAX_PULL) wheelPull = MAX_PULL;
+                applyPull(wheelPull);
+                if (iconEl) {
+                    iconEl.style.transform = wheelPull >= THRESHOLD ? "rotate(180deg)" : "";
+                }
+                scheduleWheelRelease();
+            } else if (e.deltaY > 0 && wheelPull > 0) {
+                // Scrolling down mid-pull — reduce
+                wheelPull = Math.max(0, wheelPull - Math.abs(e.deltaY) * 0.3);
+                if (wheelPull <= 0) {
+                    if (wheelReleaseTimer) {
+                        clearTimeout(wheelReleaseTimer);
+                        wheelReleaseTimer = null;
+                    }
+                    snapBack(true);
+                } else {
+                    ptrScroll.style.transition = "none";
+                    ptrIndicator.style.transition = "none";
+                    applyPull(wheelPull);
+                    scheduleWheelRelease();
+                }
+            }
+        };
+
+        // --- Scroll handler ---
+
+        const onScroll = () => {
+            if (ptrScroll.scrollTop > 0 && !refreshing) {
+                if (wheelPull > 0) {
+                    wheelPull = 0;
+                    if (wheelReleaseTimer) {
+                        clearTimeout(wheelReleaseTimer);
+                        wheelReleaseTimer = null;
+                    }
+                }
+                snapBack(true);
+            }
+        };
+
+        // --- Attach events ---
+
+        ptrScroll.addEventListener("pointerdown", onPointerDown, { passive: true });
+        ptrScroll.addEventListener("pointermove", onPointerMove, { passive: true });
+        ptrScroll.addEventListener("pointerup", onPointerUp, { passive: true });
+        ptrScroll.addEventListener("pointercancel", onPointerCancel, { passive: true });
+        ptrScroll.addEventListener("wheel", onWheel, { passive: false });
+        ptrScroll.addEventListener("scroll", onScroll, { passive: true });
+
+        this.ptrCleanup = () => {
+            ptrScroll.removeEventListener("pointerdown", onPointerDown);
+            ptrScroll.removeEventListener("pointermove", onPointerMove);
+            ptrScroll.removeEventListener("pointerup", onPointerUp);
+            ptrScroll.removeEventListener("pointercancel", onPointerCancel);
+            ptrScroll.removeEventListener("wheel", onWheel);
+            ptrScroll.removeEventListener("scroll", onScroll);
+            if (wheelReleaseTimer) clearTimeout(wheelReleaseTimer);
+        };
+    }
+    private destroyPtr() {
+        if (this.ptrCleanup) {
+            this.ptrCleanup();
+            this.ptrCleanup = null;
+        }
+    }
+
     renderFullInput(container: HTMLElement) {
         if (this.wikilinkCleanup) {
             try {
@@ -990,7 +1286,7 @@ export class JotView extends ItemView {
             parent: container,
             deps,
             onSave: async (payload) => {
-                await this.plugin.saveJot(
+                await this.plugin.saveMindDump(
                     payload.content,
                     payload.tags,
                     payload.source,
@@ -1007,17 +1303,17 @@ export class JotView extends ItemView {
 
     /** Replaces the main quick-input card while viewing the recycle bin. */
     private renderRecycleBinBanner(container: HTMLElement) {
-        const banner = container.createDiv({ cls: "jots-recycle-bin-banner" });
-        const main = banner.createDiv({ cls: "jots-recycle-bin-banner__main" });
-        const iconEl = main.createSpan({ cls: "jots-recycle-bin-banner__icon" });
+        const banner = container.createDiv({ cls: "minddump-recycle-bin-banner" });
+        const main = banner.createDiv({ cls: "minddump-recycle-bin-banner__main" });
+        const iconEl = main.createSpan({ cls: "minddump-recycle-bin-banner__icon" });
         setIcon(iconEl, "info");
         main.createSpan({
-            cls: "jots-recycle-bin-banner__text",
+            cls: "minddump-recycle-bin-banner__text",
             text: t("recycleBinRetentionBanner", this.lang),
         });
         const emptyBtn = banner.createEl("button", {
             type: "button",
-            cls: "jots-recycle-bin-banner__empty",
+            cls: "minddump-recycle-bin-banner__empty",
             attr: {
                 "aria-label": t("recycleBinEmptyAll", this.lang),
                 title: t("recycleBinEmptyAll", this.lang),
@@ -1025,31 +1321,31 @@ export class JotView extends ItemView {
         });
         setIcon(emptyBtn, "trash");
         emptyBtn.addEventListener("click", async () => {
-            const deleted = this.jots.filter((j) => j.deleted);
+            const deleted = this.mindDumps.filter((j) => j.deleted);
             if (deleted.length === 0) {
                 new Notice(t("recycleBinEmpty", this.lang));
                 return;
             }
             if (!confirm(t("recycleBinEmptyAllConfirm", this.lang))) return;
             try {
-                const n = await this.plugin.purgeAllDeletedJots();
+                const n = await this.plugin.purgeAllDeletedMindDumps();
                 new Notice(t("recycleBinAllPurged", this.lang, { count: String(n) }));
             } catch {
-                /* purgeJot / purgeAll already surfaced Notice */
+                /* purgeMindDump / purgeAll already surfaced Notice */
             }
         });
     }
 
     /** Right panel: all tags (collapsible) + recycle bin — main layout only */
     private renderRightRail(container: HTMLElement) {
-        const rail = container.createDiv({ cls: "jots-right-rail" });
-        const tagsBlock = rail.createDiv({ cls: "jots-right-rail-tags" });
-        const tagsHead = tagsBlock.createDiv({ cls: "jots-right-rail-tags-head" });
+        const rail = container.createDiv({ cls: "minddump-right-rail" });
+        const tagsBlock = rail.createDiv({ cls: "minddump-right-rail-tags" });
+        const tagsHead = tagsBlock.createDiv({ cls: "minddump-right-rail-tags-head" });
 
-        const tagsHeadLeft = tagsHead.createDiv({ cls: "jots-right-rail-tags-head-left" });
-        const tagsChevron = tagsHeadLeft.createSpan({ cls: "jots-right-rail-tags-chevron" });
+        const tagsHeadLeft = tagsHead.createDiv({ cls: "minddump-right-rail-tags-head-left" });
+        const tagsChevron = tagsHeadLeft.createSpan({ cls: "minddump-right-rail-tags-chevron" });
         setIcon(tagsChevron, "chevron-down");
-        tagsHeadLeft.createSpan({ cls: "jots-right-rail-tags-title", text: t("rightRailAllTags", this.lang) });
+        tagsHeadLeft.createSpan({ cls: "minddump-right-rail-tags-title", text: t("rightRailAllTags", this.lang) });
         if (this.rightRailTagsCollapsed) {
             tagsChevron.addClass("is-collapsed");
             tagsBlock.addClass("is-collapsed");
@@ -1061,9 +1357,9 @@ export class JotView extends ItemView {
             tagsChevron.toggleClass("is-collapsed", this.rightRailTagsCollapsed);
         });
 
-        const tagsHeadActions = tagsHead.createDiv({ cls: "jots-right-rail-tags-head-actions" });
-        const sortLabel = tagsHeadActions.createSpan({ cls: "jots-right-rail-tags-sort", text: t("rightRailTagSort", this.lang) });
-        const searchBtn = tagsHeadActions.createSpan({ cls: "jots-right-rail-tags-search-btn" });
+        const tagsHeadActions = tagsHead.createDiv({ cls: "minddump-right-rail-tags-head-actions" });
+        const sortLabel = tagsHeadActions.createSpan({ cls: "minddump-right-rail-tags-sort", text: t("rightRailTagSort", this.lang) });
+        const searchBtn = tagsHeadActions.createSpan({ cls: "minddump-right-rail-tags-search-btn" });
         setIcon(searchBtn, "search");
         sortLabel.addEventListener("mousedown", (e) => e.preventDefault());
         sortLabel.addEventListener("click", (e) => {
@@ -1091,17 +1387,17 @@ export class JotView extends ItemView {
         searchBtn.addEventListener("mousedown", (e) => e.preventDefault());
         searchBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const body = tagsBlock.querySelector(".jots-right-rail-tags-body") as HTMLElement | null;
-            const input = body?.querySelector(".jots-right-rail-tags-filter-input") as HTMLInputElement | null;
+            const body = tagsBlock.querySelector(".minddump-right-rail-tags-body") as HTMLElement | null;
+            const input = body?.querySelector(".minddump-right-rail-tags-filter-input") as HTMLInputElement | null;
             input?.focus();
             input?.select();
         });
 
-        const tagsBody = tagsBlock.createDiv({ cls: "jots-right-rail-tags-body" });
-        const filterWrap = tagsBody.createDiv({ cls: "jots-right-rail-tags-filter" });
+        const tagsBody = tagsBlock.createDiv({ cls: "minddump-right-rail-tags-body" });
+        const filterWrap = tagsBody.createDiv({ cls: "minddump-right-rail-tags-filter" });
         const filterInput = filterWrap.createEl("input", {
             type: "search",
-            cls: "jots-right-rail-tags-filter-input",
+            cls: "minddump-right-rail-tags-filter-input",
             attr: { placeholder: t("rightRailTagFilterPlaceholder", this.lang) },
         });
         filterInput.value = this.rightRailTagListQuery;
@@ -1111,11 +1407,11 @@ export class JotView extends ItemView {
             if (this.debouncedRender) this.debouncedRender();
         });
 
-        const tagsList = tagsBody.createDiv({ cls: "jots-right-rail-tag-list" });
+        const tagsList = tagsBody.createDiv({ cls: "minddump-right-rail-tag-list" });
         for (const { tag } of this.getRightRailTagEntries()) {
-            const row = tagsList.createDiv({ cls: "jots-right-rail-row jots-right-rail-row--tag" });
-            row.createSpan({ cls: "jots-right-rail-row-hash", text: "#" });
-            row.createSpan({ cls: "jots-right-rail-row-label", text: tag });
+            const row = tagsList.createDiv({ cls: "minddump-right-rail-row minddump-right-rail-row--tag" });
+            row.createSpan({ cls: "minddump-right-rail-row-hash", text: "#" });
+            row.createSpan({ cls: "minddump-right-rail-row-label", text: tag });
             if (this.selectedTags.has(tag)) row.addClass("is-selected");
             row.addEventListener("click", () => {
                 this.viewingRecycleBin = false;
@@ -1125,11 +1421,11 @@ export class JotView extends ItemView {
             });
         }
 
-        const binRow = rail.createDiv({ cls: "jots-right-rail-row jots-right-rail-row--bin" });
+        const binRow = rail.createDiv({ cls: "minddump-right-rail-row minddump-right-rail-row--bin" });
         if (this.viewingRecycleBin) binRow.addClass("is-active");
-        const binIcon = binRow.createSpan({ cls: "jots-right-rail-row-icon" });
+        const binIcon = binRow.createSpan({ cls: "minddump-right-rail-row-icon" });
         setIcon(binIcon, "trash-2");
-        binRow.createSpan({ cls: "jots-right-rail-row-label", text: t("rightRailRecycleBin", this.lang) });
+        binRow.createSpan({ cls: "minddump-right-rail-row-label", text: t("rightRailRecycleBin", this.lang) });
         binRow.addEventListener("click", () => {
             this.viewingRecycleBin = !this.viewingRecycleBin;
             if (this.viewingRecycleBin) this.selectedTags.clear();
@@ -1137,8 +1433,8 @@ export class JotView extends ItemView {
         });
     }
 
-    /** YYYY-MM-DD from jot timestamp fields */
-    private jotDateKey(ts: string): string | null {
+    /** YYYY-MM-DD from mindDump timestamp fields */
+    private mindDumpDateKey(ts: string): string | null {
         if (!ts?.trim()) return null;
         const full = moment(ts, "YYYY-MM-DD HH:mm:ss", true);
         if (full.isValid()) return full.format("YYYY-MM-DD");
@@ -1168,39 +1464,39 @@ export class JotView extends ItemView {
         return d.subtract(d.day(), "days");
     }
 
-    /** Per-day create+update event counts and unique jots (all time, non-deleted) */
+    /** Per-day create+update event counts and unique mindDumps (all time, non-deleted) */
     private buildHeatCellMap(): Map<string, HeatDayCell> {
-        const raw = new Map<string, { activityScore: number; byId: Map<string, Jot> }>();
-        const bump = (dateKey: string, jot: Jot) => {
+        const raw = new Map<string, { activityScore: number; byId: Map<string, MindDump> }>();
+        const bump = (dateKey: string, mindDump: MindDump) => {
             let e = raw.get(dateKey);
             if (!e) {
-                e = { activityScore: 0, byId: new Map<string, Jot>() };
+                e = { activityScore: 0, byId: new Map<string, MindDump>() };
                 raw.set(dateKey, e);
             }
             e.activityScore++;
-            e.byId.set(jot.id, jot);
+            e.byId.set(mindDump.id, mindDump);
         };
-        for (const jot of this.jots) {
-            if (jot.deleted) continue;
+        for (const mindDump of this.mindDumps) {
+            if (mindDump.deleted) continue;
             const c =
-                this.jotDateKey(jot.createdAt) ??
-                (/^\d{4}-\d{2}-\d{2}$/.test(jot.date) ? jot.date : null);
-            const u = this.jotDateKey(jot.updatedAt);
-            if (c) bump(c, jot);
-            if (u) bump(u, jot);
+                this.mindDumpDateKey(mindDump.createdAt) ??
+                (/^\d{4}-\d{2}-\d{2}$/.test(mindDump.date) ? mindDump.date : null);
+            const u = this.mindDumpDateKey(mindDump.updatedAt);
+            if (c) bump(c, mindDump);
+            if (u) bump(u, mindDump);
         }
         const out = new Map<string, HeatDayCell>();
         for (const [k, v] of raw) {
-            out.set(k, { activityScore: v.activityScore, jots: Array.from(v.byId.values()) });
+            out.set(k, { activityScore: v.activityScore, mindDumps: Array.from(v.byId.values()) });
         }
         return out;
     }
 
     private heatmapHeaderCounts(heat: Map<string, HeatDayCell>): { notes: number; tags: number; activeDays: number } {
-        const active = this.jots.filter((j) => !j.deleted);
+        const active = this.mindDumps.filter((j) => !j.deleted);
         const tagSet = new Set<string>();
-        for (const jot of active) {
-            for (const tag of jot.tags) {
+        for (const mindDump of active) {
+            for (const tag of mindDump.tags) {
                 const s = tag?.trim();
                 if (s) tagSet.add(s);
             }
@@ -1214,28 +1510,28 @@ export class JotView extends ItemView {
 
     renderCalendar(container: HTMLElement) {
         container.empty();
-        const section = container.createDiv({ cls: "jots-contrib-section" });
+        const section = container.createDiv({ cls: "minddump-contrib-section" });
         this.renderContributionHeatmap(section, false);
     }
 
     renderCalendarCompact(container: HTMLElement) {
         container.empty();
-        const section = container.createDiv({ cls: "jots-contrib-section" });
+        const section = container.createDiv({ cls: "minddump-contrib-section" });
         this.renderContributionHeatmap(section, true);
     }
 
     private renderContributionHeatmap(section: HTMLElement, compact: boolean) {
-        if (compact) section.addClass("jots-contrib-section--compact");
-        section.style.setProperty("--contrib-weeks", String(JotView.CONTRIB_WEEKS));
+        if (compact) section.addClass("minddump-contrib-section--compact");
+        section.style.setProperty("--contrib-weeks", String(MindDumpView.CONTRIB_WEEKS));
         const heatCells = this.buildHeatCellMap();
         const { notes, tags, activeDays } = this.heatmapHeaderCounts(heatCells);
         const tr = translations[this.lang];
 
-        const header = section.createDiv({ cls: "jots-contrib-stats" });
+        const header = section.createDiv({ cls: "minddump-contrib-stats" });
         const mkStat = (value: number, label: string) => {
-            const col = header.createDiv({ cls: "jots-contrib-stat" });
-            col.createDiv({ cls: "jots-contrib-stat-value", text: String(value) });
-            col.createDiv({ cls: "jots-contrib-stat-label", text: label });
+            const col = header.createDiv({ cls: "minddump-contrib-stat" });
+            col.createDiv({ cls: "minddump-contrib-stat-value", text: String(value) });
+            col.createDiv({ cls: "minddump-contrib-stat-label", text: label });
         };
         mkStat(notes, t("heatmapStatNotes", this.lang));
         mkStat(tags, t("heatmapStatTags", this.lang));
@@ -1243,10 +1539,10 @@ export class JotView extends ItemView {
 
         const today = moment().locale("en").startOf("day");
         const gridEndSunday = this.startOfWeekSunday(today);
-        const gridStartSunday = gridEndSunday.clone().subtract(JotView.CONTRIB_WEEKS - 1, "weeks");
+        const gridStartSunday = gridEndSunday.clone().subtract(MindDumpView.CONTRIB_WEEKS - 1, "weeks");
 
         let maxScore = 0;
-        for (let w = 0; w < JotView.CONTRIB_WEEKS; w++) {
+        for (let w = 0; w < MindDumpView.CONTRIB_WEEKS; w++) {
             for (let r = 0; r < 7; r++) {
                 const dayMoment = gridStartSunday.clone().add(w * 7 + r, "days");
                 if (dayMoment.isAfter(today, "day")) continue;
@@ -1256,12 +1552,12 @@ export class JotView extends ItemView {
         }
         if (maxScore < 1) maxScore = 1;
 
-        const gridWrap = section.createDiv({ cls: "jots-contrib-grid-wrap" });
+        const gridWrap = section.createDiv({ cls: "minddump-contrib-grid-wrap" });
         const grid = gridWrap.createDiv({
-            cls: "jots-contrib-grid" + (compact ? " jots-contrib-grid--compact" : ""),
+            cls: "minddump-contrib-grid" + (compact ? " minddump-contrib-grid--compact" : ""),
         });
 
-        for (let w = 0; w < JotView.CONTRIB_WEEKS; w++) {
+        for (let w = 0; w < MindDumpView.CONTRIB_WEEKS; w++) {
             for (let r = 0; r < 7; r++) {
                 const dayMoment = gridStartSunday.clone().add(w * 7 + r, "days");
                 const dateStr = dayMoment.format("YYYY-MM-DD");
@@ -1271,12 +1567,12 @@ export class JotView extends ItemView {
                 const score = isFuture ? 0 : cell?.activityScore ?? 0;
                 const level = isFuture ? 0 : this.heatLevel(score, maxScore);
                 const hasActivity = !isFuture && score > 0;
-                const noteCount = cell?.jots.length ?? 0;
+                const noteCount = cell?.mindDumps.length ?? 0;
 
-                const dayDiv = grid.createDiv({ cls: "jots-contrib-cell" });
-                dayDiv.addClass(`jots-contrib-l${level}`);
-                if (isFuture) dayDiv.addClass("jots-contrib-cell--future");
-                if (isToday) dayDiv.addClass("jots-contrib-cell--today");
+                const dayDiv = grid.createDiv({ cls: "minddump-contrib-cell" });
+                dayDiv.addClass(`minddump-contrib-l${level}`);
+                if (isFuture) dayDiv.addClass("minddump-contrib-cell--future");
+                if (isToday) dayDiv.addClass("minddump-contrib-cell--today");
 
                 const loc = this.lang === "zh" ? "zh-cn" : "en";
                 const dateTitle = dayMoment.clone().locale(loc).format("LL");
@@ -1287,7 +1583,7 @@ export class JotView extends ItemView {
                 /* Compact sidebar: color-only cells (no day digits) to avoid truncation; full width uses tooltip + month row. */
                 if (!compact) {
                     dayDiv.createSpan({
-                        cls: "jots-contrib-cell-date",
+                        cls: "minddump-contrib-cell-date",
                         text: String(dayMoment.date()),
                         attr: { "aria-hidden": "true" },
                     });
@@ -1312,15 +1608,15 @@ export class JotView extends ItemView {
 
         const monthNames = tr.heatmapMonthShort;
         const monthsRow = section.createDiv({
-            cls: "jots-contrib-months" + (compact ? " jots-contrib-months--compact" : ""),
+            cls: "minddump-contrib-months" + (compact ? " minddump-contrib-months--compact" : ""),
         });
         let lastMonth = -1;
-        for (let w = 0; w < JotView.CONTRIB_WEEKS; w++) {
+        for (let w = 0; w < MindDumpView.CONTRIB_WEEKS; w++) {
             const weekStart = gridStartSunday.clone().add(w * 7, "days");
             /* Week straddling two months: weekStart is Sunday, so label by Thursday's month
              * so the trailing month (e.g. April when Sun–Mon are still March) still shows. */
             const m = weekStart.clone().add(4, "days").month();
-            const cell = monthsRow.createDiv({ cls: "jots-contrib-month-cell" });
+            const cell = monthsRow.createDiv({ cls: "minddump-contrib-month-cell" });
             if (m !== lastMonth) {
                 const label =
                     compact && this.lang === "zh"
@@ -1331,7 +1627,7 @@ export class JotView extends ItemView {
             }
         }
     }
-    
+
     filterByActivityDate(date: string) {
         this.searchTimePreset = "none";
         this.searchQuery = `activity:${date}`;
@@ -1347,9 +1643,9 @@ export class JotView extends ItemView {
         this.searchQuery = kept.join(" ");
     }
 
-    private jotMatchesTimePreset(jot: Jot): boolean {
+    private mindDumpMatchesTimePreset(mindDump: MindDump): boolean {
         if (this.searchTimePreset === "none" || this.searchTimePreset === "custom") return true;
-        const d = moment(jot.date, "YYYY-MM-DD", true);
+        const d = moment(mindDump.date, "YYYY-MM-DD", true);
         if (!d.isValid()) return false;
         const today = moment().startOf("day");
         switch (this.searchTimePreset) {
@@ -1374,51 +1670,51 @@ export class JotView extends ItemView {
         }
     }
 
-    private jotHasImageContent(jot: Jot): boolean {
-        if (jot.attachmentTypes?.includes("image")) return true;
+    private mindDumpHasImageContent(mindDump: MindDump): boolean {
+        if (mindDump.attachmentTypes?.includes("image")) return true;
         const re = /!\[\[([^\]]+)\]\]/g;
         let m: RegExpExecArray | null;
-        while ((m = re.exec(jot.content)) != null) {
+        while ((m = re.exec(mindDump.content)) != null) {
             if (VAULT_IMAGE_EXT.test(m[1].trim())) return true;
         }
-        for (const p of jot.attachments ?? []) {
+        for (const p of mindDump.attachments ?? []) {
             if (VAULT_IMAGE_EXT.test(p)) return true;
         }
         return false;
     }
 
-    private jotHasLinkContent(jot: Jot): boolean {
-        if (/https?:\/\//i.test(jot.content)) return true;
-        if (/\[\[[^\]]+\]\]/.test(jot.content)) return true;
+    private mindDumpHasLinkContent(mindDump: MindDump): boolean {
+        if (/https?:\/\//i.test(mindDump.content)) return true;
+        if (/\[\[[^\]]+\]\]/.test(mindDump.content)) return true;
         return false;
     }
 
-    private jotHasAudioContent(jot: Jot): boolean {
-        if (AUDIO_EXT_RE.test(jot.content) || AUDIO_EXT_RE.test(jot.fullText)) return true;
-        for (const p of jot.attachments ?? []) {
+    private mindDumpHasAudioContent(mindDump: MindDump): boolean {
+        if (AUDIO_EXT_RE.test(mindDump.content) || AUDIO_EXT_RE.test(mindDump.fullText)) return true;
+        for (const p of mindDump.attachments ?? []) {
             if (AUDIO_EXT_RE.test(p)) return true;
         }
         const re = /!\[\[([^\]]+)\]\]/g;
         let m: RegExpExecArray | null;
-        while ((m = re.exec(jot.content)) != null) {
+        while ((m = re.exec(mindDump.content)) != null) {
             if (AUDIO_EXT_RE.test(m[1])) return true;
         }
         return false;
     }
 
-    private jotMatchesContentFilters(jot: Jot): boolean {
+    private mindDumpMatchesContentFilters(mindDump: MindDump): boolean {
         if (this.contentTypeFilters.size === 0) return true;
         for (const f of this.contentTypeFilters) {
-            if (f === "image" && this.jotHasImageContent(jot)) return true;
-            if (f === "link" && this.jotHasLinkContent(jot)) return true;
-            if (f === "audio" && this.jotHasAudioContent(jot)) return true;
+            if (f === "image" && this.mindDumpHasImageContent(mindDump)) return true;
+            if (f === "link" && this.mindDumpHasLinkContent(mindDump)) return true;
+            if (f === "audio" && this.mindDumpHasAudioContent(mindDump)) return true;
         }
         return false;
     }
 
-    private jotListSortCompare(a: Jot, b: Jot): number {
+    private mindDumpListSortCompare(a: MindDump, b: MindDump): number {
         const parseTs = (s: string) => moment(s, "YYYY-MM-DD HH:mm:ss").valueOf();
-        switch (this.jotListSort) {
+        switch (this.mindDumpListSort) {
             case "createdDesc":
                 return parseTs(b.createdAt) - parseTs(a.createdAt);
             case "createdAsc":
@@ -1439,16 +1735,16 @@ export class JotView extends ItemView {
     }
 
     private renderSearchFilterBar(container: HTMLElement, compact: boolean) {
-        const stack = container.createDiv({ cls: `jots-search-stack${compact ? " jots-search-stack--compact" : ""}` });
+        const stack = container.createDiv({ cls: `minddump-search-stack${compact ? " minddump-search-stack--compact" : ""}` });
 
-        const pillWrap = stack.createDiv({ cls: "jots-search-pill-wrap" });
+        const pillWrap = stack.createDiv({ cls: "minddump-search-pill-wrap" });
 
         const sortBtn = pillWrap.createEl("button", {
             type: "button",
-            cls: "jots-search-sort-btn",
+            cls: "minddump-search-sort-btn",
             attr: {
-                "aria-label": t("jotListSortButton", this.lang),
-                title: t("jotListSortButton", this.lang),
+                "aria-label": t("mindDumpListSortButton", this.lang),
+                title: t("mindDumpListSortButton", this.lang),
             },
         });
         setIcon(sortBtn, "arrow-up-down");
@@ -1456,18 +1752,18 @@ export class JotView extends ItemView {
         sortBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             const menu = new Menu();
-            const sortOptions: { id: JotListSort; labelKey: keyof Translations }[] = [
-                { id: "createdDesc", labelKey: "jotListSortCreatedDesc" },
-                { id: "createdAsc", labelKey: "jotListSortCreatedAsc" },
-                { id: "updatedDesc", labelKey: "jotListSortUpdatedDesc" },
-                { id: "updatedAsc", labelKey: "jotListSortUpdatedAsc" },
+            const sortOptions: { id: MindDumpListSort; labelKey: keyof Translations }[] = [
+                { id: "createdDesc", labelKey: "mindDumpListSortCreatedDesc" },
+                { id: "createdAsc", labelKey: "mindDumpListSortCreatedAsc" },
+                { id: "updatedDesc", labelKey: "mindDumpListSortUpdatedDesc" },
+                { id: "updatedAsc", labelKey: "mindDumpListSortUpdatedAsc" },
             ];
             for (const { id, labelKey } of sortOptions) {
                 menu.addItem((item) => {
                     item.setTitle(t(labelKey, this.lang));
-                    item.setChecked(this.jotListSort === id);
+                    item.setChecked(this.mindDumpListSort === id);
                     item.onClick(() => {
-                        this.jotListSort = id;
+                        this.mindDumpListSort = id;
                         this.updateSearchAndFilter();
                     });
                 });
@@ -1475,13 +1771,13 @@ export class JotView extends ItemView {
             menu.showAtMouseEvent(e as unknown as MouseEvent);
         });
 
-        this.searchContainer = pillWrap.createDiv({ cls: "jots-search-pill" });
+        this.searchContainer = pillWrap.createDiv({ cls: "minddump-search-pill" });
         this.searchContainer.style.position = "relative";
 
-        const iconEl = this.searchContainer.createSpan({ cls: "jots-search-pill-icon" });
+        const iconEl = this.searchContainer.createSpan({ cls: "minddump-search-pill-icon" });
         setIcon(iconEl, "search");
 
-        const searchInput = this.searchContainer.createEl("input", { cls: "jots-search-pill-input" });
+        const searchInput = this.searchContainer.createEl("input", { cls: "minddump-search-pill-input" });
         searchInput.type = "text";
         searchInput.placeholder = compact ? t("searchPillPlaceholder", this.lang) : t("searchPillPlaceholder", this.lang);
         searchInput.setAttribute("aria-label", t("searchPlaceholder", this.lang));
@@ -1512,9 +1808,9 @@ export class JotView extends ItemView {
 
         this.updateClearButton();
 
-        const panel = stack.createDiv({ cls: "jots-search-panel" });
+        const panel = stack.createDiv({ cls: "minddump-search-panel" });
 
-        const timeGrid = panel.createDiv({ cls: "jots-search-time-grid" });
+        const timeGrid = panel.createDiv({ cls: "minddump-search-time-grid" });
         const timePresets: { key: SearchTimePreset; labelKey: keyof Translations }[] = [
             { key: "onThisDay", labelKey: "timePresetOnThisDay" },
             { key: "thisMonth", labelKey: "timePresetThisMonth" },
@@ -1525,7 +1821,7 @@ export class JotView extends ItemView {
         ];
         const timeButtons: { el: HTMLButtonElement; key: SearchTimePreset }[] = [];
         for (const { key, labelKey } of timePresets) {
-            const btn = timeGrid.createEl("button", { type: "button", cls: "jots-filter-chip" });
+            const btn = timeGrid.createEl("button", { type: "button", cls: "minddump-filter-chip" });
             btn.textContent = t(labelKey, this.lang);
             if (this.searchTimePreset === key) btn.addClass("is-active");
             btn.addEventListener("click", () => {
@@ -1541,10 +1837,10 @@ export class JotView extends ItemView {
             timeButtons.push({ el: btn, key });
         }
 
-        const tagsSection = panel.createDiv({ cls: "jots-search-section" });
-        const tagsHead = tagsSection.createDiv({ cls: "jots-search-section-head" });
-        tagsHead.createSpan({ cls: "jots-search-section-title", text: t("searchFilterTagsHeading", this.lang) });
-        const tagsChevron = tagsHead.createSpan({ cls: "jots-search-section-chevron" });
+        const tagsSection = panel.createDiv({ cls: "minddump-search-section" });
+        const tagsHead = tagsSection.createDiv({ cls: "minddump-search-section-head" });
+        tagsHead.createSpan({ cls: "minddump-search-section-title", text: t("searchFilterTagsHeading", this.lang) });
+        const tagsChevron = tagsHead.createSpan({ cls: "minddump-search-section-chevron" });
         setIcon(tagsChevron, "chevron-down");
         if (this.searchTagsSectionCollapsed) {
             tagsChevron.addClass("is-collapsed");
@@ -1557,9 +1853,9 @@ export class JotView extends ItemView {
             tagsChevron.toggleClass("is-collapsed", this.searchTagsSectionCollapsed);
         });
 
-        const tagsBody = tagsSection.createDiv({ cls: "jots-search-section-body" });
-        const tagModeRow = tagsBody.createDiv({ cls: "jots-search-chip-row" });
-        const tagFilter = tagsBody.createDiv({ cls: "jots-search-tag-chips" });
+        const tagsBody = tagsSection.createDiv({ cls: "minddump-search-section-body" });
+        const tagModeRow = tagsBody.createDiv({ cls: "minddump-search-chip-row" });
+        const tagFilter = tagsBody.createDiv({ cls: "minddump-search-tag-chips" });
         tagFilter.addEventListener("mousedown", (e) => e.preventDefault());
         tagFilter.toggleClass("is-hidden", this.tagMatchMode === "noTags");
         const tagModes: { mode: TagMatchMode; labelKey: keyof Translations }[] = [
@@ -1569,7 +1865,7 @@ export class JotView extends ItemView {
         ];
         const tagModeButtons: { el: HTMLButtonElement; mode: TagMatchMode }[] = [];
         for (const { mode, labelKey } of tagModes) {
-            const btn = tagModeRow.createEl("button", { type: "button", cls: "jots-filter-chip" });
+            const btn = tagModeRow.createEl("button", { type: "button", cls: "minddump-filter-chip" });
             btn.textContent = t(labelKey, this.lang);
             if (this.tagMatchMode === mode) btn.addClass("is-active");
             btn.addEventListener("click", () => {
@@ -1577,15 +1873,15 @@ export class JotView extends ItemView {
                 this.tagMatchMode = mode;
                 tagModeButtons.forEach(({ el, mode: m }) => el.toggleClass("is-active", this.tagMatchMode === m));
                 tagFilter.toggleClass("is-hidden", this.tagMatchMode === "noTags");
-                const listSection = this.contentEl.querySelector(".jots-list-section");
-                if (listSection) this.renderJotList(listSection as HTMLElement);
+                const listSection = this.contentEl.querySelector(".minddump-list-section");
+                if (listSection) this.renderMindDumpList(listSection as HTMLElement);
             });
             tagModeButtons.push({ el: btn, mode });
         }
 
         const allTagsList = compact ? this.getAllTags().slice(0, 8) : this.getAllTags();
         allTagsList.forEach((tag) => {
-            const tagBtn = tagFilter.createSpan({ cls: "jots-search-tag-chip" });
+            const tagBtn = tagFilter.createSpan({ cls: "minddump-search-tag-chip" });
             tagBtn.textContent = `#${tag}`;
             if (this.selectedTags.has(tag)) tagBtn.addClass("is-selected");
             tagBtn.addEventListener("click", () => {
@@ -1593,23 +1889,23 @@ export class JotView extends ItemView {
                 if (this.selectedTags.has(tag)) this.selectedTags.delete(tag);
                 else this.selectedTags.add(tag);
                 tagBtn.toggleClass("is-selected", this.selectedTags.has(tag));
-                const listSection = this.contentEl.querySelector(".jots-list-section");
-                if (listSection) this.renderJotList(listSection as HTMLElement);
+                const listSection = this.contentEl.querySelector(".minddump-list-section");
+                if (listSection) this.renderMindDumpList(listSection as HTMLElement);
             });
         });
 
         if (compact) {
             const allTagsCount = this.getAllTags().length;
             if (allTagsCount > 8) {
-                const moreHint = tagsBody.createDiv({ cls: "jots-search-more-tags" });
+                const moreHint = tagsBody.createDiv({ cls: "minddump-search-more-tags" });
                 moreHint.textContent = t("moreTags", this.lang, { count: String(allTagsCount - 8) });
             }
         }
 
-        const contentSection = panel.createDiv({ cls: "jots-search-section" });
-        const contentHead = contentSection.createDiv({ cls: "jots-search-section-head" });
-        contentHead.createSpan({ cls: "jots-search-section-title", text: t("searchFilterContentHeading", this.lang) });
-        const contentChevron = contentHead.createSpan({ cls: "jots-search-section-chevron" });
+        const contentSection = panel.createDiv({ cls: "minddump-search-section" });
+        const contentHead = contentSection.createDiv({ cls: "minddump-search-section-head" });
+        contentHead.createSpan({ cls: "minddump-search-section-title", text: t("searchFilterContentHeading", this.lang) });
+        const contentChevron = contentHead.createSpan({ cls: "minddump-search-section-chevron" });
         setIcon(contentChevron, "chevron-down");
         if (this.searchContentSectionCollapsed) {
             contentChevron.addClass("is-collapsed");
@@ -1622,15 +1918,15 @@ export class JotView extends ItemView {
             contentChevron.toggleClass("is-collapsed", this.searchContentSectionCollapsed);
         });
 
-        const contentBody = contentSection.createDiv({ cls: "jots-search-section-body" });
-        const contentRow = contentBody.createDiv({ cls: "jots-search-chip-row" });
+        const contentBody = contentSection.createDiv({ cls: "minddump-search-section-body" });
+        const contentRow = contentBody.createDiv({ cls: "minddump-search-chip-row" });
         const contentDefs: { key: ContentTypeFilter; labelKey: keyof Translations }[] = [
             { key: "image", labelKey: "contentTypeImage" },
             { key: "link", labelKey: "contentTypeLink" },
             { key: "audio", labelKey: "contentTypeAudio" },
         ];
         for (const { key, labelKey } of contentDefs) {
-            const btn = contentRow.createEl("button", { type: "button", cls: "jots-filter-chip" });
+            const btn = contentRow.createEl("button", { type: "button", cls: "minddump-filter-chip" });
             btn.textContent = t(labelKey, this.lang);
             if (this.contentTypeFilters.has(key)) btn.addClass("is-active");
             btn.addEventListener("click", () => {
@@ -1638,18 +1934,18 @@ export class JotView extends ItemView {
                 if (this.contentTypeFilters.has(key)) this.contentTypeFilters.delete(key);
                 else this.contentTypeFilters.add(key);
                 btn.toggleClass("is-active", this.contentTypeFilters.has(key));
-                const listSection = this.contentEl.querySelector(".jots-list-section");
-                if (listSection) this.renderJotList(listSection as HTMLElement);
+                const listSection = this.contentEl.querySelector(".minddump-list-section");
+                if (listSection) this.renderMindDumpList(listSection as HTMLElement);
             });
         }
     }
-    
+
     /** Tags for right rail: usage counts, optional text filter, user-chosen sort */
     private getRightRailTagEntries(): { tag: string; count: number }[] {
         const counts = new Map<string, number>();
-        for (const jot of this.jots) {
-            if (jot.deleted) continue;
-            for (const tag of jot.tags) {
+        for (const mindDump of this.mindDumps) {
+            if (mindDump.deleted) continue;
+            for (const tag of mindDump.tags) {
                 counts.set(tag, (counts.get(tag) ?? 0) + 1);
             }
         }
@@ -1680,16 +1976,16 @@ export class JotView extends ItemView {
 
     getAllTags(): string[] {
         const tags = new Set<string>();
-        for (const jot of this.jots) {
-            if (jot.deleted) continue;
-            jot.tags.forEach((tag) => tags.add(tag));
+        for (const mindDump of this.mindDumps) {
+            if (mindDump.deleted) continue;
+            mindDump.tags.forEach((tag) => tags.add(tag));
         }
         return Array.from(tags).sort((a, b) => a.localeCompare(b, this.lang === "zh" ? "zh" : "en"));
     }
-    
-    renderJotList(container: HTMLElement) {
+
+    renderMindDumpList(container: HTMLElement) {
         container.empty();
-        container.addClass("jots-list-section");
+        container.addClass("minddump-list-section");
 
         // 清理所有渲染的组件
         this.renderedComponents.forEach(comp => {
@@ -1701,19 +1997,19 @@ export class JotView extends ItemView {
         });
         this.renderedComponents = [];
 
-        this.jotListCleanups.forEach((fn) => {
+        this.mindDumpListCleanups.forEach((fn) => {
             try {
                 fn();
             } catch {
                 /* ignore */
             }
         });
-        this.jotListCleanups = [];
+        this.mindDumpListCleanups = [];
         this.closeCardMenu();
 
-        let filteredJots = [...this.filterJots()].sort((a, b) => this.jotListSortCompare(a, b));
+        let filteredMindDumps = [...this.filterMindDumps()].sort((a, b) => this.mindDumpListSortCompare(a, b));
 
-        if (filteredJots.length === 0) {
+        if (filteredMindDumps.length === 0) {
             const empty = container.createDiv();
             empty.textContent = this.viewingRecycleBin ? t("recycleBinEmpty", this.lang) : t("noRecords", this.lang);
             empty.style.textAlign = "center";
@@ -1726,15 +2022,15 @@ export class JotView extends ItemView {
         const searchKeywords =
             this.searchQuery.trim().length > 0 ? this.parseSearchFilters(this.searchQuery).keywords : [];
 
-        const groupedByDate = new Map<string, Jot[]>();
-        filteredJots.forEach(jot => {
-            if (!groupedByDate.has(jot.date)) {
-                groupedByDate.set(jot.date, []);
+        const groupedByDate = new Map<string, MindDump[]>();
+        filteredMindDumps.forEach(mindDump => {
+            if (!groupedByDate.has(mindDump.date)) {
+                groupedByDate.set(mindDump.date, []);
             }
-            groupedByDate.get(jot.date)!.push(jot);
+            groupedByDate.get(mindDump.date)!.push(mindDump);
         });
 
-        for (const [date, jots] of groupedByDate) {
+        for (const [date, mindDumps] of groupedByDate) {
             const dateGroup = container.createDiv();
             dateGroup.style.marginBottom = "16px";
 
@@ -1747,7 +2043,7 @@ export class JotView extends ItemView {
             dateHeader.style.borderBottom = "1px solid var(--background-modifier-border)";
             dateHeader.style.marginBottom = "8px";
 
-            jots.forEach(jot => {
+            mindDumps.forEach(mindDump => {
                 const card = dateGroup.createDiv();
                 card.style.backgroundColor = "var(--background-secondary)";
                 card.style.borderRadius = "8px";
@@ -1755,9 +2051,9 @@ export class JotView extends ItemView {
                 card.style.marginBottom = "8px";
                 card.style.transition = "all 0.2s";
                 card.style.border = "1px solid var(--background-modifier-border)";
-                if (jot.deleted) card.addClass("jots-card--in-trash");
+                if (mindDump.deleted) card.addClass("minddump-card--in-trash");
 
-                if (this.editingJotId === jot.id) {
+                if (this.editingMindDumpId === mindDump.id) {
                     card.style.cursor = "default";
                     card.style.borderColor = "var(--interactive-accent)";
 
@@ -1769,15 +2065,15 @@ export class JotView extends ItemView {
                     metaRow.style.marginBottom = "8px";
                     metaRow.style.fontSize = "10px";
                     metaRow.style.color = "var(--text-muted)";
-                    metaRow.createSpan({ text: jot.time });
+                    metaRow.createSpan({ text: mindDump.time });
                     const updSpan = metaRow.createSpan();
-                    updSpan.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
+                    updSpan.textContent = `${t("mindDumpUpdatedAt", this.lang)}: ${mindDump.updatedAt}`;
                     updSpan.style.color = "var(--text-normal)";
                     updSpan.style.fontWeight = "600";
 
-                    const initialAttachments = (jot.attachments ?? []).map((path, i) => ({
+                    const initialAttachments = (mindDump.attachments ?? []).map((path, i) => ({
                         path,
-                        type: (jot.attachmentTypes?.[i] ?? "file") as "image" | "file",
+                        type: (mindDump.attachmentTypes?.[i] ?? "file") as "image" | "file",
                     }));
 
                     const editApi = mountQuickComposeCard({
@@ -1790,42 +2086,42 @@ export class JotView extends ItemView {
                             getExistingTags: () => this.getExistingTags(),
                         },
                         initial: {
-                            content: jot.content,
-                            tags: [...jot.tags],
-                            source: jot.source,
+                            content: mindDump.content,
+                            tags: [...mindDump.tags],
+                            source: mindDump.source,
                             attachments: initialAttachments,
                         },
                         onSave: async (payload) => {
-                            const prevId = this.editingJotId;
-                            this.editingJotId = null;
+                            const prevId = this.editingMindDumpId;
+                            this.editingMindDumpId = null;
                             try {
-                                await this.plugin.updateJot({
-                                    ...jot,
+                                await this.plugin.updateMindDump({
+                                    ...mindDump,
                                     content: payload.content.trim(),
-                                    tags: normalizeJotTags(payload.tags),
+                                    tags: normalizeMindDumpTags(payload.tags),
                                     source: payload.source.trim(),
                                     attachments: payload.attachments.map((a) => a.path),
                                     attachmentTypes: payload.attachments.map((a) => a.type),
                                 });
                                 new Notice(t("saved", this.lang));
                             } catch {
-                                this.editingJotId = prevId;
-                                const listSection = this.contentEl.querySelector(".jots-list-section");
+                                this.editingMindDumpId = prevId;
+                                const listSection = this.contentEl.querySelector(".minddump-list-section");
                                 if (listSection) {
-                                    this.renderJotList(listSection as HTMLElement);
+                                    this.renderMindDumpList(listSection as HTMLElement);
                                 }
                             }
                         },
                         onCancel: () => this.exitEditMode(),
                     });
                     if (editApi.wikilinkCleanup) {
-                        this.jotListCleanups.push(editApi.wikilinkCleanup);
+                        this.mindDumpListCleanups.push(editApi.wikilinkCleanup);
                     }
                     editApi.focusTextarea();
                     return;
                 }
 
-                this.attachCardTapAndLongPress(card, jot);
+                this.attachCardTapAndLongPress(card, mindDump);
                 card.addEventListener("mouseenter", () => {
                     card.style.borderColor = "var(--interactive-accent)";
                     card.style.transform = "translateY(-1px)";
@@ -1835,14 +2131,14 @@ export class JotView extends ItemView {
                     card.style.transform = "translateY(0)";
                 });
 
-                const metaRow = card.createDiv({ cls: "jots-card-meta-row" });
-                const metaLeft = metaRow.createDiv({ cls: "jots-card-meta-left" });
-                metaLeft.createSpan({ cls: "jots-card-meta-time", text: jot.time });
-                const updLabel = metaLeft.createSpan({ cls: "jots-card-meta-upd" });
-                updLabel.textContent = `${t("jotUpdatedAt", this.lang)}: ${jot.updatedAt}`;
+                const metaRow = card.createDiv({ cls: "minddump-card-meta-row" });
+                const metaLeft = metaRow.createDiv({ cls: "minddump-card-meta-left" });
+                metaLeft.createSpan({ cls: "minddump-card-meta-time", text: mindDump.time });
+                const updLabel = metaLeft.createSpan({ cls: "minddump-card-meta-upd" });
+                updLabel.textContent = `${t("mindDumpUpdatedAt", this.lang)}: ${mindDump.updatedAt}`;
 
                 const menuTrigger = metaRow.createEl("button", {
-                    cls: "jots-card-menu-trigger",
+                    cls: "minddump-card-menu-trigger",
                     type: "button",
                     attr: { "aria-label": t("cardMenuMore", this.lang) }
                 });
@@ -1852,12 +2148,12 @@ export class JotView extends ItemView {
                 menuTrigger.addEventListener("pointerup", stopCard);
                 menuTrigger.addEventListener("click", (ev) => {
                     stopCard(ev);
-                    const openMenu = this.contentEl.doc.body.querySelector<HTMLElement>(".jots-card-menu-popover");
-                    if (openMenu?.dataset.anchorId === jot.id) {
+                    const openMenu = this.contentEl.doc.body.querySelector<HTMLElement>(".minddump-card-menu-popover");
+                    if (openMenu?.dataset.anchorId === mindDump.id) {
                         this.closeCardMenu();
                         return;
                     }
-                    this.openCardMenu(menuTrigger, jot);
+                    this.openCardMenu(menuTrigger, mindDump);
                 });
 
                 const contentContainer = card.createDiv();
@@ -1865,13 +2161,13 @@ export class JotView extends ItemView {
                 contentContainer.style.whiteSpace = "normal";
                 contentContainer.style.wordBreak = "break-word";
                 contentContainer.style.overflowWrap = "break-word";
-                contentContainer.addClass("jots-card-content");
+                contentContainer.addClass("minddump-card-content");
 
                 const component = new Component();
                 this.renderedComponents.push(component);
 
                 // 修复：传入实际的源文件路径
-                const sourcePath = jot.filePath || "";
+                const sourcePath = mindDump.filePath || "";
                 const wireRenderedContent = () => {
                     contentContainer.querySelectorAll('a.internal-link').forEach(link => {
                         const href = link.getAttribute('href');
@@ -1956,29 +2252,29 @@ export class JotView extends ItemView {
                     }
                 };
                 void Promise.resolve(MarkdownRenderer.renderMarkdown(
-                    jot.content,
+                    mindDump.content,
                     contentContainer,
                     sourcePath,
                     component
                 )).then(wireRenderedContent);
 
                 // Standalone `![[path]]` lines are parsed into `attachments`, not `content`; show images here.
-                const attachmentImageRow = card.createDiv({ cls: "jots-card-attachment-images" });
-                jot.attachments?.forEach((attachment, idx) => {
-                    const attType = jot.attachmentTypes?.[idx];
+                const attachmentImageRow = card.createDiv({ cls: "minddump-card-attachment-images" });
+                mindDump.attachments?.forEach((attachment, idx) => {
+                    const attType = mindDump.attachmentTypes?.[idx];
                     const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
                     if (attType === "file" || (attType !== "image" && !pathLooksImage)) return;
                     const vaultPath = normalizePath(attachment);
                     const af = this.app.vault.getAbstractFileByPath(vaultPath);
                     if (af instanceof TFile && VAULT_IMAGE_EXT.test(af.path)) {
-                        const thumb = attachmentImageRow.createDiv({ cls: "jots-card-attachment-thumb" });
-                        const img = thumb.createEl("img", { cls: "jots-card-attachment-img" });
+                        const thumb = attachmentImageRow.createDiv({ cls: "minddump-card-attachment-thumb" });
+                        const img = thumb.createEl("img", { cls: "minddump-card-attachment-img" });
                         img.src = this.app.vault.getResourcePath(af);
                         img.alt = af.name;
                         img.loading = "lazy";
                         this.wireCardImageZoom(img);
                     } else {
-                        const miss = attachmentImageRow.createDiv({ cls: "jots-card-attachment-missing" });
+                        const miss = attachmentImageRow.createDiv({ cls: "minddump-card-attachment-missing" });
                         miss.textContent = `🖼️ ${attachment}`;
                     }
                 });
@@ -1992,7 +2288,7 @@ export class JotView extends ItemView {
                 tagsDiv.style.gap = "4px";
                 tagsDiv.style.marginBottom = "4px";
 
-                jot.tags.forEach(tag => {
+                mindDump.tags.forEach(tag => {
                     const tagSpan = tagsDiv.createSpan();
                     tagSpan.textContent = `#${tag}`;
                     tagSpan.style.fontSize = "9px";
@@ -2017,19 +2313,19 @@ export class JotView extends ItemView {
                     });
                 });
 
-                if (jot.source && jot.source.trim()) {
+                if (mindDump.source && mindDump.source.trim()) {
                     const sourceDiv = card.createDiv();
-                    sourceDiv.textContent = jot.source;
+                    sourceDiv.textContent = mindDump.source;
                     sourceDiv.style.fontSize = "10px";
                     sourceDiv.style.color = "var(--text-muted)";
                     sourceDiv.style.fontStyle = "italic";
                     sourceDiv.style.marginTop = "4px";
                 }
 
-                if (jot.attachments && jot.attachments.length > 0) {
+                if (mindDump.attachments && mindDump.attachments.length > 0) {
                     let firstFileLine = true;
-                    jot.attachments.forEach((attachment, idx) => {
-                        const attType = jot.attachmentTypes?.[idx];
+                    mindDump.attachments.forEach((attachment, idx) => {
+                        const attType = mindDump.attachmentTypes?.[idx];
                         const pathLooksImage = VAULT_IMAGE_EXT.test(attachment);
                         if (attType === "image" || (attType !== "file" && pathLooksImage)) return;
                         const attachmentDiv = card.createDiv();
@@ -2043,56 +2339,56 @@ export class JotView extends ItemView {
             });
         }
     }
-    
-    filterJots(): Jot[] {
+
+    filterMindDumps(): MindDump[] {
         if (this.viewingRecycleBin) {
-            return this.jots.filter((j) => j.deleted);
+            return this.mindDumps.filter((j) => j.deleted);
         }
-        let filtered = this.jots.filter((j) => !j.deleted);
+        let filtered = this.mindDumps.filter((j) => !j.deleted);
         const { date, updated, activity, keywords } = this.parseSearchFilters(this.searchQuery);
 
         if (date) {
-            filtered = filtered.filter((jot) => jot.date === date);
+            filtered = filtered.filter((mindDump) => mindDump.date === date);
         }
         if (updated) {
-            filtered = filtered.filter((jot) => jot.updatedAt.startsWith(updated));
+            filtered = filtered.filter((mindDump) => mindDump.updatedAt.startsWith(updated));
         }
         if (activity) {
-            filtered = filtered.filter((jot) => {
+            filtered = filtered.filter((mindDump) => {
                 const c =
-                    this.jotDateKey(jot.createdAt) ??
-                    (/^\d{4}-\d{2}-\d{2}$/.test(jot.date) ? jot.date : null);
-                const u = this.jotDateKey(jot.updatedAt);
+                    this.mindDumpDateKey(mindDump.createdAt) ??
+                    (/^\d{4}-\d{2}-\d{2}$/.test(mindDump.date) ? mindDump.date : null);
+                const u = this.mindDumpDateKey(mindDump.updatedAt);
                 return c === activity || u === activity;
             });
         }
         if (!date && !activity && this.searchTimePreset !== "none" && this.searchTimePreset !== "custom") {
-            filtered = filtered.filter((jot) => this.jotMatchesTimePreset(jot));
+            filtered = filtered.filter((mindDump) => this.mindDumpMatchesTimePreset(mindDump));
         }
         if (keywords.length > 0) {
-            filtered = filtered.filter((jot) => {
-                const contentLower = jot.content.toLowerCase();
+            filtered = filtered.filter((mindDump) => {
+                const contentLower = mindDump.content.toLowerCase();
                 return keywords.every((kw) => contentLower.includes(kw));
             });
         }
 
         if (this.tagMatchMode === "noTags") {
-            filtered = filtered.filter((jot) => jot.tags.length === 0);
+            filtered = filtered.filter((mindDump) => mindDump.tags.length === 0);
         } else if (this.selectedTags.size > 0) {
             if (this.tagMatchMode === "include") {
-                filtered = filtered.filter((jot) => jot.tags.some((tag) => this.selectedTags.has(tag)));
+                filtered = filtered.filter((mindDump) => mindDump.tags.some((tag) => this.selectedTags.has(tag)));
             } else {
-                filtered = filtered.filter((jot) => !jot.tags.some((tag) => this.selectedTags.has(tag)));
+                filtered = filtered.filter((mindDump) => !mindDump.tags.some((tag) => this.selectedTags.has(tag)));
             }
         }
 
         if (this.contentTypeFilters.size > 0) {
-            filtered = filtered.filter((jot) => this.jotMatchesContentFilters(jot));
+            filtered = filtered.filter((mindDump) => this.mindDumpMatchesContentFilters(mindDump));
         }
 
         return filtered;
     }
-    
+
     filterByTag(tag: string) {
         this.viewingRecycleBin = false;
         if (this.selectedTags.has(tag)) {
@@ -2103,29 +2399,29 @@ export class JotView extends ItemView {
         }
         this.render();
     }
-    
-    async openJot(jot: Jot) {
+
+    async openMindDump(mindDump: MindDump) {
         const folder = normalizePath(this.plugin.settings.saveFolder);
         let filePath: string;
 
-        if (jot.filePath) {
-            filePath = normalizePath(jot.filePath);
+        if (mindDump.filePath) {
+            filePath = normalizePath(mindDump.filePath);
         } else if (this.plugin.settings.logMode === "multi") {
-            const dateStr = jot.date;
+            const dateStr = mindDump.date;
             let filename = this.plugin.settings.multiFileFormat.replace("YYYYMMDD", dateStr.replace(/-/g, ""));
             if (!filename.endsWith(".md")) {
                 filename += ".md";
             }
             filePath = `${folder}/${filename}`;
         } else {
-            filePath = `${folder}/jots.md`;
+            filePath = `${folder}/minddumps.md`;
         }
 
         const file = this.app.vault.getAbstractFileByPath(filePath);
         if (file && file instanceof TFile) {
             let targetLeaf: WorkspaceLeaf | null = null;
             const leaves = this.app.workspace.getLeavesOfType("markdown");
-            
+
             for (const leaf of leaves) {
                 if (leaf.view instanceof MarkdownView) {
                     const activeFile = leaf.view.file;
@@ -2135,7 +2431,7 @@ export class JotView extends ItemView {
                     }
                 }
             }
-            
+
             let leaf: WorkspaceLeaf;
             if (targetLeaf) {
                 leaf = targetLeaf;
@@ -2144,7 +2440,7 @@ export class JotView extends ItemView {
                 leaf = this.app.workspace.getLeaf("tab");
                 await leaf.openFile(file);
             }
-            
+
             if (leaf.view instanceof MarkdownView) {
                 const editor = leaf.view.editor;
                 const content = await this.app.vault.read(file);
@@ -2174,8 +2470,8 @@ export class JotView extends ItemView {
                             }
                             break;
                         }
-                        const resolvedId = metaId || stableLegacyJotId(file.path, datePart || "", timePart || "");
-                        if (resolvedId === jot.id) {
+                        const resolvedId = metaId || stableLegacyMindDumpId(file.path, datePart || "", timePart || "");
+                        if (resolvedId === mindDump.id) {
                             foundLine = blockStart;
                             break;
                         }
@@ -2190,7 +2486,7 @@ export class JotView extends ItemView {
                 }
 
                 if (foundLine === -1) {
-                    const targetHeader = "### " + jot.date + " " + jot.time;
+                    const targetHeader = "### " + mindDump.date + " " + mindDump.time;
                     for (let line = 0; line < lines.length; line++) {
                         if (lines[line].trim() === targetHeader) {
                             foundLine = line;

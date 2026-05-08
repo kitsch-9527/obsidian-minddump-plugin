@@ -1,10 +1,10 @@
 {
-  "id": "obsidian-jot",
-  "name": "Jot",
+  "id": "obsidian-minddump",
+  "name": "MindDump",
   "version": "1.1.0",
   "minAppVersion": "0.15.0",
   "description": "Quickly capture and organize fleeting thoughts.",
   "author": "ichris007",
-  "authorUrl": "https://github.com/ichris007/obsidian-jot-plugin",
+  "authorUrl": "https://github.com/ichris007/obsidian-minddump",
   "isDesktopOnly": false
 }

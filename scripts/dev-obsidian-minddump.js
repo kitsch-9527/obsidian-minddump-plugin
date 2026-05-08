@@ -4,7 +4,7 @@ const path = require("path");
 
 const prod = process.argv[2] === "production";
 const PLUGIN_DIR =
-	"/Users/kitsch/Documents/obsdian/kitsch/kitsch/.obsidian/plugins/obsidian-jot";
+	"/Users/kitsch/Documents/obsdian/kitsch/kitsch/.obsidian/plugins/obsidian-minddump";
 const OUTFILE = "main.js";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -14,11 +14,11 @@ function copyIfExists(filename) {
 	const dest = path.join(PLUGIN_DIR, filename);
 	if (!fs.existsSync(src)) return;
 	fs.copyFileSync(src, dest);
-	console.info(`[dev:obsidian-jot] copied ${src} -> ${dest}`);
+	console.info(`[dev:obsidian-minddump] copied ${src} -> ${dest}`);
 }
 
 const copyToObsidianPlugin = {
-	name: "copy-to-obsidian-jot",
+	name: "copy-to-obsidian-minddump",
 	setup(build) {
 		build.onEnd((result) => {
 			if (result.errors.length > 0) return;
@@ -26,7 +26,7 @@ const copyToObsidianPlugin = {
 			const dest = path.join(PLUGIN_DIR, OUTFILE);
 			fs.mkdirSync(PLUGIN_DIR, { recursive: true });
 			fs.copyFileSync(src, dest);
-			console.info(`[dev:obsidian-jot] copied ${src} -> ${dest}`);
+			console.info(`[dev:obsidian-minddump] copied ${src} -> ${dest}`);
 			// main.js 不含样式；只拷 JS 会导致快速记录区布局/隐藏区全部失效
 			copyIfExists("styles.css");
 			copyIfExists("manifest.json");
@@ -62,7 +62,7 @@ async function main() {
 				clearTimeout(debounce);
 				debounce = setTimeout(() => copyIfExists("styles.css"), 80);
 			});
-			console.info("[dev:obsidian-jot] watching styles.css -> PLUGIN_DIR");
+			console.info("[dev:obsidian-minddump] watching styles.css -> PLUGIN_DIR");
 		}
 		await ctx.watch();
 	}

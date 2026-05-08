@@ -320,7 +320,7 @@ export function mountRichMarkdownField(
 ): RichMarkdownFieldApi {
     const doc = parent.ownerDocument!;
     const el = parent.createEl("div", {
-        cls: `jots-rich-md ${options?.className ?? ""}`.trim(),
+        cls: `minddump-rich-md ${options?.className ?? ""}`.trim(),
         attr: {
             contenteditable: "true",
             role: "textbox",

@@ -1,7 +1,7 @@
 // src/types.ts
 export type Language = "zh" | "en";
 
-export interface JotSettings {
+export interface MindDumpSettings {
     saveFolder: string;
     logMode: "single" | "multi";
     useFixedTag: boolean;
@@ -13,7 +13,7 @@ export interface JotSettings {
     autoOpenView: boolean;
 }
 
-export interface Jot {
+export interface MindDump {
     /** Stable id; persisted for new records, derived for legacy entries without metadata */
     id: string;
     /** Created timestamp YYYY-MM-DD HH:mm:ss (same as date + time) */
@@ -36,25 +36,25 @@ export interface Jot {
 export interface DayRecord {
     date: string;
     count: number;
-    jots: Jot[];
+    mindDumps: MindDump[];
 }
 
-/** Calendar heatmap: activity counts create + update events per day; jots lists unique notes touching that day */
+/** Calendar heatmap: activity counts create + update events per day; entries lists unique notes touching that day */
 export interface HeatDayCell {
     activityScore: number;
-    jots: Jot[];
+    mindDumps: MindDump[];
 }
 
-export const DEFAULT_SETTINGS: JotSettings = {
-    saveFolder: "Jots",
+export const DEFAULT_SETTINGS: MindDumpSettings = {
+    saveFolder: "MindDump",
     logMode: "multi",
     useFixedTag: false,
-    fixedTag: "jot",
+    fixedTag: "minddump",
     enableTagsInFrontmatter: true,
-    multiFileFormat: "jot-YYYYMMDD",
-    attachmentsFolder: "Jots/attachments",
+    multiFileFormat: "minddump-YYYYMMDD",
+    attachmentsFolder: "MindDump/attachments",
     language: "zh",
     autoOpenView: true
 };
 
-export const VIEW_TYPE_JOTS = "jot-view";
+export const VIEW_TYPE_MINDDUMP = "minddump-view";

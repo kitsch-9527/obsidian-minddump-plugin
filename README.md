@@ -1,4 +1,4 @@
-# Jot
+# MindDump
 
 [English](https://github.com/ichris007/obsidian-jot-plugin/blob/main/README.md) | [中文文档](https://github.com/ichris007/obsidian-jot-plugin/blob/main/README-ZH.md)
 
@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Obsidian Plugin](https://img.shields.io/badge/Obsidian-Plugin-purple)](https://obsidian.md)
 
-Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It helps you capture fleeting thoughts, jot down ideas, and manage fragmented notes with ease. Features like nested tags, file attachments, a calendar overview, full‑text search, and seamless Markdown rendering make it a perfect fit for your Obsidian workflow.
+MindDump is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It helps you capture fleeting thoughts, jot down ideas, and manage fragmented notes with ease. Features like nested tags, file attachments, a calendar overview, full‑text search, and seamless Markdown rendering make it a perfect fit for your Obsidian workflow.
 
 ## Preview
 ### Workspace Area
@@ -17,7 +17,7 @@ Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It help
 
 ![Preview_sidebar](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_sidebar_en.png)
 
-### Jots.md Note
+### MindDumps.md Note
 
 ![Preview_jot](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_markdown_en.png)
 
@@ -25,13 +25,13 @@ Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It help
 
 - **Quick Capture** – Open a dedicated modal with one click and start writing immediately.
 - **Smart Tags** – Support nested tags (e.g. `Work/ProjectA`), with auto‑completion from existing tags.
-- **Sources & Attachments** – Add source information and attach files (images, documents). Attachments are automatically named `jot-YYYYMMDD-number`.
+- **Sources & Attachments** – Add source information and attach files (images, documents). Attachments are automatically named `minddump-YYYYMMDD-number`.
 - **Calendar View** – Visualise daily note counts at a glance; click any date to filter entries.
 - **Search & Filter** – Full‑text search, multi‑keyword AND queries, and tag‑based filtering.
 - **Markdown Rendering** – Full support for Obsidian syntax: wikilinks, lists, checklists, blockquotes, embeds, and more.
 - **Multi‑language** – Built‑in Chinese and English; follows Obsidian language settings or can be switched manually.
 - **Flexible Storage** – Choose between “one file per day” or a single master file.
-- **Zero interference** – Jot creates .md files only in your chosen folder, leaves your other notes untouched. Uninstall anytime – your jots remain intact.
+- **Zero interference** – MindDump creates .md files only in your chosen folder, leaves your other notes untouched. Uninstall anytime – your mind dumps remain intact.
 - **Lightweight & Efficient** – Incremental loading and file caching for optimal performance.
 
 ## 2 📦 Installation
@@ -43,11 +43,11 @@ Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It help
 3. Enter the GitHub repository URL of this plugin:  
     `https://github.com/ichris007/obsidian-jot-plugin`
 4. Click “Add Plugin” and wait for the installation to complete.
-5. Return to Community Plugins and enable `Jot`.
+5. Return to Community Plugins and enable `MindDump`.
 
 ### 2.2 Manual Installation
 1. Download the latest `main.js`, `manifest.json`, and `styles.css` from the [Releases](https://github.com/ichris007/obsidian-jot-plugin/releases) page.
-2. Create a folder `.obsidian/plugins/obsidian-jot-plugin` in your vault.
+2. Create a folder `.obsidian/plugins/obsidian-minddump` in your vault.
 3. Copy the three files into that folder.
 4. Reload Obsidian and enable the plugin in the Community Plugins settings.
 
@@ -55,8 +55,8 @@ Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It help
 
 ### 3.1 Opening the Capture Panel
 - Click the ✨ icon in the left ribbon.
-- Use the command palette: `Jot: Quick Capture` / `Jot: Open Jot View`.
-- Right‑click any text in an editor and choose “Save as Jot”.
+- Use the command palette: `MindDump: Quick Capture` / `MindDump: Open MindDump View`.
+- Right‑click any text in an editor and choose “Save as MindDump”.
 
 ### 3.2 Quick Capture Modal
 - **Content** – Write your thoughts; supports Markdown and Obsidian syntax.
@@ -65,7 +65,7 @@ Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It help
 - **Attachments** – Click or drag a file to upload. Files are automatically named with date and sequence number; images show 🖼️, other files show 📎.
 - **Save** – Click “Save” or press `Cmd/Ctrl + Enter` to save the note.
 
-### 3.3 Jot View
+### 3.3 MindDump View
 - **Calendar** – Displays the current month; days with notes are highlighted. Click any date to filter entries.
 - **Search** – Type keywords (space‑separated for AND logic) to find matching notes.
 - **Tag Filter** – Click any tag button to filter notes containing that tag.
@@ -75,10 +75,10 @@ Jot is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It help
 
 | Option | Description |
 |--------|-------------|
-| Save Folder | Location where note files are stored (default: `Jots`) |
-| Attachments Folder | Where uploaded files are saved (default: `Jots/attachments`) |
+| Save Folder | Location where note files are stored (default: `MindDump`) |
+| Attachments Folder | Where uploaded files are saved (default: `MindDump/attachments`) |
 | Log Mode | `One file per day` or `Single file` |
-| File Format | Filename pattern for multi‑file mode, e.g., `jot-YYYYMMDD` |
+| File Format | Filename pattern for multi‑file mode, e.g., `minddump-YYYYMMDD` |
 | Use Fixed Tag | Automatically add a fixed tag to every note |
 | Fixed Tag Value | The tag to add (without `#`) |
 | Enable Frontmatter Tags | Write tags into YAML frontmatter in multi‑file mode (for Dataview etc.) |
@@ -110,7 +110,7 @@ The built `main.js` and `styles.css` can be used directly in Obsidian.
 ## 7 📝 File Format
 
 ### 7.1 Multi‑File Mode
-One file per day, named according to the configured format (e.g., `jot-20260326.md`). Each note inside follows this structure:
+One file per day, named according to the configured format (e.g., `minddump-20260326.md`). Each note inside follows this structure:
 
 ```markdown
 ### YYYY-MM-DD HH:mm:ss
@@ -127,7 +127,7 @@ Source: Example source
 ```
 
 ### 7.2 Single File Mode
-All notes are saved in a single `jots.md` file using the same format.
+All notes are saved in a single `minddumps.md` file using the same format.
 
 ## 8 ❓ FAQ
 
@@ -137,7 +137,7 @@ A: The plugin automatically generates unique filenames based on the date and seq
 **Q: What if I need spaces in a tag?**  
 A: Tags cannot contain spaces. Use `/` to create nested tags (e.g., `Work/Important`).
 
-**Q: How can I import existing notes into Jot?**  
+**Q: How can I import existing notes into MindDump?**  
 A: There is currently no direct import, but you can copy and paste the content into the Quick Capture modal.
 
 **Q: The calendar doesn’t show all entries?**  
@@ -162,4 +162,4 @@ This project is released under the [MIT License](LICENSE).
 
 ---
 
-**Enjoy jotting down your thoughts!**
+**Enjoy dumping your thoughts!**

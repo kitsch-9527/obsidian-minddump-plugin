@@ -1,6 +1,6 @@
 // src/capture-modal.ts
 import { App, Modal, Notice } from "obsidian";
-import JotPlugin from "./main";
+import MindDumpPlugin from "./main";
 import { t, Translations } from "./i18n";
 import {
     handleAttachment,
@@ -18,7 +18,7 @@ import {
 } from "./rich-markdown-field";
 
 export class CaptureModal extends Modal {
-    plugin: JotPlugin;
+    plugin: MindDumpPlugin;
     contentField!: RichMarkdownFieldApi;
     tagsInput: HTMLInputElement;
     sourceInput: HTMLInputElement;
@@ -33,18 +33,18 @@ export class CaptureModal extends Modal {
         return this.plugin.lang;
     }
 
-    constructor(app: App, plugin: JotPlugin) {
+    constructor(app: App, plugin: MindDumpPlugin) {
         super(app);
         this.plugin = plugin;
     }
 
     async onOpen() {
-        this.modalEl.addClass("jots-capture-modal");
+        this.modalEl.addClass("minddump-capture-modal");
         const { contentEl } = this;
         contentEl.empty();
 
-        if (!this.plugin.jots || this.plugin.jots.length === 0) {
-            await this.plugin.refreshJots();
+        if (!this.plugin.mindDumps || this.plugin.mindDumps.length === 0) {
+            await this.plugin.refreshMindDumps();
         }
 
         const container = contentEl.createDiv();
@@ -60,7 +60,7 @@ export class CaptureModal extends Modal {
         textareaContainer.style.marginBottom = "16px";
 
         this.contentField = mountRichMarkdownField(textareaContainer, "", {
-            className: "jots-capture-rich-md",
+            className: "minddump-capture-rich-md",
             placeholder: t("contentPlaceholder", this.lang),
         });
         const cf = this.contentField;
@@ -196,17 +196,17 @@ export class CaptureModal extends Modal {
             }
         });
 
-        const buttonContainer = container.createDiv({ cls: "jots-quick-toolbar-send-group" });
+        const buttonContainer = container.createDiv({ cls: "minddump-quick-toolbar-send-group" });
 
         const cancelBtn = buttonContainer.createEl("button", {
-            cls: "jots-quick-edit-cancel-btn",
+            cls: "minddump-quick-edit-cancel-btn",
             type: "button",
         });
         cancelBtn.textContent = t("cancel", this.lang);
         cancelBtn.addEventListener("click", () => this.close());
 
         const saveBtn = buttonContainer.createEl("button", {
-            cls: "jots-quick-send-btn mod-cta",
+            cls: "minddump-quick-send-btn mod-cta",
             type: "button",
         });
         saveBtn.appendChild(createPaperPlaneSendIcon());
@@ -241,9 +241,9 @@ export class CaptureModal extends Modal {
 
     private getExistingTags(): string[] {
         const tags = new Set<string>();
-        for (const jot of this.plugin.jots) {
-            if (jot.deleted) continue;
-            jot.tags.forEach((tag) => tags.add(tag));
+        for (const mindDump of this.plugin.mindDumps) {
+            if (mindDump.deleted) continue;
+            mindDump.tags.forEach((tag) => tags.add(tag));
         }
         return Array.from(tags);
     }
@@ -306,7 +306,7 @@ export class CaptureModal extends Modal {
         const source = this.sourceInput.value.trim();
 
         try {
-            await this.plugin.saveJot(content, tags, source, this.selectedAttachments);
+            await this.plugin.saveMindDump(content, tags, source, this.selectedAttachments);
             this.close();
         } catch (error) {
             console.error("Save failed:", error);
@@ -315,7 +315,7 @@ export class CaptureModal extends Modal {
     }
 
     onClose() {
-        this.modalEl.removeClass("jots-capture-modal");
+        this.modalEl.removeClass("minddump-capture-modal");
         this.captureSaveBtn = null;
         if (this.wikilinkCleanup) {
             try {

@@ -1,7 +1,7 @@
 // src/utils.ts
 import { App, TFile, TFolder, Notice } from 'obsidian';
 import moment from 'moment';
-import { Jot, JotSettings, Language } from './types';
+import { MindDump, MindDumpSettings, Language } from './types';
 import { t, Translations } from './i18n';
 
 /**
@@ -23,7 +23,7 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 /** Strip leading #, trim, drop empties, dedupe (first occurrence wins). */
-export function normalizeJotTags(tags: string[]): string[] {
+export function normalizeMindDumpTags(tags: string[]): string[] {
     const seen = new Set<string>();
     const out: string[] = [];
     for (const raw of tags) {
@@ -35,25 +35,25 @@ export function normalizeJotTags(tags: string[]): string[] {
     return out;
 }
 
-export function newJotId(): string {
+export function newMindDumpId(): string {
     if (typeof globalThis.crypto !== "undefined" && typeof globalThis.crypto.randomUUID === "function") {
         return globalThis.crypto.randomUUID();
     }
-    return `jot-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    return `minddump-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 /** Deterministic id for entries that have no `#### id:` line (backward compatibility). */
-export function stableLegacyJotId(filePath: string, date: string, time: string): string {
+export function stableLegacyMindDumpId(filePath: string, date: string, time: string): string {
     const s = `${filePath}\0${date}\0${time}`;
     let h = 2166136261;
     for (let i = 0; i < s.length; i++) {
         h ^= s.charCodeAt(i);
         h = Math.imul(h, 16777619);
     }
-    return `jot-legacy-${(h >>> 0).toString(16)}`;
+    return `minddump-legacy-${(h >>> 0).toString(16)}`;
 }
 
-export function formatJotEntryBlock(
+export function formatMindDumpEntryBlock(
     fullDateTime: string,
     id: string,
     updatedAt: string,
@@ -64,7 +64,7 @@ export function formatJotEntryBlock(
     return `### ${fullDateTime}\n#### id: ${id}\n#### updatedAt: ${updatedAt}\n${del}\n${body}\n\n---\n\n`;
 }
 
-export function composeJotMarkdownBody(
+export function composeMindDumpMarkdownBody(
     content: string,
     tags: string[],
     source: string,
@@ -73,12 +73,12 @@ export function composeJotMarkdownBody(
     useFixedTag: boolean,
     fixedTag: string
 ): { body: string; allTags: string[] } {
-    let allTags = normalizeJotTags(tags);
+    let allTags = normalizeMindDumpTags(tags);
     if (useFixedTag && fixedTag) {
         const fixedTagClean = fixedTag.replace(/^#+/, "").trim();
         if (!allTags.includes(fixedTagClean)) allTags.push(fixedTagClean);
     }
-    allTags = normalizeJotTags(allTags);
+    allTags = normalizeMindDumpTags(allTags);
     const tagLine = allTags.length > 0 ? allTags.map(x => `#${x}`).join(" ") : "";
     let finalContent = content;
     const attachmentLines =
@@ -94,8 +94,8 @@ export function composeJotMarkdownBody(
     return { body: finalContent, allTags };
 }
 
-/** Replace one `###` jot block by id; preserves prefix (e.g. frontmatter) and other blocks. */
-export function replaceJotBlockById(
+/** Replace one `###` mindDump block by id; preserves prefix (e.g. frontmatter) and other blocks. */
+export function replaceMindDumpBlockById(
     content: string,
     filePath: string,
     targetId: string,
@@ -129,7 +129,7 @@ export function replaceJotBlockById(
                 }
                 break;
             }
-            const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
+            const id = metaId || stableLegacyMindDumpId(filePath, date || "", time || "");
             let k = j;
             while (k < lines.length && !lines[k].trim().startsWith("### ")) {
                 k++;
@@ -151,8 +151,8 @@ export function replaceJotBlockById(
     return { content, found: false };
 }
 
-/** Remove one `###` jot block by id; preserves prefix and following blocks. */
-export function removeJotBlockById(
+/** Remove one `###` mindDump block by id; preserves prefix and following blocks. */
+export function removeMindDumpBlockById(
     content: string,
     filePath: string,
     targetId: string
@@ -185,7 +185,7 @@ export function removeJotBlockById(
                 }
                 break;
             }
-            const id = metaId || stableLegacyJotId(filePath, date || "", time || "");
+            const id = metaId || stableLegacyMindDumpId(filePath, date || "", time || "");
             let k = j;
             while (k < lines.length && !lines[k].trim().startsWith("### ")) {
                 k++;
@@ -209,14 +209,14 @@ export function removeJotBlockById(
 }
 
 /**
- * 解析文件内容为 Jot 数组
+ * 解析文件内容为 MindDump 数组
  */
 export function parseFileContent(
     content: string,
     filePath: string,
     lang: Language
-): Jot[] {
-    const entries: Jot[] = [];
+): MindDump[] {
+    const entries: MindDump[] = [];
     const lines = content.split("\n");
     let i = 0;
 
@@ -255,10 +255,10 @@ export function parseFileContent(
                 }
                 break;
             }
-            const id = idMeta || stableLegacyJotId(filePath, date || "", time || "");
+            const id = idMeta || stableLegacyMindDumpId(filePath, date || "", time || "");
             const updatedAt = updatedAtMeta || createdAt;
 
-            let jotContent = "";
+            let entryContent = "";
             let tags: string[] = [];
             let source = "";
             let attachments: string[] = [];
@@ -274,10 +274,10 @@ export function parseFileContent(
                 }
 
                 // 检查是否是标签行
-                if (trimmedLine.match(/^#[\w\u4e00-\u9fff\/\-_]+(\s+#[\w\u4e00-\u9fff\/\-_]+)*$/)) {
-                    const tagMatches = trimmedLine.match(/#[\w\u4e00-\u9fff\/\-_]+/g);
+                if (trimmedLine.match(/^#[\w一-鿿\/\-_]+(\s+#[\w一-鿿\/\-_]+)*$/)) {
+                    const tagMatches = trimmedLine.match(/#[\w一-鿿\/\-_]+/g);
                     if (tagMatches) {
-                        tags = normalizeJotTags(tagMatches);
+                        tags = normalizeMindDumpTags(tagMatches);
                     }
                 }
                 // 检查是否是来源行
@@ -297,10 +297,10 @@ export function parseFileContent(
                             }
                         } else {
                             // 内容行
-                            if (jotContent) {
-                                jotContent += "\n" + currentLine;
+                            if (entryContent) {
+                                entryContent += "\n" + currentLine;
                             } else {
-                                jotContent = currentLine;
+                                entryContent = currentLine;
                             }
                         }
                     }
@@ -309,17 +309,17 @@ export function parseFileContent(
                 j++;
             }
 
-            if (jotContent.trim() || tags.length > 0 || source || attachments.length > 0 || deletedMeta) {
+            if (entryContent.trim() || tags.length > 0 || source || attachments.length > 0 || deletedMeta) {
                 entries.push({
                     id,
                     createdAt,
                     updatedAt,
                     date: date || "",
                     time: time || "",
-                    content: jotContent.trim(),
+                    content: entryContent.trim(),
                     tags: tags,
                     source: source,
-                    fullText: jotContent.trim(),
+                    fullText: entryContent.trim(),
                     attachments: attachments,
                     attachmentTypes: attachmentTypes,
                     filePath: filePath,
@@ -363,12 +363,12 @@ export function getClipboardImageFiles(dataTransfer: DataTransfer | null): File[
 }
 
 /**
- * 处理附件保存（修复无限递归和文件名匹配问题）
+ * 处理附件保存
  */
 export async function handleAttachment(
     app: App,
     file: File,
-    settings: JotSettings,
+    settings: MindDumpSettings,
     lang: Language,
     callback: (result: { path: string; type: "image" | "file" }) => void,
     options?: { failureNoticeKey?: keyof Translations }
@@ -389,22 +389,20 @@ export async function handleAttachment(
     const folder = app.vault.getAbstractFileByPath(attachmentsFolder);
     let existingFiles: TFile[] = [];
     if (folder && folder instanceof TFolder) {
-        // 修复：使用不带横线的格式进行匹配
         existingFiles = folder.children.filter(
-            f => f instanceof TFile && f.name.startsWith(`jot-${dateStrNoDash}`)
+            f => f instanceof TFile && f.name.startsWith(`minddump-${dateStrNoDash}`)
         ) as TFile[];
     }
 
     let maxNumber = 0;
     for (const f of existingFiles) {
-        const match = f.name.match(/jot-(\d{8})-(\d+)\./);
+        const match = f.name.match(/minddump-(\d{8})-(\d+)\./);
         if (match) {
             const num = parseInt(match[2], 10);
             if (num > maxNumber) maxNumber = num;
         }
     }
 
-    // 修复：使用循环替代递归，避免无限递归
     let attempts = 0;
     const maxAttempts = 100;
     let serialNumber: string;
@@ -415,7 +413,7 @@ export async function handleAttachment(
         maxNumber++;
         serialNumber = String(maxNumber).padStart(3, "0");
         const ext = file.name.split(".").pop() || "bin";
-        filename = `jot-${dateStrNoDash}-${serialNumber}.${ext}`;
+        filename = `minddump-${dateStrNoDash}-${serialNumber}.${ext}`;
         filePath = `${attachmentsFolder}/${filename}`;
         attempts++;
     } while (app.vault.getAbstractFileByPath(filePath) && attempts < maxAttempts);
@@ -467,7 +465,6 @@ export function textareaAsWikilinkField(textarea: HTMLTextAreaElement): Wikilink
 
 /**
  * 设置 wikilink 自动完成
- * @param inputTarget element that receives `input` / `keydown` / `blur` (e.g. textarea or contenteditable)
  */
 export function setupWikilinkAutocomplete(
     app: App,
@@ -494,10 +491,10 @@ export function setupWikilinkAutocomplete(
         items.forEach((item: Element, i: number) => {
             if (item && item.classList) {
                 if (i === index) {
-                    item.classList.add("jots-suggestion-item-active");
+                    item.classList.add("minddump-suggestion-item-active");
                     (item as HTMLElement).style.backgroundColor = "var(--background-modifier-hover)";
                 } else {
-                    item.classList.remove("jots-suggestion-item-active");
+                    item.classList.remove("minddump-suggestion-item-active");
                     (item as HTMLElement).style.backgroundColor = "";
                 }
             }
@@ -530,7 +527,7 @@ export function setupWikilinkAutocomplete(
 
                     if (!suggestionContainer) {
                         suggestionContainer = document.createElement('div');
-                        suggestionContainer.classList.add("jots-suggestions");
+                        suggestionContainer.classList.add("minddump-suggestions");
                         suggestionContainer.style.position = "fixed";
                         suggestionContainer.style.backgroundColor = "var(--background-primary)";
                         suggestionContainer.style.border = "1px solid var(--background-modifier-border)";
@@ -555,7 +552,7 @@ export function setupWikilinkAutocomplete(
 
                     matches.forEach((file, index) => {
                         const item = suggestionContainer!.createDiv();
-                        item.classList.add("jots-suggestion-item");
+                        item.classList.add("minddump-suggestion-item");
                         item.textContent = file.basename;
                         item.style.padding = "6px 12px";
                         item.style.cursor = "pointer";
@@ -564,7 +561,7 @@ export function setupWikilinkAutocomplete(
                         item.style.color = "var(--text-normal)";
 
                         if (index === 0) {
-                            item.classList.add("jots-suggestion-item-active");
+                            item.classList.add("minddump-suggestion-item-active");
                             item.style.backgroundColor = "var(--background-modifier-hover)";
                         }
 
@@ -596,8 +593,8 @@ export function setupWikilinkAutocomplete(
     const onKeydown = (e: KeyboardEvent) => {
         if (!suggestionContainer) return;
 
-        const items = suggestionContainer.querySelectorAll(".jots-suggestion-item");
-        const activeItem = suggestionContainer.querySelector(".jots-suggestion-item-active");
+        const items = suggestionContainer.querySelectorAll(".minddump-suggestion-item");
+        const activeItem = suggestionContainer.querySelector(".minddump-suggestion-item-active");
         let activeIndex = -1;
 
         items.forEach((item, index) => {
@@ -663,10 +660,10 @@ export function setupTagAutocomplete(
     const setActiveTagSuggestion = (items: NodeListOf<Element> | any[], index: number) => {
         items.forEach((item: Element, i: number) => {
             if (i === index) {
-                item.classList.add("jots-tag-suggestion-item-active");
+                item.classList.add("minddump-tag-suggestion-item-active");
                 (item as HTMLElement).style.backgroundColor = "var(--background-modifier-hover)";
             } else {
-                item.classList.remove("jots-tag-suggestion-item-active");
+                item.classList.remove("minddump-tag-suggestion-item-active");
                 (item as HTMLElement).style.backgroundColor = "";
             }
         });
@@ -687,7 +684,7 @@ export function setupTagAutocomplete(
 
         if (!tagSuggestionContainer) {
             tagSuggestionContainer = container.createDiv();
-            tagSuggestionContainer.classList.add("jots-tag-suggestions");
+            tagSuggestionContainer.classList.add("minddump-tag-suggestions");
             tagSuggestionContainer.style.position = "absolute";
             tagSuggestionContainer.style.top = "100%";
             tagSuggestionContainer.style.left = "0";
@@ -705,7 +702,7 @@ export function setupTagAutocomplete(
 
         matches.forEach((tag, index) => {
             const item = tagSuggestionContainer!.createDiv();
-            item.classList.add("jots-tag-suggestion-item");
+            item.classList.add("minddump-tag-suggestion-item");
             item.textContent = `#${tag}`;
             item.style.padding = "6px 12px";
             item.style.cursor = "pointer";
@@ -714,7 +711,7 @@ export function setupTagAutocomplete(
             item.style.color = "var(--text-normal)";
 
             if (index === 0) {
-                item.classList.add("jots-tag-suggestion-item-active");
+                item.classList.add("minddump-tag-suggestion-item-active");
                 item.style.backgroundColor = "var(--background-modifier-hover)";
             }
 
@@ -754,7 +751,7 @@ export function setupTagAutocomplete(
             const value = tagInput.value.trim();
 
             if (tagSuggestionContainer) {
-                const activeItem = tagSuggestionContainer.querySelector(".jots-tag-suggestion-item-active");
+                const activeItem = tagSuggestionContainer.querySelector(".minddump-tag-suggestion-item-active");
                 if (activeItem) {
                     const tag = activeItem.textContent?.replace("#", "") || "";
                     onAddTag(tag);
@@ -771,7 +768,7 @@ export function setupTagAutocomplete(
 
         if (e.key === "Tab" && tagSuggestionContainer) {
             e.preventDefault();
-            const activeItem = tagSuggestionContainer.querySelector(".jots-tag-suggestion-item-active");
+            const activeItem = tagSuggestionContainer.querySelector(".minddump-tag-suggestion-item-active");
             if (activeItem) {
                 const tag = activeItem.textContent?.replace("#", "") || "";
                 onAddTag(tag);
@@ -787,8 +784,8 @@ export function setupTagAutocomplete(
 
         if (!tagSuggestionContainer) return;
 
-        const items = tagSuggestionContainer.querySelectorAll(".jots-tag-suggestion-item");
-        const activeItem = tagSuggestionContainer.querySelector(".jots-tag-suggestion-item-active");
+        const items = tagSuggestionContainer.querySelectorAll(".minddump-tag-suggestion-item");
+        const activeItem = tagSuggestionContainer.querySelector(".minddump-tag-suggestion-item-active");
         let activeIndex = -1;
 
         items.forEach((item, index) => {

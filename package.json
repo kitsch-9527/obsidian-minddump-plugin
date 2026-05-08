@@ -1,14 +1,14 @@
 {
-  "name": "obsidian-jot-plugin",
+  "name": "obsidian-minddump-plugin",
   "version": "1.0.0",
   "description": "Quick note-taking plugin for Obsidian",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.js",
     "build": "node esbuild.config.js production",
-    "dev:obsidian-jot": "node scripts/dev-obsidian-jot.js"
+    "dev:obsidian-minddump": "node scripts/dev-obsidian-minddump.js"
   },
-  "keywords": ["obsidian", "plugin", "jot", "memo"],
+  "keywords": ["obsidian", "plugin", "minddump", "memo"],
   "author": "",
   "license": "MIT",
   "dependencies": {
