@@ -3,8 +3,33 @@ const fs = require("fs");
 const path = require("path");
 
 const prod = process.argv[2] === "production";
+
+// Load .env file manually (no dotenv dependency)
+const envPath = path.resolve(__dirname, "..", ".env");
+let envVars = {};
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, "utf-8");
+  envContent.split("\n").forEach((line) => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith("#")) {
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx > 0) {
+        envVars[trimmed.slice(0, eqIdx).trim()] = trimmed.slice(eqIdx + 1).trim();
+      }
+    }
+  });
+}
+
 const PLUGIN_DIR =
-	"/Users/kitsch/Documents/obsdian/kitsch/kitsch/.obsidian/plugins/obsidian-minddump";
+  envVars.OBSIDIAN_VAULT_PLUGIN_PATH ||
+  process.env.OBSIDIAN_VAULT_PLUGIN_PATH ||
+  (() => {
+    console.error(
+      "[dev:obsidian-minddump] ERROR: OBSIDIAN_VAULT_PLUGIN_PATH not set.\n" +
+        "  Copy .env.example to .env and set the path to your vault's plugin directory."
+    );
+    process.exit(1);
+  })();
 const OUTFILE = "main.js";
 
 const ROOT = path.resolve(__dirname, "..");

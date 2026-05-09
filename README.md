@@ -1,8 +1,8 @@
 # MindDump
 
-[English](https://github.com/ichris007/obsidian-jot-plugin/blob/main/README.md) | [中文文档](https://github.com/ichris007/obsidian-jot-plugin/blob/main/README-ZH.md)
+[English](README.md) | [中文文档](README-ZH.md)
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ichris007/obsidian-jot-plugin)](https://github.com/ichris007/obsidian-jot-plugin/releases)
+[![](https://img.shields.io/github/v/release/kitsch-9527/obsidian-minddump-plugin)](https://github.com/kitsch-9527/obsidian-minddump-plugin/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Obsidian Plugin](https://img.shields.io/badge/Obsidian-Plugin-purple)](https://obsidian.md)
 
@@ -11,15 +11,15 @@ MindDump is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It
 ## Preview
 ### Workspace Area
 
-![Preview_workspace](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_workspace_en.png)
+![Preview_workspace](demo/jot_workspace_en.png)
 
 ### Sidebar
 
-![Preview_sidebar](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_sidebar_en.png)
+![Preview_sidebar](demo/jot_sidebar_en.png)
 
 ### MindDumps.md Note
 
-![Preview_jot](https://github.com/ichris007/obsidian-jot-plugin/blob/main/demo/jot_markdown_en.png)
+![Preview_jot](demo/jot_markdown_en.png)
 
 ## 1 ✨ Features
 
@@ -41,12 +41,12 @@ MindDump is a quick note‑taking plugin for [Obsidian](https://obsidian.md). It
 1. Install [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) (Beta Reviewer’s Auto-update Tool) if you haven’t already.
 2. Go to Settings → BRAT → Beta Plugin List → Add Beta Plugin.
 3. Enter the GitHub repository URL of this plugin:  
-    `https://github.com/ichris007/obsidian-jot-plugin`
+    `https://github.com/kitsch-9527/obsidian-minddump-plugin`
 4. Click “Add Plugin” and wait for the installation to complete.
 5. Return to Community Plugins and enable `MindDump`.
 
 ### 2.2 Manual Installation
-1. Download the latest `main.js`, `manifest.json`, and `styles.css` from the [Releases](https://github.com/ichris007/obsidian-jot-plugin/releases) page.
+1. Download the latest `main.js`, `manifest.json`, and `styles.css` from the [Releases](https://github.com/kitsch-9527/obsidian-minddump-plugin/releases) page.
 2. Create a folder `.obsidian/plugins/obsidian-minddump` in your vault.
 3. Copy the three files into that folder.
 4. Reload Obsidian and enable the plugin in the Community Plugins settings.
@@ -92,8 +92,8 @@ The plugin supports Chinese and English. It automatically follows Obsidian’s l
 
 ```bash
 # Clone the repository
-git clone https://github.com/ichris007/obsidian-jot-plugin.git
-cd obsidian-jot-plugin
+git clone https://github.com/kitsch-9527/obsidian-minddump-plugin.git
+cd obsidian-minddump-plugin
 
 # Install dependencies
 npm install
@@ -153,7 +153,7 @@ Issues and pull requests are welcome! Before submitting a PR, please ensure:
 
 ## 10 🙏 Acknowledgements
 
-- This plugin was inspired by [Andrej Karpathy](https://github.com/karpathy) “[The append‑and‑review note](https://karpathy.bearblog.dev/the-append-and-review-note/)” method. Many thanks for the inspiration.
+- This plugin is a fork of [obsidian-jot-plugin](https://github.com/ichris007/obsidian-jot-plugin) by [ichris007](https://github.com/ichris007), with significant enhancements and modifications. Many thanks to the original author for the inspiration and foundation.
 - The UI design was inspired by the open‑source note‑taking tool [Memos](https://github.com/usememos/memos). My thanks as well.
 
 ## 11 📄 License
