@@ -22,4 +22,4 @@ jobs:
             main.js
             manifest.json
             styles.css
-          generate_release_notes: true
+          generate_release_notes: false
