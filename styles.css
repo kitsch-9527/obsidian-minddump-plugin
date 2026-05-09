@@ -1,5 +1,5 @@
 /* src/styles.css */
-.jots-view {
+.minddump-view {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -9,103 +9,754 @@
     overflow-y: auto;
 }
 
+/* 主布局：搜索行贴视图顶部 */
+.minddump-view.minddump-view--main-layout {
+    padding-top: 0;
+}
+
 /* 日历样式 */
-.jots-calendar-section {
+.minddump-calendar-section {
     background: var(--background-primary-alt);
     border-radius: 12px;
     padding: 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.jots-calendar {
+.minddump-calendar {
     width: 100%;
 }
 
-.jots-calendar-header {
+/* 主布局左栏：搜索行 + 快速输入（或回收站条）整体吸顶；不设整段阴影，避免与「仅卡片有阴影」的原样式不一致 */
+.minddump-left-sticky-stack {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--background-primary);
+}
+
+/* 主布局：搜索与右栏折叠/展开同一按钮（同行） */
+.minddump-main-search-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.minddump-main-search-row__main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.minddump-main-search-row__toggle {
+    flex-shrink: 0;
+}
+
+/* 与全局药丸一致：不横向拉满整栏（与侧栏/居中样式同宽上限） */
+.minddump-main-search-row .minddump-search-pill-wrap {
+    max-width: min(100%, 360px);
+    margin-left: 0;
+    margin-right: 0;
+    justify-content: flex-start;
+}
+
+.minddump-main-search-row .minddump-search-pill-wrap .minddump-search-pill {
+    max-width: min(100%, 320px);
+}
+
+/* 筛选展开时整行叠在下方 sticky 顶栏（搜索 + 快速输入）之上 */
+.minddump-main-search-row:has(.minddump-search-stack:focus-within) {
+    position: relative;
+    z-index: 50;
+}
+
+/* 搜索筛选：药丸输入 + 白底面板（主布局下位于左栏快速记录上方） */
+.minddump-search-stack {
+    margin-bottom: 14px;
+    position: relative;
+}
+
+/* 侧栏：展开筛选时叠在下方日历/列表之上 */
+.minddump-search-stack:focus-within {
+    z-index: 45;
+}
+
+/* 仅在与搜索区有焦点关联时显示筛选面板（点击药丸或 Tab 进入） */
+.minddump-search-stack .minddump-search-panel {
+    display: none;
+}
+
+.minddump-search-stack:focus-within .minddump-search-panel {
+    display: block;
+}
+
+.minddump-search-pill-wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    max-width: min(100%, 360px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.minddump-search-pill-wrap .minddump-search-pill {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    max-width: min(100%, 320px);
+}
+
+.minddump-search-sort-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    margin: 0;
+    border: none !important;
+    border-radius: 9999px;
+    background: transparent !important;
+    color: var(--text-muted);
+    cursor: pointer;
+    box-sizing: border-box;
+    box-shadow: none !important;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: color 0.15s ease;
+}
+
+.minddump-search-sort-btn:hover,
+.minddump-search-sort-btn:focus,
+.minddump-search-sort-btn:focus-visible,
+.minddump-search-sort-btn:active {
+    color: var(--text-normal);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.minddump-search-stack:focus-within .minddump-search-sort-btn {
+    color: var(--interactive-accent);
+}
+
+.minddump-search-sort-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.minddump-search-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(100%, 320px);
+    max-width: 100%;
+    padding: 0 12px 0 10px;
+    min-height: 36px;
+    border-radius: 9999px;
+    box-sizing: border-box;
+    /* 淡灰胶囊 + 描边（用主题变量，明暗模式都协调） */
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    transition: border-color 0.15s ease;
+}
+
+/* 与主视图快速记录卡片一致：焦点在搜索区（药丸或筛选面板）时主题色描边 */
+.minddump-search-stack:focus-within .minddump-search-pill {
+    border-color: var(--interactive-accent);
+}
+
+.minddump-search-pill-icon {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--text-faint);
+    --icon-size: 16px;
+    transition: color 0.15s ease;
+}
+
+.minddump-search-stack:focus-within .minddump-search-pill-icon {
+    color: var(--interactive-accent);
+}
+
+.minddump-search-pill-input {
+    flex: 1;
+    min-width: 0;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 6px 28px 6px 0 !important;
+    margin: 0 !important;
+    font-size: 13px;
+    color: var(--text-normal);
+}
+
+.minddump-search-pill-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
+.minddump-search-pill-input:focus {
+    outline: none;
+    caret-color: var(--interactive-accent);
+}
+
+/* 与快速记录卡片内选区一致感：主题色淡化背景 */
+.minddump-search-pill-input::selection {
+    background: color-mix(in srgb, var(--interactive-accent) 32%, var(--background-primary));
+    color: var(--text-normal);
+}
+
+.minddump-search-pill-input::-moz-selection {
+    background: color-mix(in srgb, var(--interactive-accent) 32%, var(--background-primary));
+    color: var(--text-normal);
+}
+
+.minddump-search-panel {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+    margin-top: 4px;
+    width: min(360px, 100%);
+    max-height: min(70vh, 560px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    z-index: 2;
+    background: var(--background-primary);
+    border-radius: 12px;
+    padding: 12px 14px 14px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--background-modifier-border);
+    transition: border-color 0.15s ease;
+}
+
+.minddump-search-stack:focus-within .minddump-search-panel {
+    border-color: var(--interactive-accent);
+}
+
+.theme-dark .minddump-search-panel {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.minddump-search-time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.minddump-search-section {
+    margin-bottom: 12px;
+}
+
+.minddump-search-section:last-child {
+    margin-bottom: 0;
+}
+
+.minddump-search-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.minddump-search-section-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.minddump-search-section-chevron {
+    display: flex;
+    color: var(--text-faint);
+    --icon-size: 14px;
+    transition: transform 0.15s ease;
+}
+
+.minddump-search-section-chevron.is-collapsed {
+    transform: rotate(-90deg);
+}
+
+.minddump-search-section.is-collapsed .minddump-search-section-body {
+    display: none;
+}
+
+.minddump-search-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.minddump-filter-chip {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-modifier-form-field);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.minddump-filter-chip:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.minddump-filter-chip:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+/* 选中态与主题强调色一致（替代固定绿色，与快速记录卡片描边同源） */
+.minddump-filter-chip.is-active {
+    background: color-mix(in srgb, var(--interactive-accent) 24%, var(--background-modifier-form-field));
+    border-color: color-mix(in srgb, var(--interactive-accent) 48%, var(--background-modifier-border));
+    color: var(--text-normal);
+}
+
+.minddump-search-time-grid .minddump-filter-chip {
+    flex: unset;
+    width: 100%;
+}
+
+.minddump-search-tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.minddump-search-tag-chips.is-hidden {
+    display: none;
+}
+
+.minddump-search-tag-chip {
+    padding: 3px 9px;
+    border-radius: 10px;
+    font-size: 11px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-modifier-form-field);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.minddump-search-tag-chip:hover {
+    background: var(--background-modifier-hover);
+}
+
+.minddump-search-tag-chip.is-selected {
+    background: color-mix(in srgb, var(--interactive-accent) 24%, var(--background-modifier-form-field));
+    border-color: color-mix(in srgb, var(--interactive-accent) 48%, var(--background-modifier-border));
+    color: var(--text-normal);
+}
+
+.minddump-search-more-tags {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-align: center;
+}
+
+.minddump-search-stack--compact .minddump-search-pill-wrap {
+    max-width: 100%;
+}
+
+.minddump-search-stack--compact .minddump-search-pill {
+    min-height: 32px;
+    max-width: none;
+}
+
+.minddump-search-stack--compact .minddump-search-sort-btn {
+    width: 32px;
+    height: 32px;
+}
+
+.minddump-search-stack--compact .minddump-search-sort-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.minddump-search-stack--compact .minddump-search-pill-input {
+    font-size: 11px;
+}
+
+.minddump-search-stack--compact .minddump-search-panel {
+    padding: 10px 10px 12px;
+}
+
+.minddump-search-stack--compact .minddump-filter-chip {
+    padding: 5px 6px;
+    font-size: 11px;
+}
+
+.minddump-search-stack--compact .minddump-search-time-grid {
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.minddump-search-stack--compact .minddump-search-section-title {
+    font-size: 11px;
+}
+
+.minddump-search-stack--compact .minddump-search-tag-chip {
+    font-size: 10px;
+    padding: 2px 7px;
+}
+
+.minddump-calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
 }
 
-.jots-calendar-nav {
+.minddump-calendar-nav {
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 6px;
     transition: background 0.2s;
 }
 
-.jots-calendar-nav:hover {
+.minddump-calendar-nav:hover {
     background: var(--background-modifier-hover);
 }
 
-.jots-calendar-title {
+.minddump-calendar-title {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-normal);
 }
 
-.jots-calendar-weekdays {
+.minddump-calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
     margin-bottom: 8px;
 }
 
-.jots-calendar-weekday {
+.minddump-calendar-weekday {
     text-align: center;
     font-size: 12px;
     color: var(--text-faint);
     padding: 4px;
 }
 
-.jots-calendar-days {
+.minddump-calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
 }
 
-.jots-calendar-day {
+.minddump-calendar-day {
     aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
-    border-radius: 8px;
+    border-radius: 0;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.jots-calendar-day-has-record {
+.minddump-calendar-day-has-record {
     background-color: var(--interactive-accent);
     color: white;
 }
 
-.jots-calendar-day-has-record:hover {
+.minddump-calendar-day-has-record:hover {
     transform: scale(1.05);
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.jots-calendar-day-empty {
+.minddump-calendar-day-empty {
     background-color: var(--background-modifier-border);
     color: var(--text-faint);
     cursor: default;
 }
 
+/* 右侧热力图：用 accent + ::before 透明度叠色，避免 color-mix 在旧 Chromium 中整段失效 */
+.minddump-heat-cell {
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: transform 0.15s ease, filter 0.15s ease;
+    /* 与 GitHub 贡献图空档相近的浅灰底，叠色更轻 */
+    background-color: #ebedf0;
+    color: #a3a3a3;
+}
+.theme-dark .minddump-heat-cell {
+    border-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-faint);
+}
+.minddump-heat-cell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--interactive-accent);
+    opacity: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+.minddump-heat-cell.minddump-heat-l1::before {
+    opacity: 0.12;
+}
+.minddump-heat-cell.minddump-heat-l2::before {
+    opacity: 0.26;
+}
+.minddump-heat-cell.minddump-heat-l3::before {
+    opacity: 0.42;
+}
+.minddump-heat-cell.minddump-heat-l4::before {
+    opacity: 0.58;
+}
+.minddump-heat-daynum {
+    position: relative;
+    z-index: 1;
+}
+.minddump-heat-cell.minddump-heat-l1,
+.minddump-heat-cell.minddump-heat-l2,
+.minddump-heat-cell.minddump-heat-l3 {
+    color: var(--text-normal);
+}
+.minddump-heat-cell.minddump-heat-l4 {
+    color: var(--text-on-accent);
+}
+.minddump-heat-cell.minddump-heat-l1:hover,
+.minddump-heat-cell.minddump-heat-l2:hover,
+.minddump-heat-cell.minddump-heat-l3:hover,
+.minddump-heat-cell.minddump-heat-l4:hover {
+    filter: brightness(1.06);
+    transform: scale(1.04);
+}
+
+/* GitHub-style contribution heatmap (soft mint / grey card) */
+.minddump-contrib-section {
+    margin-bottom: 12px;
+    padding: 14px 12px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #f7f7f7;
+}
+.theme-dark .minddump-contrib-section {
+    background: var(--background-secondary);
+    border-color: var(--background-modifier-border);
+}
+.minddump-contrib-section--compact {
+    margin-bottom: 8px;
+    padding: 10px 8px 8px;
+    border-radius: 8px;
+}
+.minddump-contrib-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding: 0 2px;
+}
+.minddump-contrib-section--compact .minddump-contrib-stats {
+    margin-bottom: 10px;
+}
+.minddump-contrib-stat {
+    text-align: center;
+    flex: 1;
+    min-width: 0;
+}
+.minddump-contrib-stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #666666;
+    line-height: 1.05;
+}
+.theme-dark .minddump-contrib-stat-value {
+    color: var(--text-normal);
+}
+.minddump-contrib-stat-label {
+    font-size: 11px;
+    font-weight: 400;
+    color: #999999;
+    margin-top: 4px;
+}
+.theme-dark .minddump-contrib-stat-label {
+    color: var(--text-muted);
+}
+.minddump-contrib-section--compact .minddump-contrib-stat-value {
+    font-size: 18px;
+}
+.minddump-contrib-section--compact .minddump-contrib-stat-label {
+    font-size: 9px;
+    margin-top: 2px;
+}
+.minddump-contrib-grid-wrap {
+    width: 100%;
+}
+.minddump-contrib-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    grid-template-columns: repeat(var(--contrib-weeks, 8), minmax(0, 1fr));
+    grid-auto-flow: column;
+    gap: 4px;
+    width: 100%;
+}
+.minddump-contrib-grid--compact {
+    gap: 3px;
+}
+/* 活动格：中性底 + ::before 叠主题色，与旧热力图一致、避免 color-mix 兼容问题 */
+.minddump-contrib-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    aspect-ratio: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 26%;
+    box-sizing: border-box;
+    background-color: #ebedf0;
+    border: 1px solid transparent;
+    transition: filter 0.12s ease, transform 0.12s ease;
+}
+.theme-dark .minddump-contrib-cell {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+.minddump-contrib-cell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--interactive-accent);
+    opacity: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+.minddump-contrib-cell-date {
+    position: relative;
+    z-index: 1;
+    display: block;
+    max-width: 100%;
+    padding: 0 1px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    color: #a3a3a3;
+    pointer-events: none;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.theme-dark .minddump-contrib-cell-date {
+    color: var(--text-faint);
+}
+.minddump-contrib-l1 .minddump-contrib-cell-date,
+.minddump-contrib-l2 .minddump-contrib-cell-date,
+.minddump-contrib-l3 .minddump-contrib-cell-date {
+    color: var(--text-normal);
+}
+.minddump-contrib-l4 .minddump-contrib-cell-date {
+    color: var(--text-on-accent);
+}
+.minddump-contrib-cell--future .minddump-contrib-cell-date {
+    color: var(--text-faint);
+}
+.minddump-contrib-cell--future {
+    opacity: 0.42;
+    pointer-events: none;
+}
+.minddump-contrib-l1::before {
+    opacity: 0.12;
+}
+.minddump-contrib-l2::before {
+    opacity: 0.26;
+}
+.minddump-contrib-l3::before {
+    opacity: 0.42;
+}
+.minddump-contrib-l4::before {
+    opacity: 0.58;
+}
+.minddump-contrib-cell.minddump-contrib-l1:hover,
+.minddump-contrib-cell.minddump-contrib-l2:hover,
+.minddump-contrib-cell.minddump-contrib-l3:hover,
+.minddump-contrib-cell.minddump-contrib-l4:hover {
+    filter: brightness(1.04);
+    transform: scale(1.06);
+}
+/* 当天：半透明描边 + 模糊光晕（overflow 放开以免裁切阴影） */
+.minddump-contrib-cell--today {
+    z-index: 1;
+    overflow: visible;
+    border-color: color-mix(in srgb, var(--interactive-accent) 26%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--interactive-accent) 16%, transparent),
+        0 0 10px 1px color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+}
+.theme-dark .minddump-contrib-cell--today {
+    border-color: color-mix(in srgb, var(--interactive-accent) 34%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--interactive-accent) 22%, transparent),
+        0 0 12px 2px color-mix(in srgb, var(--interactive-accent) 16%, transparent);
+}
+.minddump-contrib-months {
+    display: grid;
+    grid-template-columns: repeat(var(--contrib-weeks, 8), minmax(0, 1fr));
+    gap: 4px;
+    margin-top: 8px;
+    padding: 0 1px;
+    font-size: 10px;
+    color: #999999;
+    line-height: 1.2;
+    min-height: 1.1em;
+}
+.theme-dark .minddump-contrib-months {
+    color: var(--text-muted);
+}
+.minddump-contrib-months--compact {
+    font-size: 9px;
+    margin-top: 6px;
+    gap: 3px;
+}
+.minddump-contrib-month-cell {
+    text-align: center;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.minddump-contrib-section--compact .minddump-contrib-month-cell {
+    font-variant-numeric: tabular-nums;
+}
+
 /* 搜索栏样式 */
-.jots-search-section {
+.minddump-search-section {
     background: var(--background-primary-alt);
     border-radius: 12px;
     padding: 16px;
 }
 
-.jots-search-box {
+.minddump-search-box {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.jots-search-input {
+.minddump-search-input {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--background-modifier-border);
@@ -115,24 +766,24 @@
     font-size: 14px;
 }
 
-.jots-search-input:focus {
+.minddump-search-input:focus {
     outline: none;
     border-color: var(--interactive-accent);
 }
 
-.jots-tag-filter {
+.minddump-tag-filter {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }
 
-.jots-tag-filter-label {
+.minddump-tag-filter-label {
     font-size: 12px;
     color: var(--text-faint);
 }
 
-.jots-tag-filter-btn {
+.minddump-tag-filter-btn {
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
@@ -143,26 +794,26 @@
     transition: all 0.2s;
 }
 
-.jots-tag-filter-btn:hover {
+.minddump-tag-filter-btn:hover {
     background: var(--background-modifier-hover);
 }
 
-.jots-tag-filter-btn.active {
+.minddump-tag-filter-btn.active {
     background: var(--interactive-accent);
     color: white;
     border-color: var(--interactive-accent);
 }
 
 /* 记录列表样式 */
-.jots-list-section {
+.minddump-list-section {
     flex: 1;
 }
 
-.jots-date-group {
+.minddump-date-group {
     margin-bottom: 20px;
 }
 
-.jots-date-header {
+.minddump-date-header {
     font-size: 12px;
     font-weight: 600;
     color: var(--text-faint);
@@ -171,7 +822,7 @@
     margin-bottom: 8px;
 }
 
-.jots-card {
+.minddump-card {
     background: var(--background-primary-alt);
     border-radius: 10px;
     padding: 12px 16px;
@@ -181,82 +832,179 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.jots-card:hover {
+.minddump-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.jots-card-time {
+.minddump-card-time {
     font-size: 11px;
     color: var(--text-faint);
     margin-bottom: 6px;
 }
 
-.jots-card-content {
-    font-size: 14px;
+.minddump-card-content {
+    font-size: 16px;
     line-height: 1.6;
     color: var(--text-normal);
     margin-bottom: 8px;
 }
 
-/* Markdown 渲染内容样式 */
-.jots-card-content markdown-rendered {
-    font-size: 12px;
-    line-height: 1.5;
+/* Markdown 渲染内容样式
+ * Obsidian 可能使用 <markdown-rendered> 或 div.markdown-rendered；仅用元素选择器会匹配不到，列表会落到 app 的 list-style:none 等重置上。 */
+.minddump-view .minddump-card-content :is(markdown-rendered, .markdown-rendered) {
+    font-size: 15px;
+    line-height: 1.6;
 }
 
-.jots-card-content markdown-rendered p {
+.minddump-view .minddump-card-content :is(markdown-rendered, .markdown-rendered) p {
     margin: 0 0 4px 0;
 }
 
-.jots-card-content markdown-rendered ul,
-.jots-card-content markdown-rendered ol {
+.minddump-view .minddump-card-content ul,
+.minddump-view .minddump-card-content ol {
     margin: 4px 0;
-    padding-left: 20px;
+    padding-left: 1.35em;
+    padding-inline-start: 1.35em;
+    list-style-position: outside;
 }
 
-.jots-card-content markdown-rendered li {
+.minddump-view .minddump-card-content ul:not(.contains-task-list) {
+    list-style-type: disc;
+}
+
+.minddump-view .minddump-card-content ul.contains-task-list {
+    list-style-type: none;
+}
+
+.minddump-view .minddump-card-content ol {
+    list-style-type: decimal;
+}
+
+.minddump-view .minddump-card-content li {
     margin: 2px 0;
 }
 
-.jots-card-content markdown-rendered blockquote {
+.minddump-view .minddump-card-content li::marker {
+    color: var(--text-normal);
+}
+
+.minddump-view .minddump-card-content strong,
+.minddump-view .minddump-card-content b {
+    font-weight: 700;
+    color: var(--text-normal);
+}
+
+.minddump-view .minddump-card-content :is(markdown-rendered, .markdown-rendered) blockquote {
     margin: 4px 0;
     padding-left: 12px;
     border-left: 3px solid var(--interactive-accent);
     color: var(--text-muted);
 }
 
-.jots-card-content markdown-rendered a {
+.minddump-view .minddump-card-content :is(markdown-rendered, .markdown-rendered) a {
     color: var(--link-color);
     text-decoration: none;
 }
 
-.jots-card-content markdown-rendered a:hover {
+.minddump-view .minddump-card-content :is(markdown-rendered, .markdown-rendered) a:hover {
     text-decoration: underline;
 }
 
-.jots-card-content markdown-rendered .task-list-item {
+.minddump-view .minddump-card-content .task-list-item {
     list-style-type: none;
 }
 
-.jots-card-content markdown-rendered .task-list-item-checkbox {
+.minddump-view .minddump-card-content .task-list-item-checkbox {
     margin-right: 6px;
 }
 
-.jots-card-content markdown-rendered img {
+.minddump-view .minddump-card-content :is(markdown-rendered, .markdown-rendered) img {
     max-width: 100%;
     border-radius: 4px;
     margin: 4px 0;
+    cursor: zoom-in;
 }
 
-.jots-card-tags {
+/* Parsed attachment images (standalone ![[...]] lines) shown under card body */
+.minddump-card-attachment-images {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     margin-bottom: 6px;
 }
 
-.jots-card-tag {
+.minddump-card-attachment-images:empty {
+    display: none;
+}
+
+.minddump-card-attachment-thumb {
+    flex: 0 1 auto;
+    max-width: 100%;
+}
+
+.minddump-card-attachment-img {
+    display: block;
+    max-height: 140px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 6px;
+    object-fit: contain;
+    border: 1px solid var(--background-modifier-border);
+    cursor: zoom-in;
+}
+
+/* Fullscreen preview when clicking a card image (vh/vw: flex % max-height is unreliable) */
+.minddump-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    box-sizing: border-box;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+        max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    overflow: auto;
+    text-align: center;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.88);
+    cursor: zoom-out;
+    outline: none;
+}
+
+.minddump-image-lightbox::before {
+    content: "";
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+    width: 0;
+}
+
+.minddump-image-lightbox .minddump-image-lightbox-img {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 96vw !important;
+    max-height: 96vh !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    cursor: default;
+    border-radius: 6px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+}
+
+.minddump-card-attachment-missing {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.minddump-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.minddump-card-tag {
     font-size: 11px;
     padding: 2px 8px;
     border-radius: 4px;
@@ -266,17 +1014,189 @@
     transition: color 0.2s;
 }
 
-.jots-card-tag:hover {
+.minddump-card-tag:hover {
     color: var(--interactive-accent);
 }
 
-.jots-card-source {
+.minddump-card-source {
     font-size: 11px;
     color: var(--text-faint);
     font-style: italic;
 }
 
-.jots-empty {
+/* Card header: time + ⋮ menu */
+.minddump-card-meta-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.minddump-card-meta-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.minddump-card-meta-upd {
+    color: var(--text-normal);
+    font-weight: 600;
+}
+
+.minddump-card-menu-trigger {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin: -4px -6px -4px 0;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary-alt);
+    color: var(--text-muted);
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.minddump-card-menu-trigger:hover {
+    color: var(--text-normal);
+    border-color: var(--interactive-accent);
+    background: var(--background-modifier-hover);
+}
+
+.minddump-card-menu-trigger svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Floating ⋮ popover (also on doc.body — shell uses inline styles as fallback) */
+.minddump-card-menu-popover {
+    position: fixed;
+    z-index: 55000;
+    box-sizing: border-box;
+    background-color: var(--background-primary);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-normal);
+    max-width: calc(100vw - 16px);
+}
+
+.minddump-card-menu-divider {
+    height: 1px;
+    margin: 6px 0;
+    background: var(--background-modifier-border);
+}
+
+.minddump-card-menu-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    line-height: 1.3;
+}
+
+.minddump-card-menu-row:hover {
+    background: var(--background-modifier-hover);
+}
+
+.minddump-card-menu-row--action .minddump-card-menu-row-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.minddump-card-menu-row--action .minddump-card-menu-row-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.minddump-card-menu-row--stub {
+    color: var(--text-muted);
+}
+
+.minddump-card-menu-row--spread {
+    justify-content: space-between;
+}
+
+.minddump-card-menu-row-chevron {
+    display: flex;
+    color: var(--text-faint);
+}
+
+.minddump-card-menu-row-chevron svg {
+    width: 16px;
+    height: 16px;
+}
+
+.minddump-card-menu-ai-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.minddump-card-menu-sub {
+    display: none;
+    padding: 0 0 4px;
+    background: var(--background-primary-alt);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.minddump-card-menu-sub.is-open {
+    display: block;
+}
+
+.minddump-card-menu-row--sub {
+    padding-left: 22px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.minddump-card-menu-row--danger {
+    color: var(--text-error);
+    font-weight: 500;
+}
+
+.minddump-card-menu-row--danger:hover {
+    background: var(--background-modifier-hover);
+}
+
+.minddump-card-menu-footer {
+    padding: 8px 14px 6px;
+    background: var(--background-secondary);
+    margin-top: 2px;
+    border-radius: 0 0 8px 8px;
+}
+
+.minddump-card-menu-footer-line {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.minddump-empty {
     text-align: center;
     padding: 40px;
     color: var(--text-faint);
@@ -284,7 +1204,7 @@
 }
 
 /* 建议列表样式 */
-.jots-suggestions {
+.minddump-suggestions {
     position: absolute;
     bottom: 100%;
     left: 0;
@@ -298,19 +1218,19 @@
     overflow-y: auto;
 }
 
-.jots-suggestion-item {
+.minddump-suggestion-item {
     padding: 6px 12px;
     cursor: pointer;
     font-size: 12px;
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.jots-suggestion-item-active {
+.minddump-suggestion-item-active {
     background-color: var(--background-modifier-hover);
 }
 
 /* 标签建议列表样式 */
-.jots-tag-suggestions {
+.minddump-tag-suggestions {
     position: absolute;
     top: 100%;
     left: 0;
@@ -325,7 +1245,7 @@
     margin-top: 2px;
 }
 
-.jots-tag-suggestion-item {
+.minddump-tag-suggestion-item {
     padding: 6px 12px;
     cursor: pointer;
     font-size: 12px;
@@ -333,18 +1253,18 @@
     color: var(--text-normal);
 }
 
-.jots-tag-suggestion-item-active {
+.minddump-tag-suggestion-item-active {
     background-color: var(--background-modifier-hover);
 }
 
 /* 模态框样式 */
-.jots-capture-modal .modal {
+.minddump-capture-modal .modal {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.jots-capture-container {
+.minddump-capture-container {
     width: 500px;
     max-width: 90vw;
     background: var(--background-primary);
@@ -355,7 +1275,7 @@
     gap: 16px;
 }
 
-.jots-capture-textarea {
+.minddump-capture-textarea {
     width: 100%;
     min-height: 150px;
     padding: 12px;
@@ -368,9 +1288,592 @@
     resize: vertical;
 }
 
-.jots-capture-textarea:focus {
+.minddump-capture-textarea:focus {
     outline: none;
     border-color: var(--interactive-accent);
+}
+
+/* 侧栏「快速记录」入口：与发送键一致，主色文字 + 主题底栏 */
+.minddump-quick-capture-entry-btn {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background: var(--background-secondary);
+    color: var(--interactive-accent);
+    padding: 8px 12px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-family: inherit;
+}
+
+.minddump-quick-capture-entry-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border);
+    color: var(--interactive-accent-hover, var(--interactive-accent));
+}
+
+/* 主视图快速记录：无边框卡片 + 底部工具栏 + 主题色发送键（accent 随主题变化） */
+.minddump-quick-compose-card {
+    background: var(--background-primary);
+    border: none;
+    border-radius: 14px;
+    padding: 16px 16px 12px;
+    box-shadow: none;
+}
+
+/* 主视图快速输入（非内联编辑）：吸顶由 .minddump-left-sticky-stack 承担；阴影仍只落在卡片上（与改 sticky 前一致） */
+.minddump-quick-compose-card:not(.minddump-quick-compose-card--inline-edit) {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.theme-dark .minddump-quick-compose-card:not(.minddump-quick-compose-card--inline-edit) {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* 回收站模式：替代主视图快速输入区的提示条（白底条 + 右侧描边按钮） */
+.minddump-recycle-bin-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.theme-dark .minddump-recycle-bin-banner {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.minddump-recycle-bin-banner__main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+
+.minddump-recycle-bin-banner__icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.minddump-recycle-bin-banner__icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.minddump-recycle-bin-banner__text {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--text-normal);
+}
+
+/* 覆盖 Obsidian 对原生 button 的背景，保证主题色实心填充 */
+.minddump-view button.minddump-recycle-bin-banner__empty {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 5px 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 7px;
+    border: 1px solid var(--interactive-accent) !important;
+    background: var(--interactive-accent) !important;
+    background-color: var(--interactive-accent) !important;
+    background-image: none !important;
+    box-shadow: none;
+    font: inherit;
+    color: var(--text-on-accent, #ffffff);
+    cursor: pointer;
+}
+
+.minddump-view button.minddump-recycle-bin-banner__empty svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+}
+
+.minddump-view button.minddump-recycle-bin-banner__empty:hover {
+    background: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    background-color: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    background-image: none !important;
+    border-color: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    color: var(--text-on-accent, #ffffff);
+}
+
+.minddump-view button.minddump-recycle-bin-banner__empty:active {
+    background-color: var(--interactive-accent-hover, var(--interactive-accent)) !important;
+    filter: brightness(0.92);
+}
+
+.minddump-quick-textarea-container {
+    border-radius: 8px;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.minddump-quick-textarea-container.is-drop-active {
+    background-color: var(--background-modifier-hover);
+    box-shadow: inset 0 0 0 1px var(--background-modifier-border-focus);
+}
+
+.minddump-quick-textarea {
+    width: 100%;
+    min-height: 140px;
+    max-height: 50vh;
+    border: none !important;
+    background: transparent;
+    color: var(--text-normal);
+    resize: none;
+    line-height: 1.6;
+    font-size: 15px;
+    padding: 4px 2px 8px;
+    box-shadow: none !important;
+    box-sizing: border-box;
+}
+
+/* 主视图快速记录：紧凑态仅一行可视高度（与 line-height + 上下 padding 一致），点击或输入后展开 */
+.minddump-quick-compose-card.minddump-quick-compose-card--textarea-compact:not(.minddump-quick-compose-card--inline-edit)
+    .minddump-quick-textarea {
+    min-height: calc(1.6em + 12px);
+    max-height: calc(1.6em + 12px);
+    height: calc(1.6em + 12px);
+    resize: none;
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+
+.minddump-quick-textarea::placeholder {
+    color: var(--text-muted);
+    font-size: 15px;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.minddump-quick-textarea:focus,
+.minddump-quick-textarea:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* contenteditable 正文：列表与加粗所见即所得 */
+.minddump-rich-md.minddump-quick-textarea p,
+.minddump-rich-md.minddump-quick-textarea div,
+.minddump-capture-rich-md p,
+.minddump-capture-rich-md div {
+    margin: 0 0 0.35em;
+}
+.minddump-rich-md.minddump-quick-textarea p:last-child,
+.minddump-rich-md.minddump-quick-textarea div:last-child,
+.minddump-capture-rich-md p:last-child,
+.minddump-capture-rich-md div:last-child {
+    margin-bottom: 0;
+}
+/* 覆盖 app 对 ul/ol 的 list-style:none，编辑时与卡片正文一致显示圆点 / 数字 */
+.minddump-rich-md.minddump-quick-textarea ul,
+.minddump-rich-md.minddump-quick-textarea ol,
+.minddump-capture-rich-md ul,
+.minddump-capture-rich-md ol {
+    margin: 0.35em 0;
+    padding-left: 1.35em;
+    padding-inline-start: 1.35em;
+    list-style-position: outside;
+}
+.minddump-rich-md.minddump-quick-textarea ul,
+.minddump-capture-rich-md ul {
+    list-style-type: disc;
+}
+.minddump-rich-md.minddump-quick-textarea ol,
+.minddump-capture-rich-md ol {
+    list-style-type: decimal;
+}
+.minddump-rich-md.minddump-quick-textarea li,
+.minddump-capture-rich-md li {
+    margin: 0.12em 0;
+    display: list-item;
+}
+.minddump-rich-md.minddump-quick-textarea li::marker,
+.minddump-capture-rich-md li::marker {
+    color: var(--text-normal);
+}
+.minddump-rich-md.minddump-quick-textarea strong,
+.minddump-capture-rich-md strong {
+    font-weight: 700;
+}
+
+/* 正文里 ![[...]] 无法在 textarea 内渲染，用缩略图条展示 vault 图片 */
+.minddump-quick-embed-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.minddump-quick-embed-preview:empty {
+    display: none;
+    margin-top: 0;
+}
+
+.minddump-quick-embed-thumb {
+    line-height: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+}
+
+.minddump-quick-embed-img {
+    display: block;
+    max-height: 120px;
+    max-width: 120px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.minddump-quick-embed-thumb--removable {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.minddump-quick-embed-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.minddump-quick-embed-remove:hover {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* 附件托盘里的图片：与正文 ![[ ]] 预览相同的大缩略图 + 角标删除 */
+.minddump-quick-attachment-item--image-tile {
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 132px;
+    padding: 8px;
+    gap: 6px;
+}
+
+.minddump-quick-attachment-item--image-tile .minddump-quick-embed-thumb {
+    width: 100%;
+}
+
+.minddump-quick-attachment-item-caption {
+    font-size: 10px;
+    color: var(--text-muted);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.minddump-quick-meta-section,
+.minddump-quick-source-section {
+    display: none;
+    margin-top: 10px;
+}
+
+.minddump-quick-meta-input-container {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.minddump-quick-meta-input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.minddump-quick-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.minddump-quick-attachment-tray {
+    margin-top: 10px;
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.minddump-quick-attachment-tray:empty {
+    display: none;
+    margin-top: 0;
+}
+
+.minddump-quick-attachment-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 210px;
+    border-radius: 10px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    font-size: 11px;
+    padding: 6px 8px;
+}
+
+.minddump-quick-attachment-icon {
+    flex: 0 0 auto;
+}
+
+.minddump-quick-attachment-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.minddump-quick-attachment-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.minddump-quick-attachment-remove {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0;
+}
+
+.minddump-quick-attachment-remove:hover {
+    color: var(--text-normal);
+}
+
+.minddump-view .minddump-quick-toolbar-row {
+    margin-top: 4px;
+    padding-top: 4px;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.minddump-view .minddump-quick-toolbar-send-group,
+.minddump-capture-modal .minddump-quick-toolbar-send-group {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.minddump-capture-modal .minddump-quick-toolbar-send-group {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.minddump-quick-edit-cancel-btn {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+}
+
+.minddump-quick-edit-cancel-btn:hover {
+    background: var(--background-modifier-hover);
+}
+
+.minddump-capture-modal .minddump-quick-edit-cancel-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.minddump-view .minddump-quick-compose-card--inline-edit {
+    margin-top: 4px;
+}
+
+/* Text icon bar (Element-style toolMenu + el-button--text) */
+.minddump-view .minddump-quick-tools.minddump-tool-menu {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: flex-start;
+    border-top: none;
+    padding-top: 0;
+    flex: 1;
+    gap: 0;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.minddump-view .minddump-quick-tool-btn.minddump-tool-btn--text {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1;
+    padding: 0 7px;
+    min-width: 0;
+    min-height: 30px;
+    height: 30px;
+    margin: 2px 3px 0 0;
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.minddump-view .minddump-tool-btn-inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.minddump-quick-compose-card .minddump-quick-tool-btn .minddump-toolbar-image-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.minddump-view .minddump-quick-tool-btn .minddump-toolbar-unordered-list-icon,
+.minddump-view .minddump-quick-tool-btn .minddump-toolbar-ordered-list-icon,
+.minddump-quick-compose-card .minddump-quick-tool-btn .minddump-toolbar-unordered-list-icon,
+.minddump-quick-compose-card .minddump-quick-tool-btn .minddump-toolbar-ordered-list-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.minddump-view .minddump-vertical-line {
+    display: inline-block;
+    width: 1px;
+    height: 14px;
+    margin: 2px 4px 0;
+    background: var(--background-modifier-border);
+    flex-shrink: 0;
+    align-self: center;
+    opacity: 0.9;
+}
+
+.minddump-view .minddump-quick-tool-btn.minddump-tool-btn--text:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.minddump-view .minddump-quick-tool-btn.minddump-tool-btn--text:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
+}
+
+.minddump-quick-send-btn .minddump-quick-send-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* 飞机描边用 currentColor；核心在 hover 时可能把按钮 color 调成与背景同色，图标会“没掉”，固定在衬底文字色上 */
+.minddump-quick-send-btn.mod-cta .minddump-quick-send-icon,
+.minddump-capture-modal button.minddump-quick-send-btn.mod-cta .minddump-quick-send-icon {
+    color: var(--text-on-accent);
+}
+
+.minddump-quick-send-btn.mod-cta:hover .minddump-quick-send-icon,
+.minddump-quick-send-btn.mod-cta:focus-visible .minddump-quick-send-icon,
+.minddump-capture-modal button.minddump-quick-send-btn.mod-cta:hover .minddump-quick-send-icon,
+.minddump-capture-modal button.minddump-quick-send-btn.mod-cta:focus-visible .minddump-quick-send-icon {
+    color: var(--text-on-accent);
+}
+
+/* 使用 Obsidian 核心 .mod-cta（与 ButtonComponent.setCta() 一致），保证强调色、hover、明暗主题与主题切换一致 */
+.minddump-quick-send-btn.mod-cta,
+.minddump-capture-modal button.minddump-quick-send-btn.mod-cta {
+    border-radius: 8px;
+    min-width: 0;
+    width: auto;
+    min-height: 30px;
+    height: 30px;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: none;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* 无内容时略淡，仍可见主题强调色；不覆盖背景色以免压过 .mod-cta */
+.minddump-quick-send-btn.mod-cta:not(.is-ready),
+.minddump-capture-modal button.minddump-quick-send-btn.mod-cta:not(.is-ready) {
+    opacity: 0.58;
+}
+
+.minddump-quick-send-btn.mod-cta:not(.is-ready):hover,
+.minddump-capture-modal button.minddump-quick-send-btn.mod-cta:not(.is-ready):hover {
+    opacity: 0.75;
+}
+
+.minddump-quick-send-btn.mod-cta.is-ready,
+.minddump-capture-modal button.minddump-quick-send-btn.mod-cta.is-ready {
+    opacity: 1;
 }
 
 /* 工具提示 */
@@ -427,7 +1930,7 @@
 }
 
 /* 搜索框容器需要相对定位 */
-.jots-search-section .search-clear-container {
+.minddump-search-section .search-clear-container {
     position: absolute;
     right: 8px;
     top: 50%;
@@ -445,11 +1948,11 @@
     z-index: 10;
 }
 
-.jots-search-section .search-clear-container:hover {
+.minddump-search-section .search-clear-container:hover {
     background-color: var(--background-modifier-hover);
 }
 
-.jots-search-section .search-clear-container span {
+.minddump-search-section .search-clear-container span {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -461,6 +1964,321 @@
 }
 
 /* 确保搜索框输入框有右侧内边距，为清空按钮留出空间 */
-.jots-search-section input {
+.minddump-search-section input {
     padding-right: 32px !important;
+}
+
+/* Main layout: right column shell (search + calendar + rail) with collapse */
+.minddump-right-shell {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 0;
+    box-sizing: border-box;
+}
+
+.minddump-right-panel-inner {
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-sizing: border-box;
+}
+
+.minddump-right-panel-inner > .minddump-calendar {
+    margin-top: 0;
+}
+
+.minddump-right-shell-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin: 0;
+    border: none !important;
+    border-radius: 6px;
+    background: transparent !important;
+    color: var(--text-muted);
+    cursor: pointer;
+    box-sizing: border-box;
+    box-shadow: none !important;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: color 0.15s ease;
+}
+
+.minddump-right-shell-toggle-btn:hover,
+.minddump-right-shell-toggle-btn:focus,
+.minddump-right-shell-toggle-btn:focus-visible,
+.minddump-right-shell-toggle-btn:active {
+    color: var(--text-normal);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 右栏折叠时整块隐藏；展开/折叠仅由左侧搜索行按钮控制 */
+.minddump-right-shell.is-collapsed {
+    display: none !important;
+}
+
+/* Right rail: all tags (collapsible) + recycle bin */
+.minddump-right-rail {
+    margin-bottom: 14px;
+    padding: 12px 10px 14px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.theme-dark .minddump-right-rail {
+    background-color: var(--background-secondary);
+}
+
+.minddump-right-rail-tags.is-collapsed .minddump-right-rail-tags-body {
+    display: none;
+}
+
+.minddump-right-rail-tags-head {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    user-select: none;
+    padding: 2px 0 10px;
+    margin-bottom: 2px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.minddump-right-rail-tags-head-left {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 0%;
+    cursor: pointer;
+}
+
+.minddump-right-rail-tags-head-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.minddump-right-rail-tags-sort {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transition: color 0.15s ease;
+}
+
+.minddump-right-rail-tags-sort:hover {
+    color: var(--text-normal);
+    background: transparent;
+}
+
+.minddump-right-rail-tags-search-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px;
+    border: none;
+    border-radius: 4px;
+    background: transparent !important;
+    box-shadow: none !important;
+    transition: color 0.15s ease;
+}
+
+.minddump-right-rail-tags-search-btn:hover,
+.minddump-right-rail-tags-search-btn:focus,
+.minddump-right-rail-tags-search-btn:active {
+    color: var(--text-normal);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.minddump-right-rail-tags-search-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+.minddump-right-rail-tags-title {
+    display: inline-block;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.theme-dark .minddump-right-rail-tags-title {
+    color: var(--text-muted);
+}
+
+.minddump-right-rail-tags-chevron {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.minddump-right-rail-tags-chevron svg {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+}
+
+.minddump-right-rail-tags-chevron.is-collapsed svg {
+    transform: rotate(-90deg);
+}
+
+.minddump-right-rail-tags-filter {
+    margin: 0 0 8px;
+}
+
+.minddump-right-rail-tags-filter-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    font-size: 12px;
+    line-height: 1.3;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.minddump-right-rail-tags-filter-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.minddump-right-rail-tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.minddump-right-rail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-normal);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.minddump-right-rail-row:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.theme-dark .minddump-right-rail-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.minddump-right-rail-row.is-selected,
+.minddump-right-rail-row.is-active {
+    background-color: rgba(0, 0, 0, 0.06);
+    font-weight: 600;
+}
+
+.theme-dark .minddump-right-rail-row.is-selected,
+.theme-dark .minddump-right-rail-row.is-active {
+    background-color: var(--background-modifier-hover);
+}
+
+.minddump-right-rail-row-hash {
+    font-weight: 600;
+    flex-shrink: 0;
+    color: var(--text-normal);
+}
+
+.minddump-right-rail-row-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--text-normal);
+}
+
+.minddump-right-rail-row-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.minddump-right-rail-row--bin {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.minddump-card--in-trash {
+    opacity: 0.94;
+}
+
+/* Pull-to-refresh indicator */
+.minddump-ptr-indicator {
+    color: var(--text-muted);
+    --icon-size: 20px;
+}
+
+.minddump-ptr-indicator svg {
+    width: 20px;
+    height: 20px;
+}
+
+.minddump-ptr-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: minddump-ptr-spin 0.8s linear infinite;
+    color: var(--interactive-accent);
+    --icon-size: 20px;
+}
+
+.minddump-ptr-spinner svg {
+    width: 20px;
+    height: 20px;
+}
+
+@keyframes minddump-ptr-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Content area translated during PTR gesture; GPU-composited by will-change */
+.minddump-ptr-content {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
