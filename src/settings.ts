@@ -1,19 +1,28 @@
 // src/settings.ts
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import JotPlugin from './main';
+import MindDumpPlugin from './main';
 import { t } from './i18n';
 
-export class JotSettingTab extends PluginSettingTab {
-    plugin: JotPlugin;
+export class MindDumpSettingTab extends PluginSettingTab {
+    plugin: MindDumpPlugin;
     private logModeSetting: Setting | null = null;
     private useFixedTagSetting: Setting | null = null;
     private multiFileFormatSetting: Setting | null = null;
     private fixedTagSetting: Setting | null = null;
     private enableTagsInFrontmatterSetting: Setting | null = null;
+    private saveTimeout: number | null = null;
 
-    constructor(app: App, plugin: JotPlugin) {
+    constructor(app: App, plugin: MindDumpPlugin) {
         super(app, plugin);
         this.plugin = plugin;
+    }
+
+    private debouncedSave(delay = 300) {
+        if (this.saveTimeout) clearTimeout(this.saveTimeout);
+        this.saveTimeout = window.setTimeout(async () => {
+            await this.plugin.saveSettings();
+            this.saveTimeout = null;
+        }, delay);
     }
 
     display() {
@@ -53,22 +62,22 @@ export class JotSettingTab extends PluginSettingTab {
             .setName(t('saveFolder', this.plugin.lang))
             .setDesc(t('saveFolderDesc', this.plugin.lang))
             .addText(text => text
-                .setPlaceholder("Jots")
+                .setPlaceholder("MindDump")
                 .setValue(this.plugin.settings.saveFolder)
-                .onChange(async (value) => {
-                    this.plugin.settings.saveFolder = value.trim() || "Jots";
-                    await this.plugin.saveSettings();
+                .onChange((value) => {
+                    this.plugin.settings.saveFolder = value.trim() || "MindDump";
+                    this.debouncedSave();
                 }));
 
         new Setting(containerEl)
             .setName(t('attachmentsFolder', this.plugin.lang))
             .setDesc(t('attachmentsFolderDesc', this.plugin.lang))
             .addText(text => text
-                .setPlaceholder("Jots/attachments")
+                .setPlaceholder("MindDump/attachments")
                 .setValue(this.plugin.settings.attachmentsFolder)
-                .onChange(async (value) => {
-                    this.plugin.settings.attachmentsFolder = value.trim() || "Jots/attachments";
-                    await this.plugin.saveSettings();
+                .onChange((value) => {
+                    this.plugin.settings.attachmentsFolder = value.trim() || "MindDump/attachments";
+                    this.debouncedSave();
                 }));
 
         this.logModeSetting = new Setting(containerEl)
@@ -88,11 +97,11 @@ export class JotSettingTab extends PluginSettingTab {
             .setName(t('fileFormat', this.plugin.lang))
             .setDesc(t('fileFormatDesc', this.plugin.lang))
             .addText(text => text
-                .setPlaceholder("jot-YYYYMMDD")
+                .setPlaceholder("minddump-YYYYMMDD")
                 .setValue(this.plugin.settings.multiFileFormat)
-                .onChange(async (value) => {
-                    this.plugin.settings.multiFileFormat = value.trim() || "jot-YYYYMMDD";
-                    await this.plugin.saveSettings();
+                .onChange((value) => {
+                    this.plugin.settings.multiFileFormat = value.trim() || "minddump-YYYYMMDD";
+                    this.debouncedSave();
                 }));
         this.multiFileFormatSetting.settingEl.style.display = this.plugin.settings.logMode === "multi" ? "" : "none";
 
@@ -111,11 +120,11 @@ export class JotSettingTab extends PluginSettingTab {
             .setName(t('fixedTag', this.plugin.lang))
             .setDesc(t('fixedTagDesc', this.plugin.lang))
             .addText(text => text
-                .setPlaceholder("jot")
+                .setPlaceholder("minddump")
                 .setValue(this.plugin.settings.fixedTag)
-                .onChange(async (value) => {
-                    this.plugin.settings.fixedTag = value.trim() || "jot";
-                    await this.plugin.saveSettings();
+                .onChange((value) => {
+                    this.plugin.settings.fixedTag = value.trim() || "minddump";
+                    this.debouncedSave();
                 }));
         this.fixedTagSetting.settingEl.style.display = this.plugin.settings.useFixedTag ? "" : "none";
 
@@ -163,7 +172,7 @@ export class JotSettingTab extends PluginSettingTab {
         } else {
             infoEl.innerHTML = `
                 <strong>${t('singleModeInfo', this.plugin.lang)}</strong><br>
-                • ${t('fileFormat', this.plugin.lang)}：jots.md<br>
+                • ${t('fileFormat', this.plugin.lang)}：minddumps.md<br>
                 • ${t('attachmentsFolder', this.plugin.lang)}：${this.plugin.settings.attachmentsFolder}<br>
                 • ${t('attachmentsNaming', this.plugin.lang)}<br>
                 • ${t('recordFormat', this.plugin.lang)}<br>
