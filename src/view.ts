@@ -1092,10 +1092,7 @@ export class MindDumpView extends ItemView {
 
             try {
                 await this.loadMindDumps();
-                const listSection = this.contentEl.querySelector(".minddump-list-section");
-                if (listSection) {
-                    this.renderMindDumpList(listSection as HTMLElement);
-                }
+                this.render();
             } finally {
                 refreshing = false;
                 snapBack(false);
